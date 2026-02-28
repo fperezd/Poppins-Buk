@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Poppins · ERP Doméstico</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              pink: '#F0197A',
+              'pink-hover': '#BE0F61',
+              'pink-light': '#FDF0F7',
+              navy: '#1B1564',
+              'navy-light': '#2D25A0',
+            }
+          },
+          fontFamily: { sans: ['Poppins', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { font-family: 'Poppins', sans-serif; box-sizing: border-box; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #f3f4f6; }
+    ::-webkit-scrollbar-thumb { background: #F0197A; border-radius: 4px; }
+    .nav-btn { transition: all 0.18s ease; }
+    .nav-btn.active { background: rgba(240,25,122,0.12); border-left: 3px solid #F0197A; color: white; }
+    .nav-btn:not(.active):hover { background: rgba(255,255,255,0.06); }
+    .card { box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    .fade { animation: fadeUp 0.28s ease both; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+    .row-hover:hover { background: #fafafa; cursor: pointer; }
+    .badge { display:inline-flex; align-items:center; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+    .tab-btn { border-bottom: 2px solid transparent; padding: 10px 16px; font-size: 14px; font-weight: 500; color: #6b7280; transition: all 0.15s; }
+    .tab-btn.active { color: #F0197A; border-bottom-color: #F0197A; }
+    input:focus { outline: none; }
+    select:focus { outline: none; }
+  </style>
+</head>
+<body style="background:#f3f4f6; margin:0;">
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useMemo, useEffect } = React;
+
+// ══════════════════════════════════════════════════
+// MOCK DATA — reemplazar con BUK API calls
+// Endpoint base: https://app.buk.cl/api/v1/
+// ══════════════════════════════════════════════════
+const EMPLOYEES = [
+  { id:1, rut:'12.345.678-9', nombre:'María', apellido:'González Pérez', cargo:'Nana', fecha_ingreso:'2023-03-01', estado:'activo', tipo_contrato:'indefinido', jornada:45, sueldo_base:450000, afp:'Habitat', salud:'Fonasa', email:'maria.g@gmail.com', telefono:'+56 9 8765 4321', direccion:'Av. Los Leones 432, Providencia', ini:'MG', col:'#7C3AED' },
+  { id:2, rut:'15.678.901-2', nombre:'Carmen', apellido:'Rojas Silva', cargo:'Cocinera', fecha_ingreso:'2022-07-15', estado:'activo', tipo_contrato:'indefinido', jornada:45, sueldo_base:520000, afp:'Capital', salud:'Isapre Cruz Blanca', email:'carmen.r@gmail.com', telefono:'+56 9 9876 5432', direccion:'Teatinos 890, Santiago', ini:'CR', col:'#059669' },
+  { id:3, rut:'16.234.567-8', nombre:'Ana', apellido:'Martínez López', cargo:'Nana', fecha_ingreso:'2024-01-10', estado:'activo', tipo_contrato:'plazo_fijo', jornada:30, sueldo_base:350000, afp:'Provida', salud:'Fonasa', email:'ana.m@gmail.com', telefono:'+56 9 7654 3210', direccion:'Av. Grecia 1201, Ñuñoa', ini:'AM', col:'#D97706' },
+  { id:4, rut:'10.987.654-3', nombre:'Rosa', apellido:'Vega Contreras', cargo:'Cuidadora', fecha_ingreso:'2021-11-20', estado:'inactivo', tipo_contrato:'indefinido', jornada:45, sueldo_base:480000, afp:'Habitat', salud:'Fonasa', email:'rosa.v@gmail.com', telefono:'+56 9 6543 2109', direccion:'O\'Higgins 567, Puente Alto', ini:'RV', col:'#DC2626' },
+  { id:5, rut:'18.111.222-5', nombre:'Lucía', apellido:'Fuentes Mora', cargo:'Asesora del Hogar', fecha_ingreso:'2025-06-01', estado:'activo', tipo_contrato:'indefinido', jornada:45, sueldo_base:430000, afp:'Cuprum', salud:'Fonasa', email:'lucia.f@gmail.com', telefono:'+56 9 5432 1098', direccion:'Av. Kennedy 4567, Las Condes', ini:'LF', col:'#2563EB' },
+];
+
+const LIQUIDACIONES = [
+  { id:1, eid:1, periodo:'2026-01', base:450000, hex:0, bono:30000, grat:37500, d_salud:36000, d_afp:45000, d_otros:0, haberes:517500, descuentos:81000, liquido:436500, estado:'pagada', fecha_pago:'2026-01-31' },
+  { id:2, eid:1, periodo:'2025-12', base:450000, hex:22500, bono:50000, grat:37500, d_salud:36000, d_afp:45000, d_otros:0, haberes:560000, descuentos:81000, liquido:479000, estado:'pagada', fecha_pago:'2025-12-31' },
+  { id:3, eid:2, periodo:'2026-01', base:520000, hex:0, bono:0, grat:43333, d_salud:41600, d_afp:52000, d_otros:0, haberes:563333, descuentos:93600, liquido:469733, estado:'pagada', fecha_pago:'2026-01-31' },
+  { id:4, eid:3, periodo:'2026-01', base:350000, hex:0, bono:0, grat:29167, d_salud:28000, d_afp:35000, d_otros:0, haberes:379167, descuentos:63000, liquido:316167, estado:'pagada', fecha_pago:'2026-01-31' },
+  { id:5, eid:5, periodo:'2026-01', base:430000, hex:21500, bono:0, grat:35833, d_salud:34400, d_afp:43000, d_otros:0, haberes:487333, descuentos:77400, liquido:409933, estado:'pendiente', fecha_pago:null },
+];
+
+const VACACIONES = [
+  { id:1, eid:1, tipo:'vacaciones', inicio:'2026-02-10', fin:'2026-02-21', dias:10, estado:'aprobada', obs:'' },
+  { id:2, eid:2, tipo:'licencia_medica', inicio:'2026-01-15', fin:'2026-01-17', dias:3, estado:'aprobada', obs:'Reposo médico' },
+  { id:3, eid:3, tipo:'vacaciones', inicio:'2026-03-01', fin:'2026-03-07', dias:5, estado:'pendiente', obs:'' },
+  { id:4, eid:5, tipo:'permiso', inicio:'2026-02-28', fin:'2026-02-28', dias:1, estado:'pendiente', obs:'Trámite personal' },
+];
+
+const BENEFITS = [
+  { icon:'🏥', label:'Seguro complementario', desc:'Cobertura adicional de salud', asignados:[1,2], monto:15000 },
+  { icon:'🚌', label:'Bono movilización', desc:'Transporte mensual garantizado', asignados:[1,3,5], monto:25000 },
+  { icon:'🍽️', label:'Colación', desc:'Bono de alimentación diario', asignados:[2], monto:45000 },
+  { icon:'🎂', label:'Regalo de cumpleaños', desc:'Detalle especial cada año', asignados:[1,2,3,5], monto:5000 },
+];
+
+// ══════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════
+const clp = n => n?.toLocaleString('es-CL',{style:'currency',currency:'CLP',minimumFractionDigits:0}) ?? '—';
+const fdate = d => d ? new Date(d+'T12:00:00').toLocaleDateString('es-CL') : '—';
+const emp = id => EMPLOYEES.find(e=>e.id===id);
+
+// ══════════════════════════════════════════════════
+// ICONS
+// ══════════════════════════════════════════════════
+const Ic = {
+  Umbrella: ({s=28,c='#F0197A'}) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 12a11.05 11.05 0 0 0-22 0zm-5 7a3 3 0 0 1-6 0v-7"/></svg>,
+  Grid: () => <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>,
+  Users: () => <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+  Card: () => <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>,
+  Cal: () => <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
+  Gift: () => <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>,
+  Search: () => <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+  ChevR: () => <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>,
+  ChevL: () => <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>,
+  Down: () => <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+  Plus: () => <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+  Check: () => <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>,
+  Bell: () => <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>,
+  Api: () => <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>,
+};
+
+// ══════════════════════════════════════════════════
+// REUSABLE COMPONENTS
+// ══════════════════════════════════════════════════
+const Ava = ({e, s=40}) => (
+  <div style={{width:s,height:s,borderRadius:'50%',background:e.col,display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontWeight:700,fontSize:s*0.36,flexShrink:0}}>
+    {e.ini}
+  </div>
+);
+
+const BADGE_CFG = {
+  activo:       { bg:'#DCFCE7', fg:'#166534', label:'Activo' },
+  inactivo:     { bg:'#FEE2E2', fg:'#991B1B', label:'Inactivo' },
+  pagada:       { bg:'#DCFCE7', fg:'#166534', label:'Pagada' },
+  pendiente:    { bg:'#FEF3C7', fg:'#92400E', label:'Pendiente' },
+  aprobada:     { bg:'#DBEAFE', fg:'#1E40AF', label:'Aprobada' },
+  rechazada:    { bg:'#FEE2E2', fg:'#991B1B', label:'Rechazada' },
+  indefinido:   { bg:'#EDE9FE', fg:'#5B21B6', label:'Indefinido' },
+  plazo_fijo:   { bg:'#FEF3C7', fg:'#92400E', label:'Plazo fijo' },
+  vacaciones:   { bg:'#DBEAFE', fg:'#1E40AF', label:'Vacaciones' },
+  licencia_medica:{ bg:'#FEE2E2', fg:'#991B1B', label:'Lic. médica' },
+  permiso:      { bg:'#F3F4F6', fg:'#374151', label:'Permiso' },
+};
+
+const Badge = ({v}) => {
+  const c = BADGE_CFG[v] || { bg:'#F3F4F6', fg:'#374151', label:v };
+  return <span className="badge" style={{background:c.bg,color:c.fg}}>{c.label}</span>;
+};
+
+const Btn = ({onClick, children, variant='primary', size='md', icon}) => {
+  const base = 'inline-flex items-center gap-1.5 font-600 rounded-lg transition-all';
+  const sz = size==='sm' ? 'px-3 py-1.5 text-xs' : 'px-4 py-2 text-sm';
+  const styles = {
+    primary: {background:'#F0197A', color:'white'},
+    navy:    {background:'#1B1564', color:'white'},
+    outline: {background:'white', color:'#374151', border:'1px solid #e5e7eb'},
+    ghost:   {background:'transparent', color:'#6b7280'},
+  };
+  return <button onClick={onClick} className={`${base} ${sz}`} style={styles[variant]}>{icon && icon}{children}</button>;
+};
+
+const KPI = ({label, value, sub, icon, color}) => (
+  <div className="card bg-white rounded-xl p-5">
+    <div className="flex items-start justify-between">
+      <div>
+        <div className="text-2xl font-800 mt-1" style={{color}}>{value}</div>
+        <div className="text-sm font-600 text-gray-700 mt-0.5">{label}</div>
+        {sub && <div className="text-xs text-gray-400 mt-0.5">{sub}</div>}
+      </div>
+      <div className="text-2xl">{icon}</div>
+    </div>
+  </div>
+);
+
+const Th = ({children}) => <th className="px-4 py-3 text-left text-xs font-700 text-gray-500 uppercase tracking-wider whitespace-nowrap">{children}</th>;
+const Td = ({children, cls=''}) => <td className={`px-4 py-3.5 ${cls}`}>{children}</td>;
+
+// ══════════════════════════════════════════════════
+// SIDEBAR
+// ══════════════════════════════════════════════════
+const Sidebar = ({active, go}) => {
+  const nav = [
+    {id:'dashboard',  label:'Dashboard',      icon:<Ic.Grid/>},
+    {id:'employees',  label:'Empleados',      icon:<Ic.Users/>},
+    {id:'payroll',    label:'Liquidaciones',  icon:<Ic.Card/>},
+    {id:'attendance', label:'Asistencia',     icon:<Ic.Cal/>},
+    {id:'benefits',   label:'Beneficios',     icon:<Ic.Gift/>},
+  ];
+  return (
+    <div style={{background:'#1B1564', width:224, minWidth:224, display:'flex', flexDirection:'column', height:'100vh'}}>
+      {/* Logo */}
+      <div style={{padding:'20px 20px 16px', borderBottom:'1px solid rgba(255,255,255,0.08)', display:'flex', alignItems:'center', gap:10}}>
+        <Ic.Umbrella />
+        <div>
+          <div style={{color:'#fff', fontWeight:800, fontSize:17, letterSpacing:'-0.3px', lineHeight:1.1}}>Poppins</div>
+          <div style={{color:'rgba(255,255,255,0.4)', fontSize:9, fontWeight:600, letterSpacing:'1.5px', textTransform:'uppercase'}}>Magia en tu casa</div>
+        </div>
+      </div>
+
+      {/* Nav */}
+      <nav style={{flex:1, padding:'12px 10px', display:'flex', flexDirection:'column', gap:2}}>
+        {nav.map(({id,label,icon}) => (
+          <button key={id} onClick={()=>go(id)}
+            className={`nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-500 text-left ${active===id||active==='profile'&&id==='employees'?'active':'text-white/55'}`}>
+            {icon}<span>{label}</span>
+          </button>
+        ))}
+        {/* API status */}
+        <div style={{marginTop:'auto', paddingTop:12}}>
+          <div style={{background:'rgba(255,255,255,0.05)', borderRadius:10, padding:'10px 12px', display:'flex', alignItems:'center', gap:8}}>
+            <Ic.Api />
+            <div>
+              <div style={{color:'#fff', fontSize:11, fontWeight:600}}>BUK API</div>
+              <div style={{color:'#10B981', fontSize:10, fontWeight:500}}>● Conectado</div>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* User */}
+      <div style={{padding:'14px 16px', borderTop:'1px solid rgba(255,255,255,0.08)', display:'flex', alignItems:'center', gap:10}}>
+        <div style={{width:34,height:34,borderRadius:'50%',background:'#F0197A',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:12,fontWeight:700}}>RA</div>
+        <div>
+          <div style={{color:'#fff', fontSize:12, fontWeight:600}}>René Aravena</div>
+          <div style={{color:'rgba(255,255,255,0.35)', fontSize:11}}>Administrador</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ══════════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════════
+const Dashboard = ({go, setEmp}) => {
+  const activos = EMPLOYEES.filter(e=>e.estado==='activo');
+  const liqEne  = LIQUIDACIONES.filter(l=>l.periodo==='2026-01');
+  const totalLiq = liqEne.reduce((s,l)=>s+l.liquido,0);
+  const pending  = VACACIONES.filter(v=>v.estado==='pendiente');
+
+  return (
+    <div className="fade space-y-6">
+      <div>
+        <h1 style={{fontSize:24,fontWeight:800,color:'#111827',margin:0}}>¡Hola, René! 👋</h1>
+        <p style={{color:'#6B7280',fontSize:14,marginTop:4}}>Resumen de tu hogar doméstico — Febrero 2026</p>
+      </div>
+
+      {/* KPIs */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16}}>
+        <KPI label="Empleadas activas" value={activos.length} sub={`de ${EMPLOYEES.length} totales`} icon="👩‍💼" color="#7C3AED" />
+        <KPI label="Costo total enero" value={clp(totalLiq)} sub="líquido a pagar" icon="💰" color="#F0197A" />
+        <KPI label="Solicitudes pendientes" value={pending.length} sub="vacaciones y permisos" icon="⏳" color="#D97706" />
+        <KPI label="Días vacaciones usados" value="15" sub="acumulado 2026" icon="🏖️" color="#059669" />
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:16}}>
+        {/* Employee quick list */}
+        <div className="card bg-white rounded-xl p-5">
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
+            <span style={{fontWeight:700,color:'#111827',fontSize:15}}>Personal activo</span>
+            <button onClick={()=>go('employees')} style={{color:'#F0197A',fontSize:12,fontWeight:600,background:'none',border:'none',cursor:'pointer'}}>Ver todos →</button>
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:6}}>
+            {activos.map(e=>(
+              <div key={e.id} onClick={()=>{setEmp(e);go('profile');}}
+                style={{display:'flex',alignItems:'center',gap:12,padding:'8px 10px',borderRadius:10,cursor:'pointer',transition:'background 0.15s'}}
+                onMouseEnter={ev=>ev.currentTarget.style.background='#F9FAFB'}
+                onMouseLeave={ev=>ev.currentTarget.style.background='transparent'}>
+                <Ava e={e} s={40} />
+                <div style={{flex:1}}>
+                  <div style={{fontSize:13,fontWeight:600,color:'#111827'}}>{e.nombre} {e.apellido}</div>
+                  <div style={{fontSize:11,color:'#9CA3AF'}}>{e.cargo} · {e.jornada}h/sem</div>
+                </div>
+                <div style={{fontSize:13,fontWeight:700,color:'#1B1564'}}>{clp(e.sueldo_base)}</div>
+                <Badge v={e.estado} />
+                <Ic.ChevR />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Pending requests */}
+        <div className="card bg-white rounded-xl p-5">
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
+            <span style={{fontWeight:700,color:'#111827',fontSize:15}}>Pendientes</span>
+            <button onClick={()=>go('attendance')} style={{color:'#F0197A',fontSize:12,fontWeight:600,background:'none',border:'none',cursor:'pointer'}}>Ver →</button>
+          </div>
+          {pending.length===0 ? (
+            <div style={{textAlign:'center',color:'#9CA3AF',fontSize:13,paddingTop:20}}>Sin pendientes ✓</div>
+          ) : (
+            <div style={{display:'flex',flexDirection:'column',gap:10}}>
+              {pending.map(v=>{
+                const e = emp(v.eid);
+                return (
+                  <div key={v.id} style={{background:'#FFFBEB',border:'1px solid #FDE68A',borderRadius:10,padding:12}}>
+                    <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+                      <Ava e={e} s={28} />
+                      <span style={{fontSize:12,fontWeight:600,color:'#374151'}}>{e?.nombre} {e?.apellido}</span>
+                    </div>
+                    <Badge v={v.tipo} />
+                    <div style={{fontSize:11,color:'#6B7280',marginTop:6}}>{fdate(v.inicio)} — {v.dias} día{v.dias>1?'s':''}</div>
+                    <div style={{display:'flex',gap:6,marginTop:8}}>
+                      <button style={{flex:1,background:'#DCFCE7',color:'#166534',border:'none',borderRadius:6,padding:'4px 0',fontSize:11,fontWeight:600,cursor:'pointer'}}>✓ Aprobar</button>
+                      <button style={{flex:1,background:'#FEE2E2',color:'#991B1B',border:'none',borderRadius:6,padding:'4px 0',fontSize:11,fontWeight:600,cursor:'pointer'}}>✕ Rechazar</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Payroll bar chart */}
+      <div className="card bg-white rounded-xl p-5">
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
+          <span style={{fontWeight:700,color:'#111827',fontSize:15}}>Resumen liquidaciones · Enero 2026</span>
+          <button onClick={()=>go('payroll')} style={{color:'#F0197A',fontSize:12,fontWeight:600,background:'none',border:'none',cursor:'pointer'}}>Ver detalle →</button>
+        </div>
+        <div style={{display:'flex',flexDirection:'column',gap:10}}>
+          {liqEne.map(l=>{
+            const e = emp(l.eid);
+            const pct = Math.round((l.liquido/l.haberes)*100);
+            return (
+              <div key={l.id} style={{display:'flex',alignItems:'center',gap:12}}>
+                <Ava e={e} s={32} />
+                <div style={{flex:1}}>
+                  <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}>
+                    <span style={{fontSize:12,fontWeight:600,color:'#374151'}}>{e?.nombre} {e?.apellido}</span>
+                    <span style={{fontSize:13,fontWeight:800,color:'#1B1564'}}>{clp(l.liquido)}</span>
+                  </div>
+                  <div style={{height:8,background:'#F3F4F6',borderRadius:99,overflow:'hidden'}}>
+                    <div style={{height:'100%',width:pct+'%',background:'linear-gradient(90deg,#F0197A,#BE0F61)',borderRadius:99,transition:'width 0.6s ease'}} />
+                  </div>
+                  <div style={{fontSize:10,color:'#9CA3AF',marginTop:2}}>Líquido: {pct}% de haberes totales</div>
+                </div>
+                <Badge v={l.estado} />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ══════════════════════════════════════════════════
+// EMPLOYEE LIST
+// ══════════════════════════════════════════════════
+const EmployeeList = ({go, setEmp}) => {
+  const [q, setQ] = useState('');
+  const [filter, setFilter] = useState('todos');
+
+  const list = useMemo(()=>EMPLOYEES.filter(e=>{
+    const match = `${e.nombre} ${e.apellido} ${e.cargo} ${e.rut}`.toLowerCase().includes(q.toLowerCase());
+    const sf = filter==='todos' || e.estado===filter;
+    return match && sf;
+  }), [q, filter]);
+
+  return (
+    <div className="fade space-y-5">
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <div>
+          <h1 style={{fontSize:24,fontWeight:800,color:'#111827',margin:0}}>Empleados</h1>
+          <p style={{color:'#6B7280',fontSize:13,marginTop:3}}>{list.length} resultado{list.length!==1?'s':''}</p>
+        </div>
+        <Btn icon={<Ic.Plus/>}>Nuevo empleado</Btn>
+      </div>
+
+      <div className="card bg-white rounded-xl overflow-hidden">
+        {/* Toolbar */}
+        <div style={{padding:'14px 16px',borderBottom:'1px solid #F3F4F6',display:'flex',gap:12,alignItems:'center'}}>
+          <div style={{flex:1,background:'#F9FAFB',borderRadius:10,padding:'8px 12px',display:'flex',alignItems:'center',gap:8}}>
+            <Ic.Search />
+            <input style={{flex:1,background:'transparent',border:'none',fontSize:13,color:'#374151'}} placeholder="Buscar por nombre, RUT, cargo..." value={q} onChange={e=>setQ(e.target.value)} />
+          </div>
+          {['todos','activo','inactivo'].map(f=>(
+            <button key={f} onClick={()=>setFilter(f)}
+              style={{padding:'6px 14px',borderRadius:8,fontSize:12,fontWeight:600,border:'none',cursor:'pointer',
+                background:filter===f?'#1B1564':'#F3F4F6',color:filter===f?'#fff':'#6B7280'}}>
+              {f==='todos'?'Todos':f==='activo'?'Activos':'Inactivos'}
+            </button>
+          ))}
+        </div>
+
+        {/* Table */}
+        <div style={{overflowX:'auto'}}>
+          <table style={{width:'100%',borderCollapse:'collapse'}}>
+            <thead style={{background:'#F9FAFB'}}>
+              <tr><Th>Empleada</Th><Th>RUT</Th><Th>Cargo</Th><Th>Ingreso</Th><Th>Contrato</Th><Th>Sueldo base</Th><Th>Estado</Th><Th></Th></tr>
+            </thead>
+            <tbody>
+              {list.map(e=>(
+                <tr key={e.id} className="row-hover" style={{borderTop:'1px solid #F9FAFB'}}
+                  onClick={()=>{setEmp(e);go('profile');}}>
+                  <Td>
+                    <div style={{display:'flex',alignItems:'center',gap:10}}>
+                      <Ava e={e} s={38} />
+                      <div>
+                        <div style={{fontSize:13,fontWeight:600,color:'#111827'}}>{e.nombre} {e.apellido}</div>
+                        <div style={{fontSize:11,color:'#9CA3AF'}}>{e.email}</div>
+                      </div>
+                    </div>
+                  </Td>
+                  <Td><span style={{fontSize:13,color:'#374151',fontFamily:'monospace'}}>{e.rut}</span></Td>
+                  <Td><span style={{fontSize:13,color:'#374151'}}>{e.cargo}</span></Td>
+                  <Td><span style={{fontSize:12,color:'#6B7280'}}>{fdate(e.fecha_ingreso)}</span></Td>
+                  <Td><Badge v={e.tipo_contrato}/></Td>
+                  <Td><span style={{fontSize:13,fontWeight:700,color:'#1B1564'}}>{clp(e.sueldo_base)}</span></Td>
+                  <Td><Badge v={e.estado}/></Td>
+                  <Td><Ic.ChevR /></Td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ══════════════════════════════════════════════════
+// EMPLOYEE PROFILE
+// ══════════════════════════════════════════════════
+const EmployeeProfile = ({e, go}) => {
+  const [tab, setTab] = useState('datos');
+  const liqs = LIQUIDACIONES.filter(l=>l.eid===e.id);
+  const vacs = VACACIONES.filter(v=>v.eid===e.id);
+  const tabs = [{id:'datos',l:'Datos personales'},{id:'contrato',l:'Contrato'},{id:'liquidaciones',l:'Liquidaciones'},{id:'vacaciones',l:'Vacaciones & Ausencias'}];
+
+  return (
+    <div className="fade" style={{display:'flex',flexDirection:'column',gap:16}}>
+      {/* Back */}
+      <button onClick={()=>go('employees')} style={{display:'inline-flex',alignItems:'center',gap:4,fontSize:13,color:'#6B7280',background:'none',border:'none',cursor:'pointer',fontWeight:500}}>
+        <Ic.ChevL /> Volver a empleados
+      </button>
+
+      {/* Header card */}
+      <div className="card bg-white rounded-xl p-6" style={{display:'flex',alignItems:'center',gap:20}}>
+        <Ava e={e} s={80} />
+        <div style={{flex:1}}>
+          <h1 style={{fontSize:22,fontWeight:800,color:'#111827',margin:0}}>{e.nombre} {e.apellido}</h1>
+          <div style={{display:'flex',alignItems:'center',gap:10,marginTop:6}}>
+            <span style={{fontSize:14,color:'#6B7280'}}>{e.cargo}</span>
+            <span style={{color:'#D1D5DB'}}>·</span>
+            <Badge v={e.estado} />
+            <span style={{color:'#D1D5DB'}}>·</span>
+            <span style={{fontSize:13,color:'#9CA3AF'}}>Desde {fdate(e.fecha_ingreso)}</span>
+          </div>
+          <div style={{display:'flex',gap:16,marginTop:10}}>
+            <span style={{fontSize:12,color:'#6B7280'}}>📧 {e.email}</span>
+            <span style={{fontSize:12,color:'#6B7280'}}>📞 {e.telefono}</span>
+          </div>
+        </div>
+        <div style={{textAlign:'right'}}>
+          <div style={{fontSize:28,fontWeight:800,color:'#1B1564'}}>{clp(e.sueldo_base)}</div>
+          <div style={{fontSize:11,color:'#9CA3AF',marginTop:2}}>sueldo base mensual</div>
+          <div style={{marginTop:10,display:'flex',gap:8,justifyContent:'flex-end'}}>
+            <Btn variant="outline" size="sm">Editar</Btn>
+            <Btn size="sm">Nueva liquidación</Btn>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div style={{borderBottom:'1px solid #E5E7EB',display:'flex',gap:4}}>
+        {tabs.map(t=>(
+          <button key={t.id} onClick={()=>setTab(t.id)}
+            className={`tab-btn ${tab===t.id?'active':''}`} style={{background:'none',border:'none',cursor:'pointer'}}>
+            {t.l}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab content */}
+      <div className="card bg-white rounded-xl p-6">
+        {tab==='datos' && (
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:24}}>
+            {[
+              {l:'RUT',v:e.rut},{l:'Nombre completo',v:`${e.nombre} ${e.apellido}`},
+              {l:'Email',v:e.email},{l:'Teléfono',v:e.telefono},
+              {l:'Dirección',v:e.direccion},{l:'AFP',v:e.afp},
+              {l:'Salud',v:e.salud},{l:'Jornada semanal',v:e.jornada+' horas'},
+            ].map(({l,v})=>(
+              <div key={l}>
+                <div style={{fontSize:10,fontWeight:700,color:'#9CA3AF',textTransform:'uppercase',letterSpacing:'0.8px',marginBottom:4}}>{l}</div>
+                <div style={{fontSize:14,fontWeight:500,color:'#111827'}}>{v}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {tab==='contrato' && (
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:24}}>
+            {[
+              {l:'Tipo de contrato',v:<Badge v={e.tipo_contrato}/>},
+              {l:'Fecha de ingreso',v:fdate(e.fecha_ingreso)},
+              {l:'Empleador',v:e.nombre_empleador||'René Aravena'},
+              {l:'Jornada',v:`${e.jornada} horas semanales`},
+              {l:'Sueldo base',v:<span style={{fontWeight:700,color:'#1B1564'}}>{clp(e.sueldo_base)}</span>},
+              {l:'Estado laboral',v:<Badge v={e.estado}/>},
+            ].map(({l,v})=>(
+              <div key={l}>
+                <div style={{fontSize:10,fontWeight:700,color:'#9CA3AF',textTransform:'uppercase',letterSpacing:'0.8px',marginBottom:4}}>{l}</div>
+                <div style={{fontSize:14,fontWeight:500,color:'#111827'}}>{v}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {tab==='liquidaciones' && (
+          liqs.length===0
+            ? <div style={{textAlign:'center',color:'#9CA3AF',padding:'40px 0',fontSize:14}}>Sin liquidaciones registradas</div>
+            : <table style={{width:'100%',borderCollapse:'collapse'}}>
+                <thead style={{background:'#F9FAFB'}}>
+                  <tr><Th>Período</Th><Th>Sueldo base</Th><Th>Haberes totales</Th><Th>Descuentos</Th><Th>Líquido</Th><Th>Estado</Th><Th></Th></tr>
+                </thead>
+                <tbody>
+                  {liqs.map(l=>(
+                    <tr key={l.id} style={{borderTop:'1px solid #F3F4F6'}}>
+                      <Td><span style={{fontWeight:600,color:'#374151'}}>{l.periodo}</span></Td>
+                      <Td><span style={{fontSize:13,color:'#374151'}}>{clp(l.base)}</span></Td>
+                      <Td><span style={{fontSize:13,color:'#059669',fontWeight:600}}>{clp(l.haberes)}</span></Td>
+                      <Td><span style={{fontSize:13,color:'#DC2626',fontWeight:500}}>-{clp(l.descuentos)}</span></Td>
+                      <Td><span style={{fontSize:14,fontWeight:800,color:'#1B1564'}}>{clp(l.liquido)}</span></Td>
+                      <Td><Badge v={l.estado}/></Td>
+                      <Td><Btn variant="ghost" size="sm" icon={<Ic.Down/>}>PDF</Btn></Td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+        )}
+
+        {tab==='vacaciones' && (
+          vacs.length===0
+            ? <div style={{textAlign:'center',color:'#9CA3AF',padding:'40px 0',fontSize:14}}>Sin ausencias registradas</div>
+            : <table style={{width:'100%',borderCollapse:'collapse'}}>
+                <thead style={{background:'#F9FAFB'}}>
+                  <tr><Th>Tipo</Th><Th>Inicio</Th><Th>Fin</Th><Th>Días</Th><Th>Estado</Th><Th>Observación</Th></tr>
+                </thead>
+                <tbody>
+                  {vacs.map(v=>(
+                    <tr key={v.id} style={{borderTop:'1px solid #F3F4F6'}}>
+                      <Td><Badge v={v.tipo}/></Td>
+                      <Td><span style={{fontSize:13,color:'#374151'}}>{fdate(v.inicio)}</span></Td>
+                      <Td><span style={{fontSize:13,color:'#374151'}}>{fdate(v.fin)}</span></Td>
+                      <Td><span style={{fontSize:14,fontWeight:700,color:'#111827'}}>{v.dias}</span></Td>
+                      <Td><Badge v={v.estado}/></Td>
+                      <Td><span style={{fontSize:12,color:'#6B7280'}}>{v.obs||'—'}</span></Td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ══════════════════════════════════════════════════
+// PAYROLL
+// ══════════════════════════════════════════════════
+const Payroll = () => {
+  const [periodo, setPeriodo] = useState('2026-01');
+  const liqs = LIQUIDACIONES.filter(l=>l.periodo===periodo);
+  const totalH = liqs.reduce((s,l)=>s+l.haberes,0);
+  const totalD = liqs.reduce((s,l)=>s+l.descuentos,0);
+  const totalL = liqs.reduce((s,l)=>s+l.liquido,0);
+
+  return (
+    <div className="fade space-y-5">
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <div>
+          <h1 style={{fontSize:24,fontWeight:800,color:'#111827',margin:0}}>Liquidaciones</h1>
+          <p style={{color:'#6B7280',fontSize:13,marginTop:3}}>Sueldos mensuales de tu personal</p>
+        </div>
+        <div style={{display:'flex',gap:10,alignItems:'center'}}>
+          <select value={periodo} onChange={e=>setPeriodo(e.target.value)}
+            style={{border:'1px solid #E5E7EB',borderRadius:8,padding:'7px 12px',fontSize:13,fontWeight:500,color:'#374151',background:'white',cursor:'pointer'}}>
+            <option value="2026-01">Enero 2026</option>
+            <option value="2025-12">Diciembre 2025</option>
+          </select>
+          <Btn variant="outline" icon={<Ic.Down/>}>Exportar Excel</Btn>
+          <Btn icon={<Ic.Plus/>}>Nueva liquidación</Btn>
+        </div>
+      </div>
+
+      {/* Summary */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16}}>
+        <KPI label="Total haberes" value={clp(totalH)} sub="sueldos + bonos" icon="📈" color="#059669" />
+        <KPI label="Total descuentos" value={clp(totalD)} sub="salud + AFP" icon="📉" color="#DC2626" />
+        <KPI label="Total a pagar" value={clp(totalL)} sub="líquido neto" icon="💸" color="#F0197A" />
+      </div>
+
+      {/* Detail table */}
+      <div className="card bg-white rounded-xl overflow-hidden">
+        <div style={{padding:'14px 20px',borderBottom:'1px solid #F3F4F6',fontWeight:700,fontSize:14,color:'#111827'}}>
+          Detalle por empleada — {periodo==='2026-01'?'Enero 2026':'Diciembre 2025'}
+        </div>
+        <div style={{overflowX:'auto'}}>
+          <table style={{width:'100%',borderCollapse:'collapse'}}>
+            <thead style={{background:'#F9FAFB'}}>
+              <tr>
+                <Th>Empleada</Th>
+                <Th>Sueldo base</Th>
+                <Th>Extras</Th>
+                <Th>Salud</Th>
+                <Th>AFP</Th>
+                <Th>Líquido</Th>
+                <Th>Estado</Th>
+                <Th></Th>
+              </tr>
+            </thead>
+            <tbody>
+              {liqs.map(l=>{
+                const e = emp(l.eid);
+                return (
+                  <tr key={l.id} className="row-hover" style={{borderTop:'1px solid #F9FAFB'}}>
+                    <Td>
+                      <div style={{display:'flex',alignItems:'center',gap:10}}>
+                        <Ava e={e} s={36} />
+                        <div>
+                          <div style={{fontSize:13,fontWeight:600,color:'#111827'}}>{e?.nombre} {e?.apellido}</div>
+                          <div style={{fontSize:11,color:'#9CA3AF'}}>{e?.cargo}</div>
+                        </div>
+                      </div>
+                    </Td>
+                    <Td><span style={{fontSize:13,color:'#374151'}}>{clp(l.base)}</span></Td>
+                    <Td><span style={{fontSize:13,color:'#059669',fontWeight:500}}>+{clp(l.bono+l.grat)}</span></Td>
+                    <Td><span style={{fontSize:13,color:'#DC2626'}}>-{clp(l.d_salud)}</span></Td>
+                    <Td><span style={{fontSize:13,color:'#DC2626'}}>-{clp(l.d_afp)}</span></Td>
+                    <Td><span style={{fontSize:15,fontWeight:800,color:'#1B1564'}}>{clp(l.liquido)}</span></Td>
+                    <Td><Badge v={l.estado}/></Td>
+                    <Td>
+                      <div style={{display:'flex',gap:6}}>
+                        <Btn variant="ghost" size="sm" icon={<Ic.Down/>}>PDF</Btn>
+                        {l.estado==='pendiente' && <Btn size="sm" icon={<Ic.Check/>}>Pagar</Btn>}
+                      </div>
+                    </Td>
+                  </tr>
+                );
+              })}
+            </tbody>
+            <tfoot style={{borderTop:'2px solid #E5E7EB',background:'#F9FAFB'}}>
+              <tr>
+                <td colSpan={5} style={{padding:'12px 16px',fontSize:13,fontWeight:700,color:'#374151'}}>TOTAL</td>
+                <td style={{padding:'12px 16px',fontSize:16,fontWeight:800,color:'#F0197A'}}>{clp(totalL)}</td>
+                <td colSpan={2}></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      {/* Breakdown card */}
+      <div className="card bg-white rounded-xl p-5">
+        <div style={{fontWeight:700,color:'#111827',marginBottom:14,fontSize:14}}>Desglose por empleada</div>
+        <div style={{display:'flex',flexDirection:'column',gap:10}}>
+          {liqs.map(l=>{
+            const e = emp(l.eid);
+            const pct = Math.round(l.liquido/totalL*100);
+            return (
+              <div key={l.id} style={{display:'flex',alignItems:'center',gap:12}}>
+                <Ava e={e} s={30}/>
+                <span style={{fontSize:12,fontWeight:600,color:'#374151',width:130}}>{e?.nombre}</span>
+                <div style={{flex:1,height:10,background:'#F3F4F6',borderRadius:99,overflow:'hidden'}}>
+                  <div style={{height:'100%',width:pct+'%',background:e.col,borderRadius:99}} />
+                </div>
+                <span style={{fontSize:13,fontWeight:700,color:'#1B1564',width:90,textAlign:'right'}}>{clp(l.liquido)}</span>
+                <span style={{fontSize:11,color:'#9CA3AF',width:30}}>{pct}%</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ══════════════════════════════════════════════════
+// ATTENDANCE
+// ══════════════════════════════════════════════════
+const Attendance = () => {
+  const [filter, setFilter] = useState('todas');
+
+  const filtered = filter==='todas' ? VACACIONES : VACACIONES.filter(v=>v.tipo===filter||v.estado===filter);
+
+  return (
+    <div className="fade space-y-5">
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <div>
+          <h1 style={{fontSize:24,fontWeight:800,color:'#111827',margin:0}}>Asistencia & Vacaciones</h1>
+          <p style={{color:'#6B7280',fontSize:13,marginTop:3}}>Licencias, permisos y control de ausencias</p>
+        </div>
+        <Btn icon={<Ic.Plus/>}>Nueva solicitud</Btn>
+      </div>
+
+      {/* Filters */}
+      <div style={{display:'flex',gap:8}}>
+        {['todas','vacaciones','licencia_medica','permiso','pendiente','aprobada'].map(f=>(
+          <button key={f} onClick={()=>setFilter(f)}
+            style={{padding:'6px 14px',borderRadius:8,fontSize:12,fontWeight:600,border:'none',cursor:'pointer',
+              background:filter===f?'#1B1564':'white',color:filter===f?'#fff':'#6B7280',
+              boxShadow:filter!==f?'0 1px 3px rgba(0,0,0,0.07)':undefined}}>
+            {BADGE_CFG[f]?.label||'Todas'}
+          </button>
+        ))}
+      </div>
+
+      {/* Table */}
+      <div className="card bg-white rounded-xl overflow-hidden">
+        <table style={{width:'100%',borderCollapse:'collapse'}}>
+          <thead style={{background:'#F9FAFB'}}>
+            <tr><Th>Empleada</Th><Th>Tipo</Th><Th>Inicio</Th><Th>Fin</Th><Th>Días</Th><Th>Estado</Th><Th>Nota</Th><Th>Acciones</Th></tr>
+          </thead>
+          <tbody>
+            {filtered.map(v=>{
+              const e = emp(v.eid);
+              return (
+                <tr key={v.id} style={{borderTop:'1px solid #F9FAFB'}}>
+                  <Td>
+                    <div style={{display:'flex',alignItems:'center',gap:8}}>
+                      <Ava e={e} s={32}/>
+                      <span style={{fontSize:13,fontWeight:600,color:'#111827'}}>{e?.nombre} {e?.apellido}</span>
+                    </div>
+                  </Td>
+                  <Td><Badge v={v.tipo}/></Td>
+                  <Td><span style={{fontSize:13,color:'#374151'}}>{fdate(v.inicio)}</span></Td>
+                  <Td><span style={{fontSize:13,color:'#374151'}}>{fdate(v.fin)}</span></Td>
+                  <Td><span style={{fontSize:14,fontWeight:700,color:'#111827'}}>{v.dias}</span></Td>
+                  <Td><Badge v={v.estado}/></Td>
+                  <Td><span style={{fontSize:12,color:'#6B7280'}}>{v.obs||'—'}</span></Td>
+                  <Td>
+                    {v.estado==='pendiente' && (
+                      <div style={{display:'flex',gap:6}}>
+                        <button style={{background:'#DCFCE7',color:'#166534',border:'none',borderRadius:6,padding:'4px 10px',fontSize:11,fontWeight:600,cursor:'pointer'}}>✓</button>
+                        <button style={{background:'#FEE2E2',color:'#991B1B',border:'none',borderRadius:6,padding:'4px 10px',fontSize:11,fontWeight:600,cursor:'pointer'}}>✕</button>
+                      </div>
+                    )}
+                  </Td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Vacation tracker per employee */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16}}>
+        {EMPLOYEES.filter(e=>e.estado==='activo').map(e=>{
+          const used = VACACIONES.filter(v=>v.eid===e.id&&v.tipo==='vacaciones'&&v.estado==='aprobada').reduce((s,v)=>s+v.dias,0);
+          const total = 15;
+          const avail = total - used;
+          return (
+            <div key={e.id} className="card bg-white rounded-xl p-4">
+              <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
+                <Ava e={e} s={36}/>
+                <div>
+                  <div style={{fontSize:12,fontWeight:700,color:'#111827'}}>{e.nombre}</div>
+                  <div style={{fontSize:11,color:'#9CA3AF'}}>{e.cargo}</div>
+                </div>
+              </div>
+              <div style={{display:'flex',justifyContent:'space-between',fontSize:11,color:'#6B7280',marginBottom:5}}>
+                <span>Días usados</span>
+                <span style={{fontWeight:700}}>{used}/{total}</span>
+              </div>
+              <div style={{height:8,background:'#F3F4F6',borderRadius:99,overflow:'hidden',marginBottom:6}}>
+                <div style={{height:'100%',width:(used/total*100)+'%',background:'#F0197A',borderRadius:99}} />
+              </div>
+              <div style={{fontSize:11,color:'#059669',fontWeight:600}}>✓ {avail} días disponibles</div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// ══════════════════════════════════════════════════
+// BENEFITS
+// ══════════════════════════════════════════════════
+const Benefits = () => {
+  const totalMensual = BENEFITS.reduce((s,b)=>s+(b.monto*b.asignados.length),0);
+
+  return (
+    <div className="fade space-y-5">
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <div>
+          <h1 style={{fontSize:24,fontWeight:800,color:'#111827',margin:0}}>Beneficios</h1>
+          <p style={{color:'#6B7280',fontSize:13,marginTop:3}}>Gestiona extras y beneficios del personal</p>
+        </div>
+        <div style={{display:'flex',gap:10,alignItems:'center'}}>
+          <div className="card bg-white rounded-lg" style={{padding:'8px 16px',fontSize:13,fontWeight:700,color:'#F0197A'}}>
+            Costo mensual total: {clp(totalMensual)}
+          </div>
+          <Btn icon={<Ic.Plus/>}>Nuevo beneficio</Btn>
+        </div>
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
+        {BENEFITS.map((b,i)=>{
+          const asignadosEmps = b.asignados.map(id=>emp(id)).filter(Boolean);
+          return (
+            <div key={i} className="card bg-white rounded-xl p-6">
+              <div style={{display:'flex',gap:16}}>
+                <div style={{fontSize:36}}>{b.icon}</div>
+                <div style={{flex:1}}>
+                  <div style={{fontWeight:700,color:'#111827',fontSize:16}}>{b.label}</div>
+                  <div style={{fontSize:12,color:'#6B7280',marginTop:2}}>{b.desc}</div>
+
+                  {/* Assigned employees */}
+                  <div style={{marginTop:14}}>
+                    <div style={{fontSize:10,fontWeight:700,color:'#9CA3AF',textTransform:'uppercase',letterSpacing:'0.8px',marginBottom:8}}>Asignado a</div>
+                    {asignadosEmps.length===0
+                      ? <span style={{fontSize:12,color:'#D1D5DB'}}>Sin asignaciones</span>
+                      : <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+                          {asignadosEmps.map(e=>(
+                            <div key={e.id} style={{display:'flex',alignItems:'center',gap:5,background:'#FDF0F7',borderRadius:20,padding:'3px 10px 3px 4px'}}>
+                              <Ava e={e} s={20}/>
+                              <span style={{fontSize:11,fontWeight:600,color:'#F0197A'}}>{e.nombre}</span>
+                            </div>
+                          ))}
+                        </div>
+                    }
+                  </div>
+
+                  {/* Cost */}
+                  {b.monto > 0 && (
+                    <div style={{marginTop:12,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                      <span style={{fontSize:12,color:'#6B7280'}}>{clp(b.monto)}/persona · {clp(b.monto*b.asignados.length)}/mes total</span>
+                      <Btn variant="outline" size="sm">Editar</Btn>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Summary table */}
+      <div className="card bg-white rounded-xl overflow-hidden">
+        <div style={{padding:'14px 20px',borderBottom:'1px solid #F3F4F6',fontWeight:700,fontSize:14,color:'#111827'}}>
+          Beneficios por empleada
+        </div>
+        <table style={{width:'100%',borderCollapse:'collapse'}}>
+          <thead style={{background:'#F9FAFB'}}>
+            <tr>
+              <Th>Empleada</Th>
+              {BENEFITS.map(b=><Th key={b.label}>{b.label}</Th>)}
+              <Th>Total mensual</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {EMPLOYEES.filter(e=>e.estado==='activo').map(e=>{
+              const total = BENEFITS.filter(b=>b.asignados.includes(e.id)).reduce((s,b)=>s+b.monto,0);
+              return (
+                <tr key={e.id} style={{borderTop:'1px solid #F9FAFB'}}>
+                  <Td>
+                    <div style={{display:'flex',alignItems:'center',gap:8}}>
+                      <Ava e={e} s={30}/><span style={{fontSize:13,fontWeight:600,color:'#111827'}}>{e.nombre}</span>
+                    </div>
+                  </Td>
+                  {BENEFITS.map(b=>(
+                    <Td key={b.label}>
+                      {b.asignados.includes(e.id)
+                        ? <span style={{color:'#059669',fontWeight:600}}>✓</span>
+                        : <span style={{color:'#D1D5DB'}}>—</span>
+                      }
+                    </Td>
+                  ))}
+                  <Td><span style={{fontWeight:700,color:'#1B1564'}}>{clp(total)}</span></Td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+// ══════════════════════════════════════════════════
+// APP SHELL
+// ══════════════════════════════════════════════════
+const App = () => {
+  const [page, setPage] = useState('dashboard');
+  const [selEmp, setSelEmp] = useState(null);
+
+  const go = p => setPage(p);
+
+  const pageNames = { dashboard:'Dashboard', employees:'Empleados', profile:'Perfil', payroll:'Liquidaciones', attendance:'Asistencia', benefits:'Beneficios' };
+
+  const renderPage = () => {
+    switch(page) {
+      case 'dashboard':  return <Dashboard go={go} setEmp={setSelEmp}/>;
+      case 'employees':  return <EmployeeList go={go} setEmp={setSelEmp}/>;
+      case 'profile':    return selEmp ? <EmployeeProfile e={selEmp} go={go}/> : null;
+      case 'payroll':    return <Payroll/>;
+      case 'attendance': return <Attendance/>;
+      case 'benefits':   return <Benefits/>;
+      default:           return <Dashboard go={go} setEmp={setSelEmp}/>;
+    }
+  };
+
+  return (
+    <div style={{display:'flex',height:'100vh',overflow:'hidden'}}>
+      <Sidebar active={page} go={go}/>
+
+      <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+        {/* Topbar */}
+        <div style={{background:'white',borderBottom:'1px solid #F3F4F6',padding:'10px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',height:54}}>
+          <div style={{display:'flex',alignItems:'center',gap:6,fontSize:12,color:'#9CA3AF'}}>
+            <span>Poppins ERP</span>
+            <Ic.ChevR />
+            <span style={{fontWeight:600,color:'#374151'}}>
+              {page==='profile' && selEmp ? `${selEmp.nombre} ${selEmp.apellido}` : pageNames[page]}
+            </span>
+          </div>
+          <div style={{display:'flex',alignItems:'center',gap:12}}>
+            <div style={{background:'#F9FAFB',borderRadius:8,padding:'6px 12px',display:'flex',alignItems:'center',gap:6}}>
+              <Ic.Search/>
+              <input style={{background:'transparent',border:'none',fontSize:12,color:'#374151',width:160}} placeholder="Buscar empleadas..."/>
+            </div>
+            <button style={{background:'none',border:'none',cursor:'pointer',color:'#6B7280',position:'relative'}}>
+              <Ic.Bell/>
+              <span style={{position:'absolute',top:-2,right:-2,width:8,height:8,background:'#F0197A',borderRadius:'50%'}}/>
+            </button>
+            <div style={{width:32,height:32,borderRadius:'50%',background:'#F0197A',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontSize:12,fontWeight:700,cursor:'pointer'}}>RA</div>
+          </div>
+        </div>
+
+        {/* Page content */}
+        <div style={{flex:1,overflowY:'auto',padding:28}}>
+          {renderPage()}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
