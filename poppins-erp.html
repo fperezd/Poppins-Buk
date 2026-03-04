@@ -8,853 +8,538 @@
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              pink: '#F0197A', pinkH: '#BE0F61', pinkL: '#FDF0F7',
-              navy: '#1B1564', navyL: '#2D25A0', navyD: '#100D3F'
-            },
-          },
-          fontFamily: { poppins: ['Poppins', 'sans-serif'] },
-        }
-      }
-    };
-  </script>
   <style>
-    * { font-family: 'Poppins', sans-serif; }
-    ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-track { background: #f1f5f9; }
-    ::-webkit-scrollbar-thumb { background: #F0197A; border-radius: 10px; }
-    .nav-item { display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:8px; font-size:14px; color:#CBD5E1; cursor:pointer; transition:all 0.15s; width:100%; text-align:left; background:transparent; border:none; }
-    .nav-item:hover { background:rgba(255,255,255,0.1); }
-    .nav-item.active { background:#F0197A; color:#fff; font-weight:600; }
-    .nav-section { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#475569; padding:0 12px; margin-top:20px; margin-bottom:8px; width:100%; background:transparent; border:none; cursor:pointer; text-align:left; display:flex; justify-content:space-between; align-items:center; }
-    .nav-section:hover { color:#94A3B8; }
-    .tab-btn { padding:8px 16px; font-size:14px; font-weight:500; border-bottom:2px solid transparent; color:#6B7280; cursor:pointer; background:transparent; border-top:none; border-left:none; border-right:none; transition:all 0.15s; white-space:nowrap; }
-    .tab-btn:hover { color:#F0197A; }
-    .tab-btn.active { border-bottom-color:#F0197A; color:#F0197A; }
-    .stat-card { background:#fff; border-radius:12px; padding:20px; box-shadow:0 1px 4px rgba(0,0,0,0.07); border:1px solid #F1F5F9; }
-    .btn-pink { background:#F0197A; color:#fff; font-size:14px; font-weight:600; padding:8px 16px; border-radius:8px; border:none; cursor:pointer; transition:background 0.15s; }
-    .btn-pink:hover { background:#BE0F61; }
-    .btn-navy { background:#1B1564; color:#fff; font-size:14px; font-weight:600; padding:8px 16px; border-radius:8px; border:none; cursor:pointer; transition:background 0.15s; }
-    .btn-navy:hover { background:#2D25A0; }
-    .btn-outline { background:transparent; color:#4B5563; font-size:14px; padding:8px 16px; border-radius:8px; border:1px solid #E5E7EB; cursor:pointer; transition:all 0.15s; }
-    .btn-outline:hover { background:#F9FAFB; }
-    .btn-icon { background:transparent; border:none; cursor:pointer; padding:6px; border-radius:8px; color:#9CA3AF; transition:all 0.15s; }
-    .btn-icon:hover { background:#F9FAFB; color:#374151; }
-    .pill { display:inline-flex; align-items:center; padding:2px 10px; border-radius:9999px; font-size:12px; font-weight:500; }
-    .pill-green  { background:#ECFDF5; color:#065F46; }
-    .pill-red    { background:#FEF2F2; color:#DC2626; }
-    .pill-yellow { background:#FFFBEB; color:#92400E; }
-    .pill-blue   { background:#EFF6FF; color:#1D4ED8; }
-    .pill-purple { background:#F5F3FF; color:#5B21B6; }
-    .liq-row { display:grid; grid-template-columns:1fr auto; gap:8px; font-size:14px; padding:6px 0; border-bottom:1px solid #F8FAFC; }
-    .dropdown-menu { position:absolute; top:100%; left:0; margin-top:4px; background:#fff; border:1px solid #F1F5F9; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.1); z-index:50; min-width:140px; }
-    .dropdown-item { display:block; width:100%; text-align:left; padding:8px 16px; font-size:14px; color:#4B5563; background:transparent; border:none; cursor:pointer; }
-    .dropdown-item:hover { background:#F9FAFB; }
-    .fade-in { animation: fadeIn 0.2s ease-in-out; }
-    @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
-    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:100; display:flex; align-items:center; justify-content:center; padding:16px; }
-    .modal-box { background:#fff; border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,0.15); max-height:90vh; overflow:auto; }
-    input:focus, select:focus, textarea:focus { outline:none; border-color:#F0197A; }
-    table { border-collapse:collapse; width:100%; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Poppins', sans-serif; background: #F8F9FA; color: #111827; font-size: 14px; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #F1F5F9; }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
+
+    /* ── LAYOUT ── */
+    .app-shell { display: flex; height: 100vh; overflow: hidden; }
+    .sidebar { width: 240px; min-width: 240px; background: #1B1564; display: flex; flex-direction: column; overflow-y: auto; }
+    .main-col { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .topbar { height: 54px; min-height: 54px; background: #fff; border-bottom: 1px solid #E5E7EB; display: flex; align-items: center; padding: 0 20px; gap: 12px; }
+    .content-area { flex: 1; overflow-y: auto; padding: 24px; background: #F8F9FA; }
+
+    /* ── SIDEBAR ── */
+    .sb-logo { padding: 18px 16px 12px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .sb-logo-icon { width: 36px; height: 36px; background: #F0197A; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+    .sb-logo-text { font-size: 18px; font-weight: 700; color: #fff; line-height: 1.1; }
+    .sb-logo-sub { font-size: 10px; color: rgba(255,255,255,0.45); font-weight: 400; letter-spacing: 0.05em; }
+    .sb-section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.3); padding: 16px 16px 6px; }
+    .sb-item { display: flex; align-items: center; gap: 10px; padding: 9px 16px; font-size: 13px; color: rgba(255,255,255,0.65); cursor: pointer; border: none; background: transparent; width: 100%; text-align: left; border-left: 3px solid transparent; transition: all 0.15s; }
+    .sb-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+    .sb-item.active { background: rgba(240,25,122,0.18); color: #fff; border-left-color: #F0197A; font-weight: 600; }
+    .sb-item svg { opacity: 0.7; flex-shrink: 0; }
+    .sb-item.active svg { opacity: 1; }
+    .sb-divider { border: none; border-top: 1px solid rgba(255,255,255,0.07); margin: 6px 0; }
+    .sb-bottom { margin-top: auto; padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.08); }
+    .sb-user { display: flex; align-items: center; gap: 10px; }
+    .sb-avatar { width: 34px; height: 34px; border-radius: 50%; background: #F0197A; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0; }
+    .sb-user-name { font-size: 12px; font-weight: 600; color: #fff; }
+    .sb-user-role { font-size: 10px; color: rgba(255,255,255,0.4); }
+
+    /* ── TOPBAR ── */
+    .tb-title { font-size: 15px; font-weight: 600; color: #111827; flex: 1; }
+    .tb-icon-btn { width: 34px; height: 34px; border: none; background: transparent; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #6B7280; transition: all 0.15s; }
+    .tb-icon-btn:hover { background: #F3F4F6; color: #374151; }
+    .tb-avatar { width: 32px; height: 32px; border-radius: 50%; background: #1B1564; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; cursor: pointer; }
+    .tb-search { flex: 1; max-width: 320px; display: flex; align-items: center; background: #F3F4F6; border-radius: 8px; padding: 0 12px; gap: 8px; height: 34px; }
+    .tb-search input { border: none; background: transparent; outline: none; font-family: inherit; font-size: 13px; color: #374151; width: 100%; }
+    .tb-search input::placeholder { color: #9CA3AF; }
+
+    /* ── PAGE HEADER ── */
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .page-title { font-size: 22px; font-weight: 700; color: #111827; }
+    .page-subtitle { font-size: 13px; color: #6B7280; margin-top: 2px; }
+    .page-actions { display: flex; align-items: center; gap: 8px; }
+
+    /* ── BUTTONS ── */
+    .btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; font-family: inherit; }
+    .btn-primary { background: #F0197A; color: #fff; }
+    .btn-primary:hover { background: #BE0F61; }
+    .btn-secondary { background: #1B1564; color: #fff; }
+    .btn-secondary:hover { background: #2D25A0; }
+    .btn-outline { background: #fff; color: #374151; border: 1px solid #D1D5DB; }
+    .btn-outline:hover { background: #F9FAFB; }
+    .btn-ghost { background: transparent; color: #6B7280; border: 1px solid #E5E7EB; }
+    .btn-ghost:hover { background: #F3F4F6; color: #374151; }
+    .btn-icon { width: 34px; height: 34px; padding: 0; border-radius: 8px; border: 1px solid #E5E7EB; background: #fff; color: #6B7280; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; }
+    .btn-icon:hover { background: #F3F4F6; color: #374151; }
+    .btn-sm { padding: 5px 12px; font-size: 12px; }
+
+    /* ── BUK-STYLE TABLE ── */
+    .buk-table-wrap { background: #fff; border-radius: 10px; border: 1px solid #E5E7EB; overflow: hidden; }
+    .buk-toolbar { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #F3F4F6; background: #fff; }
+    .buk-toolbar-left { display: flex; align-items: center; gap: 8px; }
+    .buk-toolbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .buk-per-page { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #6B7280; }
+    .buk-per-page select { border: 1px solid #E5E7EB; border-radius: 6px; padding: 4px 8px; font-family: inherit; font-size: 13px; color: #374151; background: #fff; outline: none; }
+    .buk-count { font-size: 13px; color: #6B7280; }
+    table.buk { width: 100%; border-collapse: collapse; }
+    table.buk th { background: #F9FAFB; font-size: 12px; font-weight: 600; color: #6B7280; text-align: left; padding: 0; border-bottom: 1px solid #E5E7EB; white-space: nowrap; }
+    .th-inner { display: flex; flex-direction: column; }
+    .th-label { display: flex; align-items: center; gap: 4px; padding: 10px 12px 6px; cursor: pointer; user-select: none; }
+    .th-label:hover { color: #374151; }
+    .th-filter { padding: 0 8px 8px; }
+    .th-filter input { width: 100%; border: 1px solid #E5E7EB; border-radius: 6px; padding: 5px 8px; font-family: inherit; font-size: 12px; color: #374151; background: #fff; outline: none; }
+    .th-filter input:focus { border-color: #F0197A; box-shadow: 0 0 0 2px rgba(240,25,122,0.08); }
+    .th-filter input::placeholder { color: #9CA3AF; }
+    table.buk td { padding: 12px 12px; border-bottom: 1px solid #F3F4F6; font-size: 13px; color: #374151; vertical-align: middle; }
+    table.buk tr:last-child td { border-bottom: none; }
+    table.buk tr:hover td { background: #FAFAFA; }
+    table.buk tr.selected td { background: #FDF0F7; }
+    .cb-col { width: 40px; padding: 0 8px 0 12px !important; }
+    .sort-icon { color: #CBD5E1; font-size: 10px; flex-shrink: 0; }
+    .emp-cell { display: flex; align-items: center; gap: 10px; }
+    .emp-badge { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; }
+    .emp-name-link { color: #F0197A; font-weight: 500; cursor: pointer; }
+    .emp-name-link:hover { text-decoration: underline; }
+    .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .badge-green { background: #ECFDF5; color: #065F46; }
+    .badge-blue { background: #EFF6FF; color: #1E40AF; }
+    .badge-pink { background: #FDF0F7; color: #BE0F61; }
+    .badge-yellow { background: #FFFBEB; color: #92400E; }
+    .badge-gray { background: #F3F4F6; color: #4B5563; }
+
+    /* ── EMPLOYEE PROFILE ── */
+    .profile-layout { display: grid; grid-template-columns: 260px 1fr; gap: 20px; align-items: start; }
+    .profile-card { background: #fff; border-radius: 10px; border: 1px solid #E5E7EB; overflow: hidden; }
+    .profile-card-header { background: linear-gradient(135deg, #1B1564 0%, #2D25A0 100%); padding: 24px 20px; text-align: center; }
+    .profile-avatar-lg { width: 72px; height: 72px; border-radius: 50%; background: #F0197A; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 700; color: #fff; margin: 0 auto 12px; border: 3px solid rgba(255,255,255,0.3); }
+    .profile-card-name { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+    .profile-card-role { font-size: 12px; color: rgba(255,255,255,0.65); }
+    .profile-card-body { padding: 16px; }
+    .profile-info-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 9px 0; border-bottom: 1px solid #F3F4F6; }
+    .profile-info-row:last-child { border-bottom: none; }
+    .profile-info-label { font-size: 11px; color: #9CA3AF; font-weight: 500; }
+    .profile-info-value { font-size: 12px; color: #374151; font-weight: 600; text-align: right; max-width: 130px; }
+    .profile-actions { padding: 12px 16px; border-top: 1px solid #F3F4F6; display: flex; gap: 8px; }
+
+    /* ── TAB BAR (BUK-style) ── */
+    .tab-bar { display: flex; border-bottom: 1px solid #E5E7EB; background: #fff; border-radius: 10px 10px 0 0; overflow-x: auto; }
+    .tab-bar::-webkit-scrollbar { height: 0; }
+    .tab-btn { padding: 12px 16px; font-size: 13px; font-weight: 500; color: #6B7280; cursor: pointer; border: none; background: transparent; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; transition: all 0.15s; font-family: inherit; }
+    .tab-btn:hover { color: #F0197A; }
+    .tab-btn.active { color: #F0197A; border-bottom-color: #F0197A; font-weight: 600; }
+    .tab-content { background: #fff; border: 1px solid #E5E7EB; border-top: none; border-radius: 0 0 10px 10px; padding: 20px; min-height: 200px; }
+
+    /* ── CARDS ── */
+    .card { background: #fff; border-radius: 10px; border: 1px solid #E5E7EB; padding: 20px; }
+    .card-title { font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+    .stat-card { background: #fff; border-radius: 10px; border: 1px solid #E5E7EB; padding: 18px 20px; }
+    .stat-label { font-size: 12px; color: #6B7280; font-weight: 500; margin-bottom: 6px; }
+    .stat-value { font-size: 24px; font-weight: 700; color: #111827; }
+    .stat-meta { font-size: 11px; color: #9CA3AF; margin-top: 4px; }
+    .stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+
+    /* ── LIQUIDACIÓN ── */
+    .liq-header { background: #fff; border: 1px solid #E5E7EB; border-radius: 10px; padding: 20px; margin-bottom: 16px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+    .liq-field-label { font-size: 11px; color: #9CA3AF; font-weight: 500; margin-bottom: 3px; }
+    .liq-field-value { font-size: 14px; font-weight: 600; color: #111827; }
+    .liq-section { background: #fff; border: 1px solid #E5E7EB; border-radius: 10px; overflow: hidden; margin-bottom: 12px; }
+    .liq-section-title { background: #F9FAFB; padding: 10px 16px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #6B7280; border-bottom: 1px solid #E5E7EB; }
+    table.liq { width: 100%; border-collapse: collapse; }
+    table.liq td { padding: 10px 16px; border-bottom: 1px solid #F3F4F6; font-size: 13px; }
+    table.liq tr:last-child td { border-bottom: none; }
+    table.liq td:last-child { text-align: right; font-weight: 500; }
+    .liq-total { background: #1B1564; }
+    .liq-total td { color: #fff; font-size: 14px; font-weight: 700; padding: 12px 16px; border-bottom: none !important; }
+
+    /* ── FORMS ── */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: 12px; font-weight: 600; color: #374151; }
+    .form-input { border: 1px solid #E5E7EB; border-radius: 8px; padding: 9px 12px; font-family: inherit; font-size: 13px; color: #111827; outline: none; transition: border 0.15s; background: #fff; }
+    .form-input:focus { border-color: #F0197A; box-shadow: 0 0 0 3px rgba(240,25,122,0.08); }
+    .form-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%236B7280' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; background-size: 16px; padding-right: 32px; }
+
+    /* ── MISC ── */
+    .divider { border: none; border-top: 1px solid #F3F4F6; margin: 16px 0; }
+    .empty-state { text-align: center; padding: 48px 20px; color: #9CA3AF; }
+    .empty-state-icon { font-size: 40px; margin-bottom: 12px; }
+    .empty-state-text { font-size: 14px; }
+    .tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+
+    /* ── MODAL ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .modal { background: #fff; border-radius: 12px; width: 640px; max-width: 95vw; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+    .modal-header { padding: 20px 24px; border-bottom: 1px solid #E5E7EB; display: flex; align-items: center; justify-content: space-between; }
+    .modal-title { font-size: 16px; font-weight: 700; color: #111827; }
+    .modal-body { padding: 24px; overflow-y: auto; flex: 1; }
+    .modal-footer { padding: 16px 24px; border-top: 1px solid #E5E7EB; display: flex; justify-content: flex-end; gap: 10px; }
+    .close-btn { border: none; background: transparent; cursor: pointer; color: #9CA3AF; padding: 4px; border-radius: 6px; }
+    .close-btn:hover { color: #374151; background: #F3F4F6; }
+
+    /* ── NOTIFICATION BADGE ── */
+    .notif-dot { position: relative; }
+    .notif-dot::after { content: ''; position: absolute; top: 6px; right: 6px; width: 7px; height: 7px; border-radius: 50%; background: #F0197A; border: 1.5px solid #fff; }
+
+    /* ── DASHBOARD CHART PLACEHOLDER ── */
+    .chart-bar { display: flex; align-items: flex-end; gap: 6px; height: 80px; }
+    .chart-bar-item { flex: 1; background: linear-gradient(to top, #F0197A, #FD6DB5); border-radius: 4px 4px 0 0; }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .stat-grid { grid-template-columns: 1fr 1fr; }
+      .profile-layout { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
-<body style="background:#F1F5F9; min-height:100vh; margin:0;">
-
+<body>
 <div id="root"></div>
-
 <script type="text/babel">
-const { useState, useRef, useEffect } = React;
+const { useState, useEffect, useRef } = React;
 
-/* ─── DATA ─── */
+/* ────────────────── DATA ────────────────── */
+const BADGE_COLORS = ['#F0197A','#1B1564','#059669','#7C3AED','#D97706','#2563EB'];
+const badgeColor = (name) => BADGE_COLORS[name.charCodeAt(0) % BADGE_COLORS.length];
+const initials = (name) => name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+const fmt = (n) => '$ ' + Number(n).toLocaleString('es-CL');
+const fmtDate = (d) => d;
+
 const INIT_EMPLOYEES = [
-  { id:1, rut:'12.345.678-9', nombre:'María',  apellido:'González Pérez',  cargo:'Nana',              fecha_ingreso:'2023-03-01', estado:'activo',   tipo_contrato:'indefinido', jornada:45, sueldo_base:450000, afp:'Habitat',  salud:'Fonasa',             email:'maria.g@gmail.com',  telefono:'+56 9 8765 4321', direccion:'Av. Los Leones 432, Providencia', ini:'MG', col:'#7C3AED' },
-  { id:2, rut:'15.678.901-2', nombre:'Carmen', apellido:'Rojas Silva',     cargo:'Cocinera',          fecha_ingreso:'2022-07-15', estado:'activo',   tipo_contrato:'indefinido', jornada:45, sueldo_base:520000, afp:'Capital',  salud:'Isapre Cruz Blanca', email:'carmen.r@gmail.com', telefono:'+56 9 9876 5432', direccion:'Teatinos 890, Santiago',          ini:'CR', col:'#059669' },
-  { id:3, rut:'16.234.567-8', nombre:'Ana',    apellido:'Martínez López',  cargo:'Nana',              fecha_ingreso:'2024-01-10', estado:'activo',   tipo_contrato:'plazo_fijo', jornada:30, sueldo_base:350000, afp:'Provida',  salud:'Fonasa',             email:'ana.m@gmail.com',    telefono:'+56 9 7654 3210', direccion:'Av. Grecia 1201, Ñuñoa',          ini:'AM', col:'#D97706' },
-  { id:4, rut:'10.987.654-3', nombre:'Rosa',   apellido:'Vega Contreras',  cargo:'Cuidadora',         fecha_ingreso:'2021-11-20', estado:'inactivo', tipo_contrato:'indefinido', jornada:45, sueldo_base:480000, afp:'Habitat',  salud:'Fonasa',             email:'rosa.v@gmail.com',   telefono:'+56 9 6543 2109', direccion:"O'Higgins 567, Puente Alto",       ini:'RV', col:'#DC2626' },
-  { id:5, rut:'18.111.222-5', nombre:'Lucía',  apellido:'Fuentes Mora',    cargo:'Asesora del Hogar', fecha_ingreso:'2025-06-01', estado:'activo',   tipo_contrato:'indefinido', jornada:45, sueldo_base:430000, afp:'Cuprum',   salud:'Fonasa',             email:'lucia.f@gmail.com',  telefono:'+56 9 5432 1098', direccion:'Av. Kennedy 4567, Las Condes',     ini:'LF', col:'#2563EB' },
+  { id:1, nombre:'Martínez García, María', rut:'12.345.678-9', cargo:'Empleada de Casa Particular', area:'Hogar', contrato:'Indefinido', ingreso:'01/03/2022', jornada:'44h semanales', sueldo:500000, afp:'Provida', salud:'Fonasa', banco:'BancoEstado', cuenta:'Cta. Corriente', estado:'Activo', empleador:'Familia Aravena Riffo', email:'mmartinez@empleada.cl', tel:'+56 9 1234 5678', direccion:'Las Condes, Santiago' },
+  { id:2, nombre:'López Silva, Ana Lucía', rut:'15.678.901-2', cargo:'Cuidadora de Adulto Mayor', area:'Cuidado', contrato:'Plazo Fijo', ingreso:'15/06/2023', jornada:'33h semanales', sueldo:450000, afp:'Habitat', salud:'Isapre Masvida', banco:'Santander', cuenta:'Cta. Vista', estado:'Activo', empleador:'Familia Aravena Riffo', email:'alopez@cuidadora.cl', tel:'+56 9 2345 6789', direccion:'Providencia, Santiago' },
+  { id:3, nombre:'González Rojas, Carmen', rut:'11.222.333-4', cargo:'Nana Puertas Adentro', area:'Hogar', contrato:'Indefinido', ingreso:'01/01/2021', jornada:'Puertas adentro', sueldo:520000, afp:'Capital', salud:'Fonasa', banco:'Banco de Chile', cuenta:'Cta. Corriente', estado:'Activo', empleador:'Familia Aravena Riffo', email:'cgonzalez@nana.cl', tel:'+56 9 3456 7890', direccion:'Las Condes, Santiago' },
+  { id:4, nombre:'Rodríguez Pérez, Julia', rut:'14.555.666-7', cargo:'Asistente de Hogar', area:'Hogar', contrato:'Indefinido', ingreso:'10/09/2022', jornada:'44h semanales', sueldo:480000, afp:'Planvital', salud:'Fonasa', banco:'BancoEstado', cuenta:'Cta. Rut', estado:'Licencia', empleador:'Familia Aravena Riffo', email:'jrodriguez@asistente.cl', tel:'+56 9 4567 8901', direccion:'Ñuñoa, Santiago' },
+  { id:5, nombre:'Soto Fuentes, Rosa', rut:'16.888.999-0', cargo:'Cocinera', area:'Alimentación', contrato:'Plazo Fijo', ingreso:'01/11/2023', jornada:'44h semanales', sueldo:550000, afp:'Cuprum', salud:'Isapre Cruz Blanca', banco:'Itaú', cuenta:'Cta. Corriente', estado:'Activo', empleador:'Familia Aravena Riffo', email:'rsoto@cocinera.cl', tel:'+56 9 5678 9012', direccion:'Vitacura, Santiago' },
 ];
 
 const LIQUIDACIONES = [
-  { id:1, eid:1, periodo:'2026-01', base:450000, hex:0,     bono:30000, grat:37500, d_salud:36000, d_afp:45000, d_ces:2700, d_imp:0, d_otros:0, haberes:517500, descuentos:83700, liquido:433800, estado:'pagada',    fecha_pago:'2026-01-31' },
-  { id:2, eid:1, periodo:'2025-12', base:450000, hex:22500, bono:50000, grat:37500, d_salud:36000, d_afp:45000, d_ces:2700, d_imp:0, d_otros:0, haberes:560000, descuentos:83700, liquido:476300, estado:'pagada',    fecha_pago:'2025-12-31' },
-  { id:3, eid:2, periodo:'2026-01', base:520000, hex:0,     bono:0,     grat:43333, d_salud:41600, d_afp:52000, d_ces:3120, d_imp:0, d_otros:0, haberes:563333, descuentos:96720, liquido:466613, estado:'pagada',    fecha_pago:'2026-01-31' },
-  { id:4, eid:3, periodo:'2026-01', base:350000, hex:0,     bono:0,     grat:29167, d_salud:28000, d_afp:35000, d_ces:2100, d_imp:0, d_otros:0, haberes:379167, descuentos:65100, liquido:314067, estado:'pagada',    fecha_pago:'2026-01-31' },
-  { id:5, eid:5, periodo:'2026-01', base:430000, hex:21500, bono:0,     grat:35833, d_salud:34400, d_afp:43000, d_ces:2580, d_imp:0, d_otros:0, haberes:487333, descuentos:79980, liquido:407353, estado:'pendiente', fecha_pago:null },
-];
-
-const VACACIONES = [
-  { id:1, eid:1, tipo:'vacaciones',     inicio:'2026-02-10', fin:'2026-02-21', dias:10, estado:'aprobada',  obs:'' },
-  { id:2, eid:2, tipo:'licencia_medica', inicio:'2026-01-15', fin:'2026-01-17', dias:3,  estado:'aprobada',  obs:'Reposo médico' },
-  { id:3, eid:3, tipo:'vacaciones',     inicio:'2026-03-01', fin:'2026-03-07', dias:5,  estado:'pendiente', obs:'' },
-  { id:4, eid:5, tipo:'permiso',        inicio:'2026-02-28', fin:'2026-02-28', dias:1,  estado:'pendiente', obs:'Trámite personal' },
-];
-
-const AUSENCIAS = [
-  { id:1, eid:1, tipo:'Licencia Médica', inicio:'2025-11-02', fin:'2025-11-03', dias:2, motivo:'Gripe' },
-  { id:2, eid:2, tipo:'Inasistencia',    inicio:'2026-01-20', fin:'2026-01-20', dias:1, motivo:'Sin aviso' },
-];
-
-const HORAS_EXTRA = [
-  { id:1, eid:1, fecha:'2025-12-24', horas:4, tipo:'Festivo',  monto:22500 },
-  { id:2, eid:5, fecha:'2026-01-12', horas:3, tipo:'Nocturno', monto:21500 },
-];
-
-const ITEMS_BONOS = [
-  { id:1, eid:1, nombre:'Bono de Productividad', monto:30000, periodo:'2026-01' },
-  { id:2, eid:2, nombre:'Colación',               monto:45000, periodo:'2026-01' },
-  { id:3, eid:3, nombre:'Bono Movilización',      monto:25000, periodo:'2026-01' },
-];
-
-const ITEMS_DESC = [
-  { id:1, eid:1, nombre:'Anticipo', monto:50000, periodo:'2026-01' },
-];
-
-const CREDITOS = [
-  { id:1, eid:2, nombre:'Crédito Social', cuotas:12, cuota_mensual:18000, saldo:162000 },
-];
-
-const BENEFITS = [
-  { icon:'🏥', label:'Seguro complementario', desc:'Cobertura adicional de salud',   asignados:[1,2],   monto:15000 },
-  { icon:'🚌', label:'Bono movilización',      desc:'Transporte mensual garantizado', asignados:[1,3,5], monto:25000 },
-  { icon:'🍽️', label:'Colación',               desc:'Bono de alimentación diario',   asignados:[2],     monto:45000 },
-  { icon:'🎂', label:'Regalo de cumpleaños',   desc:'Detalle especial cada año',     asignados:[1,2,3,5], monto:5000 },
+  { id:1, empId:1, periodo:'Enero 2026', sueldoBase:500000, gratificacion:41667, horasExtra:25000, colacion:50000, movilizacion:30000, afp:47500, salud:30000, cesantia:5500, impuesto:0, liquido:563667, estado:'Pagado', fecha:'31/01/2026' },
+  { id:2, empId:1, periodo:'Diciembre 2025', sueldoBase:500000, gratificacion:41667, horasExtra:0, colacion:50000, movilizacion:30000, afp:47500, salud:30000, cesantia:5500, impuesto:0, liquido:538667, estado:'Pagado', fecha:'31/12/2025' },
+  { id:3, empId:2, periodo:'Enero 2026', sueldoBase:450000, gratificacion:37500, horasExtra:0, colacion:50000, movilizacion:30000, afp:42750, salud:27000, cesantia:4950, impuesto:0, liquido:492800, estado:'Pagado', fecha:'31/01/2026' },
+  { id:4, empId:3, periodo:'Enero 2026', sueldoBase:520000, gratificacion:43333, horasExtra:30000, colacion:0, movilizacion:0, afp:49400, salud:31200, cesantia:5720, impuesto:2800, liquido:504213, estado:'Pendiente', fecha:'31/01/2026' },
+  { id:5, empId:5, periodo:'Enero 2026', sueldoBase:550000, gratificacion:45833, horasExtra:15000, colacion:50000, movilizacion:30000, afp:52250, salud:33000, cesantia:6050, impuesto:4200, liquido:595333, estado:'Pagado', fecha:'31/01/2026' },
 ];
 
 const PROCESOS = [
-  { id:1, nombre:'Proceso Enero 2026',    periodo:'2026-01', estado:'cerrado', empleados:4, fecha_cierre:'2026-01-31' },
-  { id:2, nombre:'Proceso Febrero 2026',  periodo:'2026-02', estado:'abierto', empleados:5, fecha_cierre:null },
+  { id:1, nombre:'Proceso Enero 2026', periodo:'2026-01', estado:'Cerrado', emps:5, total:'$ 2.754.013', fecha:'31/01/2026' },
+  { id:2, nombre:'Proceso Diciembre 2025', periodo:'2025-12', estado:'Cerrado', emps:5, total:'$ 2.652.400', fecha:'31/12/2025' },
+  { id:3, nombre:'Proceso Noviembre 2025', periodo:'2025-11', estado:'Cerrado', emps:5, total:'$ 2.601.800', fecha:'30/11/2025' },
+];
+
+const VACACIONES = [
+  { id:1, empId:1, tipo:'Vacaciones anuales', desde:'15/12/2025', hasta:'05/01/2026', dias:14, estado:'Aprobado' },
+  { id:2, empId:2, tipo:'Vacaciones proporcionales', desde:'20/01/2026', hasta:'25/01/2026', dias:5, estado:'Aprobado' },
+  { id:3, empId:4, tipo:'Licencia médica', desde:'10/01/2026', hasta:'24/01/2026', dias:15, estado:'En proceso' },
+];
+
+const AUSENCIAS = [
+  { id:1, empId:1, tipo:'Licencia médica', desde:'05/01/2026', hasta:'07/01/2026', dias:3, motivo:'Enfermedad común' },
+  { id:2, empId:3, tipo:'Permiso sin goce de sueldo', desde:'15/01/2026', hasta:'15/01/2026', dias:1, motivo:'Personal' },
 ];
 
 const VARIABLES = [
-  { nombre:'UF',            valor:'38.643,56', fecha:'Feb 2026' },
-  { nombre:'UTM',           valor:'67.294',    fecha:'Feb 2026' },
-  { nombre:'AFP Habitat',   valor:'11,27%',    fecha:'Ene 2026' },
-  { nombre:'AFP Capital',   valor:'11,44%',    fecha:'Ene 2026' },
-  { nombre:'AFP Provida',   valor:'11,44%',    fecha:'Ene 2026' },
-  { nombre:'AFP Cuprum',    valor:'11,44%',    fecha:'Ene 2026' },
-  { nombre:'Fonasa',        valor:'7,00%',     fecha:'Ene 2026' },
-  { nombre:'Seg. Cesantía', valor:'0,60%',     fecha:'Ene 2026' },
+  { id:1, nombre:'Asignación Colación', tipo:'Haber No Imp.', monto:50000, emps:4, estado:'Activo' },
+  { id:2, nombre:'Asignación Movilización', tipo:'Haber No Imp.', monto:30000, emps:4, estado:'Activo' },
+  { id:3, nombre:'Bono Puntualidad', tipo:'Haber Imp.', monto:20000, emps:3, estado:'Activo' },
+  { id:4, nombre:'Descuento Anticipo', tipo:'Descuento', monto:50000, emps:1, estado:'Activo' },
 ];
 
-/* ─── UTILS ─── */
-const fmt = n => new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP',maximumFractionDigits:0}).format(n);
-const fmtDate = d => d ? new Date(d+'T12:00:00').toLocaleDateString('es-CL',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
-const periodoLabel = p => { const [y,m]=p.split('-'); return ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][+m-1]+' '+y; };
-const randomColor = () => ['#7C3AED','#059669','#D97706','#2563EB','#DB2777','#0891B2','#65A30D'][Math.floor(Math.random()*7)];
+const BENEFITS = [
+  { id:1, nombre:'Seguro de Vida Colectivo', proveedor:'Metlife', tipo:'Seguro', costo:'$ 4.500/mes', estado:'Activo' },
+  { id:2, nombre:'Caja de Compensación Los Héroes', proveedor:'Los Héroes', tipo:'Bienestar', costo:'$ 0', estado:'Activo' },
+  { id:3, nombre:'Mutual de Seguridad', proveedor:'CChC', tipo:'Accidentes', costo:'$ 3.200/mes', estado:'Activo' },
+];
 
-/* ─── SVG ICON ─── */
-const paths = {
-  home:     'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
-  users:    'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
-  currency: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
-  calendar: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
-  gift:     'M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7',
-  chart:    'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
-  clock:    'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
-  cog:      'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z',
-  check:    'M5 13l4 4L19 7',
-  x:        'M6 18L18 6M6 6l12 12',
-  plus:     'M12 4v16m8-8H4',
-  edit:     'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z',
-  trash:    'M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16',
-  eye:      'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z',
-  doc:      'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-  chevD:    'M19 9l-7 7-7-7',
-  chevR:    'M9 5l7 7-7 7',
-  bell:     'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9',
-  search:   'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z',
-  id:       'M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2',
-  org:      'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4',
-  download: 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4',
-  mail:     'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
+/* ────────────────── ICONS (SVG) ────────────────── */
+const Icon = ({ name, size=16, color='currentColor' }) => {
+  const icons = {
+    home: <svg width={size} height={size} viewBox="0 0 20 20" fill={color}><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>,
+    users: <svg width={size} height={size} viewBox="0 0 20 20" fill={color}><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>,
+    cash: <svg width={size} height={size} viewBox="0 0 20 20" fill={color}><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/><path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd"/></svg>,
+    calendar: <svg width={size} height={size} viewBox="0 0 20 20" fill={color}><path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/></svg>,
+    chart: <svg width={size} height={size} viewBox="0 0 20 20" fill={color}><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>,
+    gift: <svg width={size} height={size} viewBox="0 0 20 20" fill={color}><path fillRule="evenodd" d="M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-5V9a1 1 0 10-2 0v1H4a2 2 0 110-4h1.17C5.06 5.687 5 5.35 5 5zm4 1V5a1 1 0 10-1 1h1zm3 0a1 1 0 10-1-1v1h1z" clipRule="evenodd"/><path d="M9 11H3v5a2 2 0 002 2h4v-7zM11 18h4a2 2 0 002-2v-5h-6v7z"/></svg>,
+    cog: <svg width={size} height={size} viewBox="0 0 20 20" fill={color}><path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd"/></svg>,
+    search: <svg width={size} height={size} viewBox="0 0 20 20" fill={color}><path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd"/></svg>,
+    bell: <svg width={size} height={size} viewBox="0 0 20 20" fill={color}><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg>,
+    plus: <svg width={size} height={size} viewBox="0 0 20 20" fill={color}><path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd"/></svg>,
+    download: <svg width={size} height={size} viewBox="0 0 20 20" fill={color}><path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd"/></svg>,
+    sort: <svg width={size} height={size} viewBox="0 0 20 20" fill={color}><path d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z"/></svg>,
+    eye: <svg width={size} height={size} viewBox="0 0 20 20" fill={color}><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/></svg>,
+    pencil: <svg width={size} height={size} viewBox="0 0 20 20" fill={color}><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/></svg>,
+    trash: <svg width={size} height={size} viewBox="0 0 20 20" fill={color}><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"/></svg>,
+    chevron: <svg width={size} height={size} viewBox="0 0 20 20" fill={color}><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"/></svg>,
+    chevronR: <svg width={size} height={size} viewBox="0 0 20 20" fill={color}><path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd"/></svg>,
+    x: <svg width={size} height={size} viewBox="0 0 20 20" fill={color}><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/></svg>,
+    doc: <svg width={size} height={size} viewBox="0 0 20 20" fill={color}><path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"/></svg>,
+    briefcase: <svg width={size} height={size} viewBox="0 0 20 20" fill={color}><path fillRule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clipRule="evenodd"/><path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z"/></svg>,
+    check: <svg width={size} height={size} viewBox="0 0 20 20" fill={color}><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>,
+    dots: <svg width={size} height={size} viewBox="0 0 20 20" fill={color}><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"/></svg>,
+    umbrella: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M23 12a11.05 11.05 0 0 0-22 0zm-5 7a3 3 0 0 1-6 0v-7"/></svg>,
+  };
+  return icons[name] || null;
 };
-const Ico = ({n, s=16, cls=''}) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={s} height={s} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={cls}>
-    {paths[n] && <path d={paths[n]} />}
-  </svg>
-);
 
-/* ─── AVATAR ─── */
-const Avatar = ({ini, col, size=32}) => (
-  <div style={{width:size,height:size,background:col,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontWeight:700,fontSize:size*0.35,flexShrink:0}}>{ini}</div>
-);
+/* ────────────────── SIDEBAR ────────────────── */
+const NAV = [
+  { section: 'Principal' },
+  { id:'dashboard', label:'Dashboard', icon:'home' },
+  { section: 'Administrativo' },
+  { id:'colaboradoras', label:'Colaboradoras', icon:'users' },
+  { id:'asistencia', label:'Asistencia', icon:'calendar' },
+  { id:'vacaciones', label:'Vacaciones y Permisos', icon:'calendar' },
+  { section: 'Remuneraciones' },
+  { id:'liquidaciones', label:'Liquidaciones', icon:'cash' },
+  { id:'procesos', label:'Procesos', icon:'briefcase' },
+  { id:'variables', label:'Variables', icon:'chart' },
+  { section: 'Beneficios' },
+  { id:'beneficios', label:'Beneficios', icon:'gift' },
+  { section: 'Sistema' },
+  { id:'configuracion', label:'Configuración', icon:'cog' },
+];
 
-/* ─── MODAL ─── */
-const Modal = ({title, onClose, children, wide=false}) => (
-  <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
-    <div className="modal-box fade-in" style={{width:'100%',maxWidth:wide?760:520}}>
-      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'20px 20px 16px',borderBottom:'1px solid #F1F5F9',position:'sticky',top:0,background:'#fff',zIndex:1}}>
-        <h2 style={{fontWeight:700,color:'#111827',fontSize:17,margin:0}}>{title}</h2>
-        <button className="btn-icon" onClick={onClose}><Ico n="x" s={18}/></button>
+const Sidebar = ({ active, setPage }) => (
+  <nav className="sidebar">
+    <div className="sb-logo">
+      <div className="sb-logo-icon"><Icon name="umbrella" size={20} color="#fff"/></div>
+      <div>
+        <div className="sb-logo-text">Poppins</div>
+        <div className="sb-logo-sub">ERP Doméstico</div>
       </div>
-      <div style={{padding:20}}>{children}</div>
     </div>
+    {NAV.map((item, i) =>
+      item.section
+        ? <div key={i} className="sb-section-label">{item.section}</div>
+        : <button key={item.id} className={`sb-item${active===item.id?' active':''}`} onClick={()=>setPage(item.id)}>
+            <Icon name={item.icon} size={15}/> {item.label}
+          </button>
+    )}
+    <hr className="sb-divider"/>
+    <div className="sb-bottom">
+      <div className="sb-user">
+        <div className="sb-avatar">RA</div>
+        <div>
+          <div className="sb-user-name">Rene Aravena</div>
+          <div className="sb-user-role">Administrador</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+);
+
+/* ────────────────── TOPBAR ────────────────── */
+const Topbar = ({ title }) => (
+  <div className="topbar">
+    <div className="tb-search">
+      <Icon name="search" size={14} color="#9CA3AF"/>
+      <input placeholder="Buscar colaboradora, liquidación..." />
+    </div>
+    <div style={{flex:1}}/>
+    <button className="tb-icon-btn notif-dot"><Icon name="bell" size={17}/></button>
+    <button className="tb-icon-btn"><Icon name="cog" size={17}/></button>
+    <div className="tb-avatar" title="Rene Aravena">RA</div>
   </div>
 );
 
-/* ─── LIQUIDACIÓN DETALLE ─── */
-const LiqDetalle = ({liq, emp, onClose}) => {
-  const patronal = Math.round(liq.base*0.023);
-  const totalImponible = liq.base + liq.hex + liq.grat;
-  const Row = ({l,v,neg,bold}) => (
-    <div className="liq-row">
-      <span style={{color:bold?'#374151':'#6B7280',fontWeight:bold?600:400}}>{l}</span>
-      <span style={{textAlign:'right',color:neg?'#DC2626':bold?'#111827':'#374151',fontWeight:bold?700:500}}>{v}</span>
+/* ────────────────── STAT CARD ────────────────── */
+const StatCard = ({ label, value, meta, iconName, iconBg }) => (
+  <div className="stat-card">
+    <div className="stat-icon" style={{background: iconBg || '#FDF0F7'}}>
+      <Icon name={iconName} size={20} color={iconBg ? '#fff' : '#F0197A'}/>
     </div>
-  );
-  return (
-    <Modal title={`Liquidación ${periodoLabel(liq.periodo)} · ${emp.nombre} ${emp.apellido}`} onClose={onClose} wide>
-      {/* Header info */}
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,background:'#F8FAFC',borderRadius:10,padding:'12px 16px',marginBottom:20,fontSize:13}}>
-        {[['RUT',emp.rut],['Cargo',emp.cargo],['AFP',emp.afp],['Salud',emp.salud],['Período',periodoLabel(liq.periodo)],['Fecha Pago',fmtDate(liq.fecha_pago)]].map(([k,v])=>(
-          <div key={k}><span style={{color:'#9CA3AF'}}>{k}: </span><span style={{fontWeight:500,color:'#374151'}}>{v}</span></div>
-        ))}
-      </div>
+    <div className="stat-label">{label}</div>
+    <div className="stat-value">{value}</div>
+    {meta && <div className="stat-meta">{meta}</div>}
+  </div>
+);
 
-      {/* Haberes Imponibles */}
-      <div style={{marginBottom:16}}>
-        <div style={{background:'#EEF2FF',color:'#1B1564',fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.05em',padding:'6px 12px',borderRadius:8,marginBottom:8}}>Haberes Imponibles</div>
-        <Row l="Sueldo Base" v={fmt(liq.base)} />
-        <Row l="Gratificación Legal (25%)" v={fmt(liq.grat)} />
-        {liq.hex>0 && <Row l="Horas Extra" v={fmt(liq.hex)} />}
-        <Row l="Total Imponible" v={fmt(totalImponible)} bold />
-      </div>
+/* ────────────────── BUK TABLE ────────────────── */
+const BukTable = ({ columns, data, onRowClick, total, perPage, setPerPage }) => {
+  const [filters, setFilters] = useState({});
+  const [selected, setSelected] = useState([]);
+  const [sortCol, setSortCol] = useState(null);
+  const [sortDir, setSortDir] = useState('asc');
 
-      {/* Haberes No Imponibles */}
-      {liq.bono>0 && (
-        <div style={{marginBottom:16}}>
-          <div style={{background:'#F0FDF4',color:'#065F46',fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.05em',padding:'6px 12px',borderRadius:8,marginBottom:8}}>Haberes No Imponibles</div>
-          <Row l="Bono" v={fmt(liq.bono)} />
-        </div>
-      )}
-
-      {/* Descuentos Legales */}
-      <div style={{marginBottom:16}}>
-        <div style={{background:'#FFF1F2',color:'#9F1239',fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.05em',padding:'6px 12px',borderRadius:8,marginBottom:8}}>Descuentos Legales</div>
-        <Row l={`Cotiz. Previsional Obligatoria (${emp.afp})`} v={`-${fmt(liq.d_afp)}`} neg />
-        <Row l={`Cotiz. Salud Obligatoria (${emp.salud})`} v={`-${fmt(liq.d_salud)}`} neg />
-        <Row l="Seguro de Cesantía (0,60%)" v={`-${fmt(liq.d_ces)}`} neg />
-        {liq.d_imp>0 && <Row l="Impuesto Único" v={`-${fmt(liq.d_imp)}`} neg />}
-      </div>
-
-      {liq.d_otros>0 && (
-        <div style={{marginBottom:16}}>
-          <div style={{background:'#F8FAFC',color:'#374151',fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.05em',padding:'6px 12px',borderRadius:8,marginBottom:8}}>Otros Descuentos</div>
-          <Row l="Otros" v={`-${fmt(liq.d_otros)}`} neg />
-        </div>
-      )}
-
-      {/* Totales */}
-      <div style={{background:'#1B1564',borderRadius:12,padding:16,marginTop:16}}>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:12,textAlign:'center',color:'#fff'}}>
-          <div><div style={{color:'rgba(255,255,255,0.5)',fontSize:11,marginBottom:4}}>Total Haberes</div><div style={{fontWeight:700,fontSize:16}}>{fmt(liq.haberes)}</div></div>
-          <div><div style={{color:'rgba(255,255,255,0.5)',fontSize:11,marginBottom:4}}>Total Descuentos</div><div style={{fontWeight:700,fontSize:16,color:'#FCA5A5'}}>-{fmt(liq.descuentos)}</div></div>
-          <div><div style={{color:'#F0197A',fontSize:11,fontWeight:600,marginBottom:4}}>Líquido a Recibir</div><div style={{fontWeight:800,fontSize:22,color:'#F0197A'}}>{fmt(liq.liquido)}</div></div>
-        </div>
-        <div style={{borderTop:'1px solid rgba(255,255,255,0.1)',marginTop:12,paddingTop:12,display:'flex',justifyContent:'space-between',fontSize:11,color:'rgba(255,255,255,0.4)'}}>
-          <span>Aporte patronal est. (SIS): {fmt(patronal)}</span>
-          <span>Costo total empleador: {fmt(liq.liquido+patronal)}</span>
-        </div>
-      </div>
-
-      <div style={{display:'flex',justifyContent:'flex-end',gap:8,marginTop:20}}>
-        <button className="btn-outline" onClick={onClose}>Cerrar</button>
-        <button className="btn-pink" style={{display:'flex',alignItems:'center',gap:6}}><Ico n="download" s={15}/>Descargar PDF</button>
-      </div>
-    </Modal>
-  );
-};
-
-/* ─── EMPLOYEE FORM ─── */
-const EmpForm = ({emp, onClose, onSave}) => {
-  const def = emp || {nombre:'',apellido:'',rut:'',cargo:'',fecha_ingreso:'',tipo_contrato:'indefinido',jornada:45,sueldo_base:0,afp:'Habitat',salud:'Fonasa',email:'',telefono:'',direccion:'',estado:'activo'};
-  const [f,setF] = useState(def);
-  const s = (k,v) => setF(p=>({...p,[k]:v}));
-  const fields = [['nombre','Nombre','text'],['apellido','Apellido','text'],['rut','RUT','text'],['email','Correo','email'],['telefono','Teléfono','text'],['cargo','Cargo','text']];
-  const inputSty = {width:'100%',border:'1px solid #E5E7EB',borderRadius:8,padding:'8px 12px',fontSize:14,boxSizing:'border-box'};
-  return (
-    <Modal title={emp?'Editar Colaboradora':'Nueva Colaboradora'} onClose={onClose} wide>
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
-        {fields.map(([k,l,t])=>(
-          <div key={k}>
-            <label style={{display:'block',fontSize:12,fontWeight:500,color:'#374151',marginBottom:4}}>{l}</label>
-            <input type={t} value={f[k]||''} onChange={e=>s(k,e.target.value)} style={inputSty}/>
-          </div>
-        ))}
-        <div>
-          <label style={{display:'block',fontSize:12,fontWeight:500,color:'#374151',marginBottom:4}}>Tipo Contrato</label>
-          <select value={f.tipo_contrato} onChange={e=>s('tipo_contrato',e.target.value)} style={inputSty}>
-            <option value="indefinido">Indefinido</option>
-            <option value="plazo_fijo">Plazo Fijo</option>
-            <option value="obra_faena">Obra o Faena</option>
-          </select>
-        </div>
-        <div>
-          <label style={{display:'block',fontSize:12,fontWeight:500,color:'#374151',marginBottom:4}}>Jornada (hrs/semana)</label>
-          <input type="number" value={f.jornada} onChange={e=>s('jornada',+e.target.value)} style={inputSty}/>
-        </div>
-        <div>
-          <label style={{display:'block',fontSize:12,fontWeight:500,color:'#374151',marginBottom:4}}>Sueldo Base (CLP)</label>
-          <input type="number" value={f.sueldo_base} onChange={e=>s('sueldo_base',+e.target.value)} style={inputSty}/>
-        </div>
-        <div>
-          <label style={{display:'block',fontSize:12,fontWeight:500,color:'#374151',marginBottom:4}}>AFP</label>
-          <select value={f.afp} onChange={e=>s('afp',e.target.value)} style={inputSty}>
-            {['Habitat','Capital','Provida','Cuprum','Uno','PlanVital'].map(a=><option key={a}>{a}</option>)}
-          </select>
-        </div>
-        <div>
-          <label style={{display:'block',fontSize:12,fontWeight:500,color:'#374151',marginBottom:4}}>Salud</label>
-          <select value={f.salud} onChange={e=>s('salud',e.target.value)} style={inputSty}>
-            {['Fonasa','Isapre Cruz Blanca','Isapre Colmena','Isapre Banmédica'].map(a=><option key={a}>{a}</option>)}
-          </select>
-        </div>
-        <div>
-          <label style={{display:'block',fontSize:12,fontWeight:500,color:'#374151',marginBottom:4}}>Fecha Ingreso</label>
-          <input type="date" value={f.fecha_ingreso} onChange={e=>s('fecha_ingreso',e.target.value)} style={inputSty}/>
-        </div>
-        <div>
-          <label style={{display:'block',fontSize:12,fontWeight:500,color:'#374151',marginBottom:4}}>Estado</label>
-          <select value={f.estado} onChange={e=>s('estado',e.target.value)} style={inputSty}>
-            <option value="activo">Activo</option>
-            <option value="inactivo">Inactivo</option>
-          </select>
-        </div>
-        <div style={{gridColumn:'1/-1'}}>
-          <label style={{display:'block',fontSize:12,fontWeight:500,color:'#374151',marginBottom:4}}>Dirección</label>
-          <input type="text" value={f.direccion} onChange={e=>s('direccion',e.target.value)} style={inputSty}/>
-        </div>
-      </div>
-      <div style={{display:'flex',justifyContent:'flex-end',gap:8,marginTop:20}}>
-        <button className="btn-outline" onClick={onClose}>Cancelar</button>
-        <button className="btn-pink" onClick={()=>onSave(f)}>Guardar</button>
-      </div>
-    </Modal>
-  );
-};
-
-/* ─── SOLICITUD FORM ─── */
-const SolicitudForm = ({onClose}) => {
-  const [f,setF] = useState({tipo:'vacaciones',inicio:'',fin:'',obs:''});
-  const s=(k,v)=>setF(p=>({...p,[k]:v}));
-  const inputSty={width:'100%',border:'1px solid #E5E7EB',borderRadius:8,padding:'8px 12px',fontSize:14,boxSizing:'border-box'};
-  return (
-    <Modal title="Nueva Solicitud" onClose={onClose}>
-      <div style={{display:'flex',flexDirection:'column',gap:12}}>
-        <div>
-          <label style={{display:'block',fontSize:12,fontWeight:500,color:'#374151',marginBottom:4}}>Tipo</label>
-          <select value={f.tipo} onChange={e=>s('tipo',e.target.value)} style={inputSty}>
-            <option value="vacaciones">Vacaciones</option>
-            <option value="licencia_medica">Licencia Médica</option>
-            <option value="permiso">Permiso</option>
-            <option value="feriado">Día Administrativo</option>
-          </select>
-        </div>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
-          <div>
-            <label style={{display:'block',fontSize:12,fontWeight:500,color:'#374151',marginBottom:4}}>Inicio</label>
-            <input type="date" value={f.inicio} onChange={e=>s('inicio',e.target.value)} style={inputSty}/>
-          </div>
-          <div>
-            <label style={{display:'block',fontSize:12,fontWeight:500,color:'#374151',marginBottom:4}}>Fin</label>
-            <input type="date" value={f.fin} onChange={e=>s('fin',e.target.value)} style={inputSty}/>
-          </div>
-        </div>
-        <div>
-          <label style={{display:'block',fontSize:12,fontWeight:500,color:'#374151',marginBottom:4}}>Observaciones</label>
-          <textarea rows={3} value={f.obs} onChange={e=>s('obs',e.target.value)} style={{...inputSty,resize:'none'}}/>
-        </div>
-        <div style={{display:'flex',justifyContent:'flex-end',gap:8}}>
-          <button className="btn-outline" onClick={onClose}>Cancelar</button>
-          <button className="btn-pink" onClick={onClose}>Enviar Solicitud</button>
-        </div>
-      </div>
-    </Modal>
-  );
-};
-
-/* ─── EMPLOYEE PROFILE (ficha BUK) ─── */
-const EmpProfile = ({emp, onClose, onEdit}) => {
-  const [tab, setTab] = useState('resumen');
-  const [subTab, setSubTab] = useState('');
-  const [openDD, setOpenDD] = useState('');
-  const [selLiq, setSelLiq] = useState(null);
-  const [showSol, setShowSol] = useState(false);
-
-  const liqs   = LIQUIDACIONES.filter(l=>l.eid===emp.id);
-  const vacs   = VACACIONES.filter(v=>v.eid===emp.id);
-  const aus    = AUSENCIAS.filter(a=>a.eid===emp.id);
-  const hex    = HORAS_EXTRA.filter(h=>h.eid===emp.id);
-  const bonos  = ITEMS_BONOS.filter(b=>b.eid===emp.id);
-  const descs  = ITEMS_DESC.filter(d=>d.eid===emp.id);
-  const creds  = CREDITOS.filter(c=>c.eid===emp.id);
-  const antig  = Math.floor((new Date()-new Date(emp.fecha_ingreso))/(365.25*24*3600*1000));
-  const diasVac= antig*15;
-
-  const TabBtn = ({k,l}) => (
-    <button className={`tab-btn ${tab===k&&!subTab?'active':''}`} onClick={()=>{setTab(k);setSubTab('');setOpenDD('');}}>
-      {l}
-    </button>
-  );
-
-  const TipoTag = ({tipo}) => {
-    const map={vacaciones:'pill-blue',licencia_medica:'pill-red',permiso:'pill-purple',feriado:'pill-green'};
-    const lbl={vacaciones:'Vacaciones',licencia_medica:'Lic. Médica',permiso:'Permiso',feriado:'Adm.'};
-    return <span className={`pill ${map[tipo]||'pill-blue'}`}>{lbl[tipo]||tipo}</span>;
+  const handleSort = (key) => {
+    if (sortCol === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortCol(key); setSortDir('asc'); }
   };
 
+  let rows = data.filter(row =>
+    Object.entries(filters).every(([k, v]) =>
+      !v || String(row[k] ?? '').toLowerCase().includes(v.toLowerCase())
+    )
+  );
+  if (sortCol) {
+    rows = [...rows].sort((a,b) => {
+      const av = a[sortCol] ?? '', bv = b[sortCol] ?? '';
+      return sortDir === 'asc' ? (av < bv ? -1 : av > bv ? 1 : 0) : (av > bv ? -1 : av < bv ? 1 : 0);
+    });
+  }
+
+  const toggleAll = () => setSelected(selected.length === rows.length ? [] : rows.map(r=>r.id));
+
   return (
-    <Modal title={`Ficha — ${emp.nombre} ${emp.apellido}`} onClose={onClose} wide>
-      {selLiq && <LiqDetalle liq={selLiq} emp={emp} onClose={()=>setSelLiq(null)}/>}
-      {showSol && <SolicitudForm onClose={()=>setShowSol(false)}/>}
-
-      <div style={{display:'flex',gap:20}}>
-        {/* ── LEFT CARD ── */}
-        <div style={{width:220,flexShrink:0}}>
-          {/* Perfil */}
-          <div style={{background:'linear-gradient(135deg,#1B1564,#2D25A0)',borderRadius:12,padding:16,textAlign:'center',color:'#fff',marginBottom:10}}>
-            <Avatar ini={emp.ini} col={emp.col} size={52} style={{margin:'0 auto 8px'}}/>
-            <div style={{fontWeight:700,fontSize:15}}>{emp.nombre} {emp.apellido}</div>
-            <div style={{color:'rgba(255,255,255,0.55)',fontSize:12,marginTop:2}}>{emp.cargo}</div>
-            <span className={`pill ${emp.estado==='activo'?'pill-green':'pill-red'}`} style={{marginTop:8}}>
-              {emp.estado==='activo'?'Activo':'Inactivo'}
-            </span>
-          </div>
-
-          {/* Action buttons */}
-          <div style={{display:'flex',gap:4,marginBottom:10}}>
-            <button className="btn-outline" style={{flex:1,fontSize:12,padding:'6px 0',display:'flex',alignItems:'center',justifyContent:'center',gap:4}} onClick={onEdit}><Ico n="edit" s={12}/>Editar</button>
-            <button className="btn-outline" style={{flex:1,fontSize:12,padding:'6px 0',display:'flex',alignItems:'center',justifyContent:'center',gap:4}}><Ico n="doc" s={12}/>Ficha</button>
-            <button className="btn-outline" style={{fontSize:12,padding:'6px 10px',color:'#EF4444'}}><Ico n="trash" s={13}/></button>
-          </div>
-
-          {/* Info General */}
-          <div style={{background:'#F8FAFC',borderRadius:10,padding:'10px 12px',fontSize:12,marginBottom:8}}>
-            <div style={{fontWeight:600,color:'#374151',marginBottom:8}}>Información General</div>
-            {[['RUT',emp.rut],['Correo',emp.email],['Teléfono',emp.telefono],['Dirección',emp.direccion],['Ingreso',fmtDate(emp.fecha_ingreso)],['Contrato',emp.tipo_contrato],['Jornada',`${emp.jornada} hrs/sem`]].map(([k,v])=>(
-              <div key={k} style={{marginBottom:4}}><span style={{color:'#9CA3AF'}}>{k}: </span><span style={{color:'#374151',fontWeight:500,wordBreak:'break-all'}}>{v}</span></div>
-            ))}
-          </div>
-
-          {/* Previsión */}
-          <div style={{background:'#F8FAFC',borderRadius:10,padding:'10px 12px',fontSize:12}}>
-            <div style={{fontWeight:600,color:'#374151',marginBottom:8}}>Previsión y Pago</div>
-            {[['AFP',emp.afp],['Salud',emp.salud],['Forma de Pago','Transferencia'],['Sueldo Base',fmt(emp.sueldo_base)]].map(([k,v])=>(
-              <div key={k} style={{marginBottom:4}}><span style={{color:'#9CA3AF'}}>{k}: </span><span style={{color:'#374151',fontWeight:500}}>{v}</span></div>
-            ))}
-          </div>
+    <div className="buk-table-wrap">
+      <div className="buk-toolbar">
+        <div className="buk-per-page">
+          <span>Ver</span>
+          <select value={perPage} onChange={e=>setPerPage(Number(e.target.value))}>
+            {[10,25,50,100].map(n=><option key={n} value={n}>{n}</option>)}
+          </select>
+          <span>de {total || data.length}</span>
         </div>
-
-        {/* ── RIGHT PANEL ── */}
-        <div style={{flex:1,minWidth:0}}>
-          {/* Tabs */}
-          <div style={{display:'flex',borderBottom:'2px solid #F1F5F9',marginBottom:16,overflowX:'auto',gap:0}}>
-            <TabBtn k="resumen" l="Resumen"/>
-            <TabBtn k="liquidaciones" l="Liquidaciones"/>
-            <TabBtn k="documentos" l="Documentos"/>
-            <TabBtn k="historia" l="Historia"/>
-
-            {/* Ítems dropdown */}
-            <div style={{position:'relative'}}>
-              <button className={`tab-btn ${['haberes','descuentos','creditos'].includes(subTab)?'active':''}`}
-                style={{display:'flex',alignItems:'center',gap:4}}
-                onClick={()=>setOpenDD(openDD==='items'?'':('items'))}>
-                Ítems <Ico n="chevD" s={11}/>
-              </button>
-              {openDD==='items' && (
-                <div className="dropdown-menu">
-                  {[['haberes','Haberes'],['descuentos','Descuentos'],['creditos','Créditos']].map(([k,l])=>(
-                    <button key={k} className="dropdown-item" onClick={()=>{setSubTab(k);setTab('items');setOpenDD('');}}>{l}</button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Asistencia dropdown */}
-            <div style={{position:'relative'}}>
-              <button className={`tab-btn ${['ausencias','hextra'].includes(subTab)?'active':''}`}
-                style={{display:'flex',alignItems:'center',gap:4}}
-                onClick={()=>setOpenDD(openDD==='asist'?'':('asist'))}>
-                Asistencia <Ico n="chevD" s={11}/>
-              </button>
-              {openDD==='asist' && (
-                <div className="dropdown-menu">
-                  {[['ausencias','Ausencias'],['hextra','Horas Extra']].map(([k,l])=>(
-                    <button key={k} className="dropdown-item" onClick={()=>{setSubTab(k);setTab('asist');setOpenDD('');}}>{l}</button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <button className={`tab-btn ${tab==='vacaciones'&&!subTab?'active':''}`} onClick={()=>{setTab('vacaciones');setSubTab('');setOpenDD('');}}>Vacaciones</button>
-          </div>
-
-          {/* ── RESUMEN ── */}
-          {tab==='resumen' && (
-            <div style={{display:'flex',flexDirection:'column',gap:14}}>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10}}>
-                {[['Sueldo Base',fmt(emp.sueldo_base),'currency'],['Antigüedad',`${antig} año${antig!==1?'s':''}`, 'calendar'],['Días Vacaciones',diasVac+' días','gift']].map(([l,v,ic])=>(
-                  <div key={l} className="stat-card" style={{textAlign:'center',padding:14}}>
-                    <Ico n={ic} s={20} cls="mx-auto" style={{color:'#F0197A',margin:'0 auto 8px'}}/>
-                    <div style={{fontSize:18,fontWeight:700,color:'#111827'}}>{v}</div>
-                    <div style={{fontSize:12,color:'#9CA3AF',marginTop:2}}>{l}</div>
-                  </div>
-                ))}
-              </div>
-              {liqs.length>0 && (
-                <div style={{background:'#F8FAFC',borderRadius:10,padding:14}}>
-                  <div style={{fontSize:13,fontWeight:600,color:'#374151',marginBottom:10}}>Última liquidación</div>
-                  {(()=>{const l=liqs[0]; return (
-                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                      <div><div style={{fontWeight:700,fontSize:16,color:'#1B1564'}}>{fmt(l.liquido)}</div><div style={{fontSize:12,color:'#9CA3AF'}}>{periodoLabel(l.periodo)}</div></div>
-                      <span className={`pill ${l.estado==='pagada'?'pill-green':'pill-yellow'}`}>{l.estado==='pagada'?'Pagada':'Pendiente'}</span>
-                      <button className="btn-outline" style={{fontSize:12}} onClick={()=>setSelLiq(l)}>Ver detalle</button>
-                    </div>
-                  );})()}
-                </div>
-              )}
-              <div style={{background:'#F8FAFC',borderRadius:10,padding:14}}>
-                <div style={{fontSize:13,fontWeight:600,color:'#374151',marginBottom:8}}>Beneficios asignados</div>
-                <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
-                  {BENEFITS.filter(b=>b.asignados.includes(emp.id)).map(b=>(
-                    <span key={b.label} className="pill pill-blue" style={{fontSize:12}}>{b.icon} {b.label}</span>
-                  ))}
-                  {BENEFITS.filter(b=>b.asignados.includes(emp.id)).length===0 && <span style={{fontSize:13,color:'#9CA3AF'}}>Sin beneficios asignados</span>}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ── LIQUIDACIONES ── */}
-          {tab==='liquidaciones' && (
-            <div style={{overflowX:'auto'}}>
-              <table>
-                <thead><tr style={{fontSize:11,color:'#9CA3AF',textTransform:'uppercase',borderBottom:'2px solid #F1F5F9'}}>
-                  {['Mes','Sueldo Bruto','Sueldo Líquido','Aporte Patronal','HH. Extra','Recargos','Estado','Acciones'].map(h=>(
-                    <th key={h} style={{padding:'6px 8px',textAlign:h==='Mes'||h==='Estado'?'left':'right',fontWeight:600}}>{h}</th>
-                  ))}
-                </tr></thead>
-                <tbody>
-                  {liqs.length>0 ? liqs.map(l=>(
-                    <tr key={l.id} style={{borderBottom:'1px solid #F8FAFC'}}>
-                      <td style={{padding:'10px 8px',fontWeight:500}}>{periodoLabel(l.periodo)}</td>
-                      <td style={{padding:'10px 8px',textAlign:'right',color:'#6B7280'}}>{fmt(l.haberes)}</td>
-                      <td style={{padding:'10px 8px',textAlign:'right',fontWeight:700,color:'#1B1564'}}>{fmt(l.liquido)}</td>
-                      <td style={{padding:'10px 8px',textAlign:'right',color:'#9CA3AF'}}>{fmt(Math.round(l.base*0.023))}</td>
-                      <td style={{padding:'10px 8px',textAlign:'right',color:'#9CA3AF'}}>{l.hex>0?fmt(l.hex):'—'}</td>
-                      <td style={{padding:'10px 8px',textAlign:'right',color:'#9CA3AF'}}>—</td>
-                      <td style={{padding:'10px 8px'}}><span className={`pill ${l.estado==='pagada'?'pill-green':'pill-yellow'}`}>{l.estado==='pagada'?'Pagada':'Pendiente'}</span></td>
-                      <td style={{padding:'10px 8px',textAlign:'right'}}><button style={{color:'#F0197A',fontSize:12,background:'none',border:'none',cursor:'pointer'}} onClick={()=>setSelLiq(l)}>Ver</button></td>
-                    </tr>
-                  )) : <tr><td colSpan={8} style={{padding:32,textAlign:'center',color:'#9CA3AF',fontSize:13}}>Sin liquidaciones</td></tr>}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* ── DOCUMENTOS ── */}
-          {tab==='documentos' && (
-            <div>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
-                <span style={{fontSize:14,fontWeight:600,color:'#374151'}}>Documentos</span>
-                <button className="btn-pink" style={{fontSize:12}}>+ Subir documento</button>
-              </div>
-              {['Contrato de Trabajo','Finiquito (si aplica)','Certificado AFP','Certificado Salud','Liquidaciones firmadas'].map(doc=>(
-                <div key={doc} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 12px',background:'#F8FAFC',borderRadius:8,marginBottom:6}}>
-                  <div style={{display:'flex',alignItems:'center',gap:8,fontSize:13,color:'#4B5563'}}><Ico n="doc" s={16} cls="" style={{color:'#1B1564'}}/>{doc}</div>
-                  <div style={{display:'flex',gap:12}}>
-                    <button style={{fontSize:12,color:'#F0197A',background:'none',border:'none',cursor:'pointer'}}>Ver</button>
-                    <button style={{fontSize:12,color:'#9CA3AF',background:'none',border:'none',cursor:'pointer'}}>Descargar</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* ── HISTORIA ── */}
-          {tab==='historia' && (
-            <div>
-              <div style={{fontSize:13,fontWeight:600,color:'#374151',marginBottom:12}}>Línea de Tiempo</div>
-              <div style={{paddingLeft:20,borderLeft:'2px solid #E5E7EB'}}>
-                {[
-                  {fecha:emp.fecha_ingreso,tipo:'Ingreso',desc:`Ingresó como ${emp.cargo}`,col:'#059669'},
-                  {fecha:'2025-01-01',tipo:'Actualización Sueldo',desc:`Ajuste sueldo base a ${fmt(emp.sueldo_base)}`,col:'#2563EB'},
-                ].map((ev,i)=>(
-                  <div key={i} style={{position:'relative',marginBottom:20,paddingLeft:8}}>
-                    <div style={{position:'absolute',left:-28,top:4,width:12,height:12,borderRadius:'50%',background:ev.col,border:'2px solid #fff'}}/>
-                    <div style={{fontSize:11,color:'#9CA3AF'}}>{fmtDate(ev.fecha)}</div>
-                    <div style={{fontSize:13,fontWeight:600,color:'#374151'}}>{ev.tipo}</div>
-                    <div style={{fontSize:12,color:'#6B7280'}}>{ev.desc}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ── VACACIONES ── */}
-          {tab==='vacaciones' && (
-            <div>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10,marginBottom:16}}>
-                {[['Días Legales',diasVac],['Días Tomados',vacs.filter(v=>v.tipo==='vacaciones'&&v.estado==='aprobada').reduce((a,v)=>a+v.dias,0)],['Saldo Disponible',Math.max(0,diasVac-vacs.filter(v=>v.tipo==='vacaciones'&&v.estado==='aprobada').reduce((a,v)=>a+v.dias,0))]].map(([l,v])=>(
-                  <div key={l} className="stat-card" style={{textAlign:'center',padding:14}}>
-                    <div style={{fontSize:26,fontWeight:800,color:'#F0197A'}}>{v}</div>
-                    <div style={{fontSize:12,color:'#9CA3AF',marginTop:2}}>{l}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
-                <span style={{fontSize:13,fontWeight:600,color:'#374151'}}>Historial de solicitudes</span>
-                <button className="btn-pink" style={{fontSize:12}} onClick={()=>setShowSol(true)}>+ Nueva Solicitud</button>
-              </div>
-              <table>
-                <thead><tr style={{fontSize:11,color:'#9CA3AF',textTransform:'uppercase',borderBottom:'2px solid #F1F5F9'}}>
-                  <th style={{padding:'6px 8px',textAlign:'left'}}>Tipo</th>
-                  <th style={{padding:'6px 8px',textAlign:'left'}}>Inicio</th>
-                  <th style={{padding:'6px 8px',textAlign:'left'}}>Fin</th>
-                  <th style={{padding:'6px 8px',textAlign:'center'}}>Días</th>
-                  <th style={{padding:'6px 8px',textAlign:'center'}}>Estado</th>
-                </tr></thead>
-                <tbody>
-                  {vacs.length>0?vacs.map(v=>(
-                    <tr key={v.id} style={{borderBottom:'1px solid #F8FAFC'}}>
-                      <td style={{padding:'8px'}}><TipoTag tipo={v.tipo}/></td>
-                      <td style={{padding:'8px',color:'#6B7280',fontSize:13}}>{fmtDate(v.inicio)}</td>
-                      <td style={{padding:'8px',color:'#6B7280',fontSize:13}}>{fmtDate(v.fin)}</td>
-                      <td style={{padding:'8px',textAlign:'center',fontWeight:600}}>{v.dias}</td>
-                      <td style={{padding:'8px',textAlign:'center'}}><span className={`pill ${v.estado==='aprobada'?'pill-green':'pill-yellow'}`}>{v.estado==='aprobada'?'Aprobada':'Pendiente'}</span></td>
-                    </tr>
-                  )):<tr><td colSpan={5} style={{padding:24,textAlign:'center',color:'#9CA3AF',fontSize:13}}>Sin registros</td></tr>}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* ── HABERES (sub) ── */}
-          {subTab==='haberes' && (
-            <div>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
-                <span style={{fontSize:14,fontWeight:600,color:'#374151'}}>Haberes / Bonos</span>
-                <button className="btn-pink" style={{fontSize:12}}>+ Agregar</button>
-              </div>
-              <table>
-                <thead><tr style={{fontSize:11,color:'#9CA3AF',textTransform:'uppercase',borderBottom:'2px solid #F1F5F9'}}>
-                  <th style={{padding:'6px 8px',textAlign:'left'}}>Nombre</th>
-                  <th style={{padding:'6px 8px',textAlign:'right'}}>Monto</th>
-                  <th style={{padding:'6px 8px',textAlign:'center'}}>Período</th>
-                </tr></thead>
-                <tbody>
-                  {bonos.length>0?bonos.map(b=>(
-                    <tr key={b.id} style={{borderBottom:'1px solid #F8FAFC'}}>
-                      <td style={{padding:'8px',fontWeight:500}}>{b.nombre}</td>
-                      <td style={{padding:'8px',textAlign:'right',color:'#059669',fontWeight:700}}>{fmt(b.monto)}</td>
-                      <td style={{padding:'8px',textAlign:'center',color:'#9CA3AF',fontSize:12}}>{periodoLabel(b.periodo)}</td>
-                    </tr>
-                  )):<tr><td colSpan={3} style={{padding:24,textAlign:'center',color:'#9CA3AF',fontSize:13}}>Sin haberes adicionales</td></tr>}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* ── DESCUENTOS (sub) ── */}
-          {subTab==='descuentos' && (
-            <div>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
-                <span style={{fontSize:14,fontWeight:600,color:'#374151'}}>Descuentos</span>
-                <button className="btn-pink" style={{fontSize:12}}>+ Agregar</button>
-              </div>
-              <table>
-                <thead><tr style={{fontSize:11,color:'#9CA3AF',textTransform:'uppercase',borderBottom:'2px solid #F1F5F9'}}>
-                  <th style={{padding:'6px 8px',textAlign:'left'}}>Nombre</th>
-                  <th style={{padding:'6px 8px',textAlign:'right'}}>Monto</th>
-                  <th style={{padding:'6px 8px',textAlign:'center'}}>Período</th>
-                </tr></thead>
-                <tbody>
-                  {descs.length>0?descs.map(d=>(
-                    <tr key={d.id} style={{borderBottom:'1px solid #F8FAFC'}}>
-                      <td style={{padding:'8px',fontWeight:500}}>{d.nombre}</td>
-                      <td style={{padding:'8px',textAlign:'right',color:'#DC2626',fontWeight:700}}>-{fmt(d.monto)}</td>
-                      <td style={{padding:'8px',textAlign:'center',color:'#9CA3AF',fontSize:12}}>{periodoLabel(d.periodo)}</td>
-                    </tr>
-                  )):<tr><td colSpan={3} style={{padding:24,textAlign:'center',color:'#9CA3AF',fontSize:13}}>Sin descuentos adicionales</td></tr>}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* ── CRÉDITOS (sub) ── */}
-          {subTab==='creditos' && (
-            <div>
-              <span style={{fontSize:14,fontWeight:600,color:'#374151',display:'block',marginBottom:12}}>Créditos</span>
-              <table>
-                <thead><tr style={{fontSize:11,color:'#9CA3AF',textTransform:'uppercase',borderBottom:'2px solid #F1F5F9'}}>
-                  <th style={{padding:'6px 8px',textAlign:'left'}}>Nombre</th>
-                  <th style={{padding:'6px 8px',textAlign:'right'}}>Cuota Mensual</th>
-                  <th style={{padding:'6px 8px',textAlign:'center'}}>Cuotas</th>
-                  <th style={{padding:'6px 8px',textAlign:'right'}}>Saldo</th>
-                </tr></thead>
-                <tbody>
-                  {creds.length>0?creds.map(c=>(
-                    <tr key={c.id} style={{borderBottom:'1px solid #F8FAFC'}}>
-                      <td style={{padding:'8px',fontWeight:500}}>{c.nombre}</td>
-                      <td style={{padding:'8px',textAlign:'right'}}>{fmt(c.cuota_mensual)}</td>
-                      <td style={{padding:'8px',textAlign:'center'}}>{c.cuotas}</td>
-                      <td style={{padding:'8px',textAlign:'right',color:'#DC2626',fontWeight:700}}>{fmt(c.saldo)}</td>
-                    </tr>
-                  )):<tr><td colSpan={4} style={{padding:24,textAlign:'center',color:'#9CA3AF',fontSize:13}}>Sin créditos</td></tr>}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* ── AUSENCIAS (sub) ── */}
-          {subTab==='ausencias' && (
-            <div>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
-                <span style={{fontSize:14,fontWeight:600,color:'#374151'}}>Ausencias</span>
-                <button className="btn-pink" style={{fontSize:12}} onClick={()=>setShowSol(true)}>+ Registrar</button>
-              </div>
-              <table>
-                <thead><tr style={{fontSize:11,color:'#9CA3AF',textTransform:'uppercase',borderBottom:'2px solid #F1F5F9'}}>
-                  <th style={{padding:'6px 8px',textAlign:'left'}}>Tipo</th>
-                  <th style={{padding:'6px 8px',textAlign:'left'}}>Inicio</th>
-                  <th style={{padding:'6px 8px',textAlign:'left'}}>Fin</th>
-                  <th style={{padding:'6px 8px',textAlign:'center'}}>Días</th>
-                  <th style={{padding:'6px 8px',textAlign:'left'}}>Motivo</th>
-                </tr></thead>
-                <tbody>
-                  {aus.length>0?aus.map(a=>(
-                    <tr key={a.id} style={{borderBottom:'1px solid #F8FAFC'}}>
-                      <td style={{padding:'8px'}}><span className="pill pill-red" style={{fontSize:11}}>{a.tipo}</span></td>
-                      <td style={{padding:'8px',color:'#6B7280',fontSize:13}}>{fmtDate(a.inicio)}</td>
-                      <td style={{padding:'8px',color:'#6B7280',fontSize:13}}>{fmtDate(a.fin)}</td>
-                      <td style={{padding:'8px',textAlign:'center',fontWeight:600}}>{a.dias}</td>
-                      <td style={{padding:'8px',color:'#9CA3AF',fontSize:12}}>{a.motivo}</td>
-                    </tr>
-                  )):<tr><td colSpan={5} style={{padding:24,textAlign:'center',color:'#9CA3AF',fontSize:13}}>Sin ausencias</td></tr>}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* ── HORAS EXTRA (sub) ── */}
-          {subTab==='hextra' && (
-            <div>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
-                <span style={{fontSize:14,fontWeight:600,color:'#374151'}}>Horas Extra</span>
-                <button className="btn-pink" style={{fontSize:12}}>+ Registrar</button>
-              </div>
-              <table>
-                <thead><tr style={{fontSize:11,color:'#9CA3AF',textTransform:'uppercase',borderBottom:'2px solid #F1F5F9'}}>
-                  <th style={{padding:'6px 8px',textAlign:'left'}}>Fecha</th>
-                  <th style={{padding:'6px 8px',textAlign:'center'}}>Horas</th>
-                  <th style={{padding:'6px 8px',textAlign:'left'}}>Tipo</th>
-                  <th style={{padding:'6px 8px',textAlign:'right'}}>Monto</th>
-                </tr></thead>
-                <tbody>
-                  {hex.length>0?hex.map(h=>(
-                    <tr key={h.id} style={{borderBottom:'1px solid #F8FAFC'}}>
-                      <td style={{padding:'8px',color:'#6B7280',fontSize:13}}>{fmtDate(h.fecha)}</td>
-                      <td style={{padding:'8px',textAlign:'center',fontWeight:700}}>{h.horas}</td>
-                      <td style={{padding:'8px'}}><span className="pill pill-purple" style={{fontSize:11}}>{h.tipo}</span></td>
-                      <td style={{padding:'8px',textAlign:'right',fontWeight:700,color:'#059669'}}>{fmt(h.monto)}</td>
-                    </tr>
-                  )):<tr><td colSpan={4} style={{padding:24,textAlign:'center',color:'#9CA3AF',fontSize:13}}>Sin horas extra</td></tr>}
-                </tbody>
-              </table>
-            </div>
-          )}
+        <div className="buk-toolbar-right">
+          {selected.length > 0 && <span className="badge badge-pink">{selected.length} seleccionadas</span>}
+          <button className="btn-icon" title="Exportar"><Icon name="download" size={15}/></button>
+          <button className="btn-icon" title="Más opciones"><Icon name="dots" size={15}/></button>
         </div>
       </div>
-    </Modal>
+      <div style={{overflowX:'auto'}}>
+        <table className="buk">
+          <thead>
+            <tr>
+              <th className="cb-col">
+                <input type="checkbox" checked={selected.length===rows.length && rows.length>0} onChange={toggleAll} style={{cursor:'pointer'}}/>
+              </th>
+              {columns.map(col => (
+                <th key={col.key} style={{width: col.width}}>
+                  <div className="th-inner">
+                    <div className="th-label" onClick={()=>handleSort(col.key)}>
+                      {col.label}
+                      <span className="sort-icon">
+                        {sortCol===col.key ? (sortDir==='asc'?'▲':'▼') : '⇅'}
+                      </span>
+                    </div>
+                    {col.filterable !== false && (
+                      <div className="th-filter">
+                        <input
+                          placeholder={`Buscar por...`}
+                          value={filters[col.key]||''}
+                          onChange={e=>setFilters(f=>({...f,[col.key]:e.target.value}))}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </th>
+              ))}
+              <th style={{width:40}}></th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.slice(0, perPage).map(row => (
+              <tr key={row.id} className={selected.includes(row.id)?'selected':''} style={{cursor: onRowClick ? 'pointer' : 'default'}}>
+                <td className="cb-col" onClick={e=>e.stopPropagation()}>
+                  <input type="checkbox" checked={selected.includes(row.id)} onChange={()=>setSelected(s=>s.includes(row.id)?s.filter(x=>x!==row.id):[...s,row.id])} style={{cursor:'pointer'}}/>
+                </td>
+                {columns.map(col => (
+                  <td key={col.key} onClick={()=>onRowClick&&onRowClick(row)}>
+                    {col.render ? col.render(row) : (row[col.key] ?? '—')}
+                  </td>
+                ))}
+                <td>
+                  <button className="btn-icon" style={{width:28,height:28}} onClick={e=>{e.stopPropagation(); onRowClick&&onRowClick(row);}}>
+                    <Icon name="eye" size={13}/>
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {rows.length === 0 && (
+              <tr><td colSpan={columns.length+2}>
+                <div className="empty-state">
+                  <div className="empty-state-icon">🔍</div>
+                  <div className="empty-state-text">No se encontraron resultados</div>
+                </div>
+              </td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 };
 
-/* ─── DASHBOARD ─── */
-const Dashboard = () => {
-  const activos = INIT_EMPLOYEES.filter(e=>e.estado==='activo').length;
-  const masaSalarial = LIQUIDACIONES.reduce((s,l)=>s+l.liquido,0);
-  const pendientes = LIQUIDACIONES.filter(l=>l.estado==='pendiente').length;
-  const solPend = VACACIONES.filter(v=>v.estado==='pendiente').length;
+/* ────────────────── DASHBOARD ────────────────── */
+const Dashboard = ({ setPage, setSelEmp }) => {
+  const activas = INIT_EMPLOYEES.filter(e=>e.estado==='Activo').length;
+  const totalLiq = LIQUIDACIONES.reduce((a,l)=>a+l.liquido,0);
+  const pendientes = LIQUIDACIONES.filter(l=>l.estado==='Pendiente').length;
 
   return (
-    <div style={{display:'flex',flexDirection:'column',gap:24}}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+    <div>
+      <div className="page-header">
         <div>
-          <h1 style={{fontSize:24,fontWeight:700,color:'#111827',margin:0}}>Panel de Control</h1>
-          <p style={{fontSize:13,color:'#9CA3AF',margin:'4px 0 0'}}>{new Date().toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</p>
+          <div className="page-title">¡Buen día, Rene! 👋</div>
+          <div className="page-subtitle">Resumen de tu empleadora — {new Date().toLocaleDateString('es-CL',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
         </div>
-        <button className="btn-pink" style={{display:'flex',alignItems:'center',gap:6}}><Ico n="bell" s={15}/>Notificaciones</button>
-      </div>
-
-      {/* KPIs */}
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:16}}>
-        {[
-          {l:'Colaboradoras Activas',  v:activos,      sub:`de ${INIT_EMPLOYEES.length} total`, ic:'users',    bg:'#FDF0F7', tc:'#F0197A'},
-          {l:'Masa Salarial (Ene)',    v:fmt(masaSalarial),  sub:'liquidado',                   ic:'currency', bg:'#EEF2FF', tc:'#1B1564'},
-          {l:'Liquidaciones Pend.',    v:pendientes,   sub:'requieren pago',                    ic:'doc',      bg:'#FFFBEB', tc:'#D97706'},
-          {l:'Solicitudes Pendientes', v:solPend,      sub:'vacaciones/permisos',               ic:'calendar', bg:'#ECFDF5', tc:'#059669'},
-        ].map(k=>(
-          <div key={k.l} className="stat-card">
-            <div style={{width:40,height:40,borderRadius:10,background:k.bg,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:12}}>
-              <Ico n={k.ic} s={20} style={{color:k.tc}}/>
-            </div>
-            <div style={{fontSize:26,fontWeight:800,color:'#111827'}}>{k.v}</div>
-            <div style={{fontSize:13,fontWeight:500,color:'#374151',marginTop:2}}>{k.l}</div>
-            <div style={{fontSize:12,color:'#9CA3AF',marginTop:2}}>{k.sub}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Variables del período */}
-      <div className="stat-card">
-        <h3 style={{fontSize:14,fontWeight:600,color:'#374151',marginBottom:12,marginTop:0}}>Variables del Período · Feb 2026</h3>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10}}>
-          {VARIABLES.slice(0,4).map(v=>(
-            <div key={v.nombre} style={{background:'#F8FAFC',borderRadius:8,padding:'10px 12px',textAlign:'center'}}>
-              <div style={{fontSize:11,color:'#9CA3AF',marginBottom:4}}>{v.nombre}</div>
-              <div style={{fontWeight:700,color:'#111827',fontSize:15}}>${v.valor}</div>
-            </div>
-          ))}
+        <div className="page-actions">
+          <button className="btn btn-outline" onClick={()=>setPage('colaboradoras')}><Icon name="users" size={14}/>Ver colaboradoras</button>
+          <button className="btn btn-primary" onClick={()=>setPage('colaboradoras')}><Icon name="plus" size={14}/>Nueva colaboradora</button>
         </div>
       </div>
 
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
-        {/* Procesos */}
-        <div className="stat-card">
-          <h3 style={{fontSize:14,fontWeight:600,color:'#374151',marginBottom:12,marginTop:0}}>Procesos de Remuneración</h3>
-          {PROCESOS.map(p=>(
-            <div key={p.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 12px',background:'#F8FAFC',borderRadius:8,marginBottom:6}}>
-              <div>
-                <div style={{fontSize:13,fontWeight:500,color:'#374151'}}>{p.nombre}</div>
-                <div style={{fontSize:11,color:'#9CA3AF'}}>{p.empleados} empleadas · {p.estado==='cerrado'?`Cerrado ${fmtDate(p.fecha_cierre)}`:'En proceso'}</div>
+      <div className="stat-grid">
+        <StatCard label="Colaboradoras activas" value={activas} meta={`${INIT_EMPLOYEES.length} en total`} iconName="users" iconBg="#1B1564"/>
+        <StatCard label="Gasto mensual" value={fmt(totalLiq)} meta="Enero 2026" iconName="cash" iconBg="#F0197A"/>
+        <StatCard label="Liq. pendientes" value={pendientes} meta="Requieren acción" iconName="doc" iconBg="#D97706"/>
+        <StatCard label="Ausencias este mes" value={AUSENCIAS.length} meta="Enero 2026" iconName="calendar" iconBg="#059669"/>
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:20}}>
+        <div className="card">
+          <div className="card-title"><Icon name="users" size={15} color="#F0197A"/> Colaboradoras</div>
+          {INIT_EMPLOYEES.map(emp => (
+            <div key={emp.id} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 0',borderBottom:'1px solid #F3F4F6',cursor:'pointer'}}
+              onClick={()=>{setSelEmp(emp); setPage('perfil');}}>
+              <div className="emp-badge" style={{background:badgeColor(emp.nombre),width:34,height:34,fontSize:12}}>
+                {initials(emp.nombre)}
               </div>
-              <span className={`pill ${p.estado==='cerrado'?'pill-green':'pill-blue'}`}>{p.estado==='cerrado'?'Cerrado':'Abierto'}</span>
+              <div style={{flex:1}}>
+                <div style={{fontSize:13,fontWeight:600,color:'#111827'}}>{emp.nombre}</div>
+                <div style={{fontSize:11,color:'#6B7280'}}>{emp.cargo}</div>
+              </div>
+              <span className={`badge badge-${emp.estado==='Activo'?'green':emp.estado==='Licencia'?'yellow':'gray'}`}>
+                {emp.estado}
+              </span>
             </div>
           ))}
         </div>
 
-        {/* Solicitudes */}
-        <div className="stat-card">
-          <h3 style={{fontSize:14,fontWeight:600,color:'#374151',marginBottom:12,marginTop:0}}>Solicitudes Recientes</h3>
-          {VACACIONES.slice(0,3).map(v=>{
-            const e=INIT_EMPLOYEES.find(x=>x.id===v.eid);
-            const tiposL={vacaciones:'Vacaciones',licencia_medica:'Licencia Médica',permiso:'Permiso'};
+        <div className="card">
+          <div className="card-title"><Icon name="cash" size={15} color="#F0197A"/> Últimas Liquidaciones</div>
+          {LIQUIDACIONES.slice(0,4).map(liq => {
+            const emp = INIT_EMPLOYEES.find(e=>e.id===liq.empId);
             return (
-              <div key={v.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid #F8FAFC'}}>
-                <div style={{display:'flex',alignItems:'center',gap:8}}>
-                  <Avatar ini={e?.ini} col={e?.col} size={28}/>
-                  <div>
-                    <div style={{fontSize:12,fontWeight:500,color:'#374151'}}>{e?.nombre} {e?.apellido}</div>
-                    <div style={{fontSize:11,color:'#9CA3AF'}}>{tiposL[v.tipo]||v.tipo}</div>
-                  </div>
+              <div key={liq.id} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 0',borderBottom:'1px solid #F3F4F6'}}>
+                <div className="emp-badge" style={{background:badgeColor(emp?.nombre||''),width:30,height:30,fontSize:11}}>
+                  {initials(emp?.nombre||'?')}
                 </div>
-                <span className={`pill ${v.estado==='aprobada'?'pill-green':'pill-yellow'}`}>{v.estado==='aprobada'?'Aprobada':'Pendiente'}</span>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:12,fontWeight:600,color:'#111827'}}>{emp?.nombre?.split(',')[0]}</div>
+                  <div style={{fontSize:11,color:'#6B7280'}}>{liq.periodo}</div>
+                </div>
+                <div style={{textAlign:'right'}}>
+                  <div style={{fontSize:12,fontWeight:700,color:'#111827'}}>{fmt(liq.liquido)}</div>
+                  <span className={`badge badge-${liq.estado==='Pagado'?'green':'yellow'}`} style={{fontSize:10}}>
+                    {liq.estado}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+          <button className="btn btn-ghost btn-sm" style={{marginTop:12,width:'100%'}} onClick={()=>setPage('liquidaciones')}>
+            Ver todas las liquidaciones
+          </button>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-title"><Icon name="chart" size={15} color="#F0197A"/> Gasto en remuneraciones — últimos 6 meses</div>
+        <div style={{display:'flex',gap:16,alignItems:'flex-end',height:120,padding:'0 8px'}}>
+          {['Ago','Sep','Oct','Nov','Dic','Ene'].map((m,i) => {
+            const h = [60,70,55,80,75,100][i];
+            return (
+              <div key={m} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
+                <div style={{flex:1,width:'100%',display:'flex',alignItems:'flex-end'}}>
+                  <div style={{width:'100%',height:`${h}%`,background: i===5?'#F0197A':'#E5E7EB',borderRadius:'4px 4px 0 0',transition:'height 0.3s'}}/>
+                </div>
+                <div style={{fontSize:11,color:'#6B7280'}}>{m}</div>
               </div>
             );
           })}
@@ -864,457 +549,102 @@ const Dashboard = () => {
   );
 };
 
-/* ─── COLABORADORAS ─── */
-const Colaboradoras = ({emps, setEmps}) => {
-  const [search, setSearch] = useState('');
-  const [filtro, setFiltro] = useState('todos');
-  const [selEmp, setSelEmp] = useState(null);
-  const [editEmp, setEditEmp] = useState(null);
-  const [showCreate, setShowCreate] = useState(false);
+/* ────────────────── COLABORADORAS ────────────────── */
+const Colaboradoras = ({ setPage, setSelEmp }) => {
+  const [perPage, setPerPage] = useState(25);
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState({nombre:'',rut:'',cargo:'',ingreso:'',contrato:'Indefinido',jornada:'44h semanales',sueldo:'',afp:'Provida',salud:'Fonasa'});
+  const [employees, setEmployees] = useState(INIT_EMPLOYEES);
 
-  const filtered = emps.filter(e=>{
-    const ok = `${e.nombre} ${e.apellido} ${e.rut} ${e.cargo}`.toLowerCase().includes(search.toLowerCase());
-    const st = filtro==='todos'||e.estado===filtro;
-    return ok && st;
-  });
+  const cols = [
+    { key:'nombre', label:'Nombre', render: r => (
+      <div className="emp-cell">
+        <div className="emp-badge" style={{background:badgeColor(r.nombre)}}>{initials(r.nombre)}</div>
+        <span className="emp-name-link" onClick={()=>{setSelEmp(r);setPage('perfil');}}>{r.nombre}</span>
+      </div>
+    )},
+    { key:'rut', label:'Número de Documento' },
+    { key:'cargo', label:'Cargo' },
+    { key:'ingreso', label:'Fecha Ingreso' },
+    { key:'sueldo', label:'Sueldo Base', render: r => fmt(r.sueldo) },
+    { key:'estado', label:'Estado', filterable:false, render: r => (
+      <span className={`badge badge-${r.estado==='Activo'?'green':r.estado==='Licencia'?'yellow':'gray'}`}>{r.estado}</span>
+    )},
+  ];
 
-  const handleSave = form => {
-    if(editEmp) {
-      setEmps(p=>p.map(e=>e.id===editEmp.id?{...e,...form}:e));
-    } else {
-      setEmps(p=>[...p,{...form,id:Date.now(),ini:`${form.nombre[0]||'?'}${(form.apellido||'?')[0]}`.toUpperCase(),col:randomColor()}]);
-    }
-    setEditEmp(null); setShowCreate(false);
+  const save = () => {
+    const newEmp = {...form, id: employees.length+1, sueldo:Number(form.sueldo)||0, area:'Hogar', banco:'BancoEstado', cuenta:'Cta. Rut', empleador:'Familia Aravena Riffo', email:'', tel:'', direccion:''};
+    setEmployees(e=>[...e,newEmp]);
+    setShowModal(false);
+    setForm({nombre:'',rut:'',cargo:'',ingreso:'',contrato:'Indefinido',jornada:'44h semanales',sueldo:'',afp:'Provida',salud:'Fonasa'});
   };
 
   return (
-    <div style={{display:'flex',flexDirection:'column',gap:16}}>
-      {selEmp && <EmpProfile emp={selEmp} onClose={()=>setSelEmp(null)} onEdit={()=>{setEditEmp(selEmp);setSelEmp(null);}}/>}
-      {(showCreate||editEmp) && <EmpForm emp={editEmp} onClose={()=>{setShowCreate(false);setEditEmp(null);}} onSave={handleSave}/>}
-
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-        <div>
-          <h1 style={{fontSize:24,fontWeight:700,color:'#111827',margin:0}}>Colaboradoras Vigentes</h1>
-          <p style={{fontSize:13,color:'#9CA3AF',margin:'4px 0 0'}}>{filtered.length} colaboradora{filtered.length!==1?'s':''}</p>
-        </div>
-        <div style={{display:'flex',gap:8}}>
-          <button className="btn-outline" style={{display:'flex',alignItems:'center',gap:6,fontSize:13}}>
-            <Ico n="doc" s={14}/>Abrir/Cerrar Liquidaciones
-          </button>
-          <button className="btn-pink" style={{display:'flex',alignItems:'center',gap:6}} onClick={()=>setShowCreate(true)}>
-            <Ico n="plus" s={16}/>Crear Colaboradora
-          </button>
-        </div>
-      </div>
-
-      <div style={{display:'flex',gap:10}}>
-        <div style={{flex:1,position:'relative'}}>
-          <span style={{position:'absolute',left:12,top:'50%',transform:'translateY(-50%)',color:'#9CA3AF',display:'flex'}}><Ico n="search" s={15}/></span>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar por nombre, RUT o cargo…"
-            style={{width:'100%',paddingLeft:36,paddingRight:12,paddingTop:10,paddingBottom:10,border:'1px solid #E5E7EB',borderRadius:10,fontSize:14,boxSizing:'border-box'}}/>
-        </div>
-        <select value={filtro} onChange={e=>setFiltro(e.target.value)}
-          style={{border:'1px solid #E5E7EB',borderRadius:10,padding:'0 12px',fontSize:14}}>
-          <option value="todos">Todos</option>
-          <option value="activo">Activo</option>
-          <option value="inactivo">Inactivo</option>
-        </select>
-      </div>
-
-      <div style={{background:'#fff',borderRadius:16,boxShadow:'0 1px 4px rgba(0,0,0,0.07)',border:'1px solid #F1F5F9',overflow:'hidden'}}>
-        <table>
-          <thead>
-            <tr style={{background:'#F8FAFC',fontSize:11,color:'#9CA3AF',textTransform:'uppercase',letterSpacing:'0.05em',borderBottom:'1px solid #F1F5F9'}}>
-              {['Nombre','Número de Documento','Cargo','Fecha Ingreso','Sueldo Líquido','Estado','Acciones'].map((h,i)=>(
-                <th key={h} style={{padding:'10px 16px',textAlign:i>=4&&i!==5?'right':i===5?'center':'left',fontWeight:600}}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map(emp=>{
-              const lastLiq=LIQUIDACIONES.filter(l=>l.eid===emp.id)[0];
-              return (
-                <tr key={emp.id} style={{borderBottom:'1px solid #F8FAFC'}} onMouseEnter={e=>e.currentTarget.style.background='#FAFAFA'} onMouseLeave={e=>e.currentTarget.style.background=''}>
-                  <td style={{padding:'12px 16px'}}>
-                    <div style={{display:'flex',alignItems:'center',gap:10}}>
-                      <Avatar ini={emp.ini} col={emp.col} size={36}/>
-                      <div>
-                        <div style={{fontWeight:600,color:'#111827',fontSize:14}}>{emp.nombre} {emp.apellido}</div>
-                        <div style={{fontSize:12,color:'#9CA3AF'}}>{emp.email}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td style={{padding:'12px 16px',color:'#6B7280',fontFamily:'monospace',fontSize:13}}>{emp.rut}</td>
-                  <td style={{padding:'12px 16px',color:'#4B5563',fontSize:13}}>{emp.cargo}</td>
-                  <td style={{padding:'12px 16px',color:'#6B7280',fontSize:13}}>{fmtDate(emp.fecha_ingreso)}</td>
-                  <td style={{padding:'12px 16px',textAlign:'right',fontWeight:700,color:'#1B1564',fontSize:14}}>{lastLiq?fmt(lastLiq.liquido):'—'}</td>
-                  <td style={{padding:'12px 16px',textAlign:'center'}}>
-                    <span className={`pill ${emp.estado==='activo'?'pill-green':'pill-red'}`}>{emp.estado==='activo'?'Activo':'Inactivo'}</span>
-                  </td>
-                  <td style={{padding:'12px 16px',textAlign:'right'}}>
-                    <div style={{display:'flex',justifyContent:'flex-end',gap:4}}>
-                      <button className="btn-icon" onClick={()=>setSelEmp(emp)} title="Ver ficha"><Ico n="eye" s={15}/></button>
-                      <button className="btn-icon" onClick={()=>setEditEmp(emp)} title="Editar"><Ico n="edit" s={15}/></button>
-                      <button className="btn-icon" style={{color:'#EF4444'}} title="Eliminar"><Ico n="trash" s={15}/></button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-        {filtered.length===0 && (
-          <div style={{padding:48,textAlign:'center',color:'#9CA3AF'}}>
-            <Ico n="users" s={36} style={{margin:'0 auto 8px',opacity:0.3}}/>
-            <p style={{margin:0}}>No se encontraron colaboradoras</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-/* ─── LIQUIDACIONES ─── */
-const Liquidaciones = () => {
-  const [selLiq, setSelLiq] = useState(null);
-
-  return (
-    <div style={{display:'flex',flexDirection:'column',gap:16}}>
-      {selLiq && <LiqDetalle liq={selLiq} emp={INIT_EMPLOYEES.find(e=>e.id===selLiq.eid)} onClose={()=>setSelLiq(null)}/>}
-
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-        <div>
-          <h1 style={{fontSize:24,fontWeight:700,color:'#111827',margin:0}}>Procesos de Remuneración</h1>
-          <p style={{fontSize:13,color:'#9CA3AF',margin:'4px 0 0'}}>Gestión de liquidaciones de sueldo</p>
-        </div>
-        <div style={{display:'flex',gap:8}}>
-          <button className="btn-navy" style={{display:'flex',alignItems:'center',gap:6,fontSize:13}}><Ico n="doc" s={14}/>Generar Liquidaciones</button>
-          <button className="btn-pink" style={{display:'flex',alignItems:'center',gap:6,fontSize:13}}><Ico n="check" s={14}/>Cerrar Proceso</button>
-        </div>
-      </div>
-
-      {/* Resumen */}
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:12}}>
-        {[
-          {l:'Colaboradoras',  v:LIQUIDACIONES.length,                                     c:'#1B1564'},
-          {l:'Total Haberes',  v:fmt(LIQUIDACIONES.reduce((s,l)=>s+l.haberes,0)),           c:'#1B1564'},
-          {l:'Total Descuentos',v:fmt(LIQUIDACIONES.reduce((s,l)=>s+l.descuentos,0)),      c:'#DC2626'},
-          {l:'Total Líquido',  v:fmt(LIQUIDACIONES.reduce((s,l)=>s+l.liquido,0)),           c:'#F0197A'},
-        ].map(k=>(
-          <div key={k.l} className="stat-card" style={{textAlign:'center',padding:14}}>
-            <div style={{fontSize:18,fontWeight:700,color:k.c}}>{k.v}</div>
-            <div style={{fontSize:12,color:'#9CA3AF',marginTop:4}}>{k.l}</div>
-          </div>
-        ))}
-      </div>
-
-      <div style={{background:'#fff',borderRadius:16,boxShadow:'0 1px 4px rgba(0,0,0,0.07)',border:'1px solid #F1F5F9',overflow:'hidden'}}>
-        <table>
-          <thead>
-            <tr style={{background:'#F8FAFC',fontSize:11,color:'#9CA3AF',textTransform:'uppercase',borderBottom:'1px solid #F1F5F9'}}>
-              {['Nombre','Mes','Sueldo Bruto','Descuentos','Sueldo Líquido','Aporte Patronal','HH. Extra','Días no trab.','Estado','Acciones'].map((h,i)=>(
-                <th key={h} style={{padding:'10px 12px',textAlign:i>=2&&i!==8?'right':i===8?'center':'left',fontWeight:600}}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {LIQUIDACIONES.map(l=>{
-              const e=INIT_EMPLOYEES.find(x=>x.id===l.eid);
-              return (
-                <tr key={l.id} style={{borderBottom:'1px solid #F8FAFC'}}>
-                  <td style={{padding:'10px 12px'}}>
-                    <div style={{display:'flex',alignItems:'center',gap:8}}>
-                      <Avatar ini={e?.ini} col={e?.col} size={30}/>
-                      <span style={{fontWeight:500,fontSize:13,color:'#374151'}}>{e?.nombre} {e?.apellido}</span>
-                    </div>
-                  </td>
-                  <td style={{padding:'10px 12px',color:'#6B7280',fontSize:13}}>{periodoLabel(l.periodo)}</td>
-                  <td style={{padding:'10px 12px',textAlign:'right',color:'#4B5563',fontSize:13}}>{fmt(l.haberes)}</td>
-                  <td style={{padding:'10px 12px',textAlign:'right',color:'#DC2626',fontSize:13}}>-{fmt(l.descuentos)}</td>
-                  <td style={{padding:'10px 12px',textAlign:'right',fontWeight:700,color:'#1B1564',fontSize:14}}>{fmt(l.liquido)}</td>
-                  <td style={{padding:'10px 12px',textAlign:'right',color:'#9CA3AF',fontSize:13}}>{fmt(Math.round(l.base*0.023))}</td>
-                  <td style={{padding:'10px 12px',textAlign:'right',color:'#9CA3AF',fontSize:13}}>{l.hex>0?fmt(l.hex):'—'}</td>
-                  <td style={{padding:'10px 12px',textAlign:'right',color:'#9CA3AF',fontSize:13}}>0</td>
-                  <td style={{padding:'10px 12px',textAlign:'center'}}><span className={`pill ${l.estado==='pagada'?'pill-green':'pill-yellow'}`}>{l.estado==='pagada'?'Pagada':'Pendiente'}</span></td>
-                  <td style={{padding:'10px 12px',textAlign:'right'}}><button style={{color:'#F0197A',fontSize:12,background:'none',border:'none',cursor:'pointer'}} onClick={()=>setSelLiq(l)}>Ver</button></td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-};
-
-/* ─── ASISTENCIA ─── */
-const Asistencia = () => {
-  const [view, setView] = useState('solicitudes');
-  const [showForm, setShowForm] = useState(false);
-  const tiposL = {vacaciones:'Vacaciones',licencia_medica:'Lic. Médica',permiso:'Permiso'};
-  const tiposC = {vacaciones:'pill-blue',licencia_medica:'pill-red',permiso:'pill-purple'};
-
-  return (
-    <div style={{display:'flex',flexDirection:'column',gap:16}}>
-      {showForm && <SolicitudForm onClose={()=>setShowForm(false)}/>}
-
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-        <div>
-          <h1 style={{fontSize:24,fontWeight:700,color:'#111827',margin:0}}>Asistencia y Vacaciones</h1>
-          <p style={{fontSize:13,color:'#9CA3AF',margin:'4px 0 0'}}>Control de ausencias, licencias y horas extra</p>
-        </div>
-        <button className="btn-pink" style={{display:'flex',alignItems:'center',gap:6}} onClick={()=>setShowForm(true)}><Ico n="plus" s={16}/>Nueva Solicitud</button>
-      </div>
-
-      <div style={{display:'flex',gap:4,background:'#fff',borderRadius:10,padding:4,border:'1px solid #F1F5F9',width:'fit-content'}}>
-        {[['solicitudes','Solicitudes'],['ausencias','Ausencias'],['horas_extra','Horas Extra']].map(([k,l])=>(
-          <button key={k} onClick={()=>setView(k)} style={{padding:'6px 16px',borderRadius:8,fontSize:13,fontWeight:500,border:'none',cursor:'pointer',background:view===k?'#F0197A':'transparent',color:view===k?'#fff':'#6B7280',transition:'all 0.15s'}}>{l}</button>
-        ))}
-      </div>
-
-      <div style={{background:'#fff',borderRadius:16,boxShadow:'0 1px 4px rgba(0,0,0,0.07)',border:'1px solid #F1F5F9',overflow:'hidden'}}>
-        {view==='solicitudes' && (
-          <table>
-            <thead><tr style={{background:'#F8FAFC',fontSize:11,color:'#9CA3AF',textTransform:'uppercase',borderBottom:'1px solid #F1F5F9'}}>
-              {['Colaboradora','Tipo','Inicio','Fin','Días','Observación','Estado','Acciones'].map(h=>(
-                <th key={h} style={{padding:'10px 12px',textAlign:'left',fontWeight:600}}>{h}</th>
-              ))}
-            </tr></thead>
-            <tbody>
-              {VACACIONES.map(v=>{
-                const e=INIT_EMPLOYEES.find(x=>x.id===v.eid);
-                return (
-                  <tr key={v.id} style={{borderBottom:'1px solid #F8FAFC'}}>
-                    <td style={{padding:'10px 12px'}}>
-                      <div style={{display:'flex',alignItems:'center',gap:8}}><Avatar ini={e?.ini} col={e?.col} size={28}/><span style={{fontSize:13,fontWeight:500}}>{e?.nombre} {e?.apellido}</span></div>
-                    </td>
-                    <td style={{padding:'10px 12px'}}><span className={`pill ${tiposC[v.tipo]||'pill-blue'}`} style={{fontSize:11}}>{tiposL[v.tipo]||v.tipo}</span></td>
-                    <td style={{padding:'10px 12px',fontSize:13,color:'#6B7280'}}>{fmtDate(v.inicio)}</td>
-                    <td style={{padding:'10px 12px',fontSize:13,color:'#6B7280'}}>{fmtDate(v.fin)}</td>
-                    <td style={{padding:'10px 12px',fontWeight:600}}>{v.dias}</td>
-                    <td style={{padding:'10px 12px',fontSize:12,color:'#9CA3AF'}}>{v.obs||'—'}</td>
-                    <td style={{padding:'10px 12px'}}><span className={`pill ${v.estado==='aprobada'?'pill-green':'pill-yellow'}`}>{v.estado==='aprobada'?'Aprobada':'Pendiente'}</span></td>
-                    <td style={{padding:'10px 12px'}}>
-                      {v.estado==='pendiente'&&(
-                        <div style={{display:'flex',gap:4}}>
-                          <button className="btn-icon" style={{color:'#059669'}} title="Aprobar"><Ico n="check" s={14}/></button>
-                          <button className="btn-icon" style={{color:'#EF4444'}} title="Rechazar"><Ico n="x" s={14}/></button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-
-        {view==='ausencias' && (
-          <table>
-            <thead><tr style={{background:'#F8FAFC',fontSize:11,color:'#9CA3AF',textTransform:'uppercase',borderBottom:'1px solid #F1F5F9'}}>
-              {['Colaboradora','Tipo','Inicio','Fin','Días','Motivo'].map(h=>(
-                <th key={h} style={{padding:'10px 12px',textAlign:'left',fontWeight:600}}>{h}</th>
-              ))}
-            </tr></thead>
-            <tbody>
-              {AUSENCIAS.map(a=>{
-                const e=INIT_EMPLOYEES.find(x=>x.id===a.eid);
-                return (
-                  <tr key={a.id} style={{borderBottom:'1px solid #F8FAFC'}}>
-                    <td style={{padding:'10px 12px'}}><div style={{display:'flex',alignItems:'center',gap:8}}><Avatar ini={e?.ini} col={e?.col} size={28}/><span style={{fontSize:13}}>{e?.nombre} {e?.apellido}</span></div></td>
-                    <td style={{padding:'10px 12px'}}><span className="pill pill-red" style={{fontSize:11}}>{a.tipo}</span></td>
-                    <td style={{padding:'10px 12px',fontSize:13,color:'#6B7280'}}>{fmtDate(a.inicio)}</td>
-                    <td style={{padding:'10px 12px',fontSize:13,color:'#6B7280'}}>{fmtDate(a.fin)}</td>
-                    <td style={{padding:'10px 12px',fontWeight:600}}>{a.dias}</td>
-                    <td style={{padding:'10px 12px',fontSize:12,color:'#9CA3AF'}}>{a.motivo}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-
-        {view==='horas_extra' && (
-          <table>
-            <thead><tr style={{background:'#F8FAFC',fontSize:11,color:'#9CA3AF',textTransform:'uppercase',borderBottom:'1px solid #F1F5F9'}}>
-              {['Colaboradora','Fecha','Horas','Tipo','Monto'].map(h=>(
-                <th key={h} style={{padding:'10px 12px',textAlign:'left',fontWeight:600}}>{h}</th>
-              ))}
-            </tr></thead>
-            <tbody>
-              {HORAS_EXTRA.map(h=>{
-                const e=INIT_EMPLOYEES.find(x=>x.id===h.eid);
-                return (
-                  <tr key={h.id} style={{borderBottom:'1px solid #F8FAFC'}}>
-                    <td style={{padding:'10px 12px'}}><div style={{display:'flex',alignItems:'center',gap:8}}><Avatar ini={e?.ini} col={e?.col} size={28}/><span style={{fontSize:13}}>{e?.nombre} {e?.apellido}</span></div></td>
-                    <td style={{padding:'10px 12px',fontSize:13,color:'#6B7280'}}>{fmtDate(h.fecha)}</td>
-                    <td style={{padding:'10px 12px',fontWeight:700}}>{h.horas}</td>
-                    <td style={{padding:'10px 12px'}}><span className="pill pill-purple" style={{fontSize:11}}>{h.tipo}</span></td>
-                    <td style={{padding:'10px 12px',fontWeight:700,color:'#059669'}}>{fmt(h.monto)}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-      </div>
-    </div>
-  );
-};
-
-/* ─── BENEFICIOS ─── */
-const Beneficios = () => (
-  <div style={{display:'flex',flexDirection:'column',gap:16}}>
-    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-      <div>
-        <h1 style={{fontSize:24,fontWeight:700,color:'#111827',margin:0}}>Beneficios</h1>
-        <p style={{fontSize:13,color:'#9CA3AF',margin:'4px 0 0'}}>Gestión de beneficios y asignaciones</p>
-      </div>
-      <button className="btn-pink" style={{display:'flex',alignItems:'center',gap:6}}><Ico n="plus" s={16}/>Nuevo Beneficio</button>
-    </div>
-    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
-      {BENEFITS.map(b=>(
-        <div key={b.label} className="stat-card" style={{transition:'box-shadow 0.15s'}}>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
-            <span style={{fontSize:32}}>{b.icon}</span>
-            <span className="pill pill-blue">{fmt(b.monto)}/mes</span>
-          </div>
-          <h3 style={{fontWeight:700,color:'#111827',margin:'0 0 4px'}}>{b.label}</h3>
-          <p style={{fontSize:13,color:'#9CA3AF',margin:'0 0 12px'}}>{b.desc}</p>
-          <div>
-            <div style={{fontSize:11,color:'#9CA3AF',marginBottom:6}}>Asignadas ({b.asignados.length})</div>
-            <div style={{display:'flex',marginLeft:'-4px'}}>
-              {b.asignados.map(eid=>{
-                const e=INIT_EMPLOYEES.find(x=>x.id===eid);
-                return <div key={eid} title={e?.nombre} style={{marginLeft:'-6px',border:'2px solid #fff',borderRadius:'50%'}}><Avatar ini={e?.ini} col={e?.col} size={28}/></div>;
-              })}
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
-/* ─── TABLAS ─── */
-const TablasParametros = () => (
-  <div style={{display:'flex',flexDirection:'column',gap:16}}>
     <div>
-      <h1 style={{fontSize:24,fontWeight:700,color:'#111827',margin:0}}>Tablas de Parámetros</h1>
-      <p style={{fontSize:13,color:'#9CA3AF',margin:'4px 0 0'}}>Variables y tasas vigentes</p>
-    </div>
-    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
-      <div className="stat-card">
-        <h3 style={{fontSize:14,fontWeight:600,color:'#374151',margin:'0 0 12px'}}>Indicadores Económicos</h3>
-        <table>
-          <thead><tr style={{fontSize:11,color:'#9CA3AF',textTransform:'uppercase',borderBottom:'1px solid #F1F5F9'}}>
-            <th style={{padding:'4px 8px',textAlign:'left'}}>Variable</th><th style={{padding:'4px 8px',textAlign:'right'}}>Valor</th><th style={{padding:'4px 8px',textAlign:'right'}}>Fecha</th>
-          </tr></thead>
-          <tbody>
-            {VARIABLES.slice(0,2).map(v=>(
-              <tr key={v.nombre} style={{borderBottom:'1px solid #F8FAFC'}}>
-                <td style={{padding:'8px',fontWeight:500,fontSize:13}}>{v.nombre}</td>
-                <td style={{padding:'8px',textAlign:'right',fontWeight:700,color:'#1B1564',fontSize:14}}>${v.valor}</td>
-                <td style={{padding:'8px',textAlign:'right',color:'#9CA3AF',fontSize:12}}>{v.fecha}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <div className="stat-card">
-        <h3 style={{fontSize:14,fontWeight:600,color:'#374151',margin:'0 0 12px'}}>Tasas Previsionales y Salud</h3>
-        <table>
-          <thead><tr style={{fontSize:11,color:'#9CA3AF',textTransform:'uppercase',borderBottom:'1px solid #F1F5F9'}}>
-            <th style={{padding:'4px 8px',textAlign:'left'}}>Variable</th><th style={{padding:'4px 8px',textAlign:'right'}}>Tasa</th>
-          </tr></thead>
-          <tbody>
-            {VARIABLES.slice(2).map(v=>(
-              <tr key={v.nombre} style={{borderBottom:'1px solid #F8FAFC'}}>
-                <td style={{padding:'8px',fontWeight:500,fontSize:13}}>{v.nombre}</td>
-                <td style={{padding:'8px',textAlign:'right',fontWeight:700,color:'#F0197A',fontSize:14}}>{v.valor}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-);
-
-/* ─── SIDEBAR ─── */
-const Sidebar = ({active, setActive, collapsed, setCollapsed}) => {
-  const [openSec, setOpenSec] = useState({adm:true,rem:false,ben:false});
-  const toggle = k => setOpenSec(p=>({...p,[k]:!p[k]}));
-
-  const sections = [
-    { k:'adm', l:'Administrativo', items:[
-      {k:'dashboard',       ic:'home',     l:'Panel de Control'},
-      {k:'colaboradoras',   ic:'users',    l:'Colaboradoras Vigentes'},
-      {k:'asistencia',      ic:'calendar', l:'Asistencia'},
-      {k:'documentos',      ic:'doc',      l:'Documentos y Firma'},
-      {k:'organizacion',    ic:'org',      l:'Organización'},
-    ]},
-    { k:'rem', l:'Remuneraciones', items:[
-      {k:'liquidaciones',   ic:'currency', l:'Procesos'},
-      {k:'tablas',          ic:'chart',    l:'Tablas de Parámetros'},
-      {k:'archivos',        ic:'doc',      l:'Archivos y Pagos'},
-      {k:'config_rem',      ic:'cog',      l:'Configuraciones'},
-    ]},
-    { k:'ben', l:'Beneficios', items:[
-      {k:'beneficios',      ic:'gift',     l:'Beneficios'},
-      {k:'seguros',         ic:'id',       l:'Seguros'},
-      {k:'config_ben',      ic:'cog',      l:'Configuraciones'},
-    ]},
-  ];
-
-  return (
-    <div style={{width:collapsed?64:220,flexShrink:0,background:'#100D3F',minHeight:'100vh',display:'flex',flexDirection:'column',transition:'width 0.2s'}}>
-      {/* Logo */}
-      <div style={{display:'flex',alignItems:'center',gap:10,padding:'16px 14px',borderBottom:'1px solid rgba(255,255,255,0.08)',justifyContent:collapsed?'center':'flex-start'}}>
-        <div style={{width:36,height:36,background:'#F0197A',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M12 2a7 7 0 00-7 7v5H3l2 4h14l2-4h-2V9a7 7 0 00-7-7zM9 18v1a3 3 0 006 0v-1"/></svg>
+      <div className="page-header">
+        <div>
+          <div className="page-title">Colaboradoras Vigentes</div>
+          <div className="page-subtitle">{employees.length} colaboradoras registradas</div>
         </div>
-        {!collapsed && (
-          <div style={{flex:1}}>
-            <div style={{fontWeight:800,color:'#fff',fontSize:15,lineHeight:1}}>Poppins</div>
-            <div style={{color:'rgba(255,255,255,0.35)',fontSize:10}}>ERP Doméstico</div>
-          </div>
-        )}
-        <button className="btn-icon" style={{color:'rgba(255,255,255,0.3)',marginLeft:collapsed?0:'auto'}} onClick={()=>setCollapsed(!collapsed)}>
-          <Ico n={collapsed?'chevR':'chevD'} s={13}/>
-        </button>
+        <div className="page-actions">
+          <button className="btn btn-outline"><Icon name="download" size={14}/>Exportar</button>
+          <button className="btn btn-primary" onClick={()=>setShowModal(true)}><Icon name="plus" size={14}/>Crear</button>
+        </div>
       </div>
 
-      {/* Nav */}
-      <nav style={{flex:1,padding:'8px 8px',overflowY:'auto'}}>
-        {sections.map(sec=>(
-          <div key={sec.k}>
-            {!collapsed && (
-              <button className="nav-section" onClick={()=>toggle(sec.k)} style={{display:'flex',justifyContent:'space-between',alignItems:'center',width:'100%',background:'transparent',border:'none',cursor:'pointer'}}>
-                <span>{sec.l}</span>
-                <Ico n={openSec[sec.k]?'chevD':'chevR'} s={11}/>
-              </button>
-            )}
-            {(collapsed||openSec[sec.k]) && sec.items.map(item=>(
-              <button key={item.k} className={`nav-item ${active===item.k?'active':''}`} onClick={()=>setActive(item.k)} title={collapsed?item.l:''} style={{justifyContent:collapsed?'center':'flex-start'}}>
-                <Ico n={item.ic} s={16}/>
-                {!collapsed && <span style={{fontSize:13}}>{item.l}</span>}
-              </button>
-            ))}
-          </div>
-        ))}
-      </nav>
+      <BukTable columns={cols} data={employees} onRowClick={r=>{setSelEmp(r);setPage('perfil');}} perPage={perPage} setPerPage={setPerPage}/>
 
-      {/* Footer */}
-      {!collapsed && (
-        <div style={{padding:'12px 14px',borderTop:'1px solid rgba(255,255,255,0.08)'}}>
-          <div style={{display:'flex',alignItems:'center',gap:8}}>
-            <div style={{width:30,height:30,background:'#F0197A',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontWeight:700,fontSize:12,flexShrink:0}}>MA</div>
-            <div style={{flex:1,minWidth:0}}>
-              <div style={{color:'#fff',fontSize:12,fontWeight:500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>Empleador</div>
-              <div style={{color:'rgba(255,255,255,0.35)',fontSize:10}}>manuel.aravenal</div>
+      {showModal && (
+        <div className="modal-overlay" onClick={()=>setShowModal(false)}>
+          <div className="modal" onClick={e=>e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">Nueva Colaboradora</div>
+              <button className="close-btn" onClick={()=>setShowModal(false)}><Icon name="x" size={16}/></button>
             </div>
-            <button className="btn-icon" style={{color:'rgba(255,255,255,0.3)'}}><Ico n="cog" s={14}/></button>
+            <div className="modal-body">
+              <div className="form-grid">
+                {[
+                  ['nombre','Nombre completo (Apellidos, Nombre)','text'],
+                  ['rut','RUT','text'],
+                  ['cargo','Cargo','text'],
+                  ['ingreso','Fecha de Ingreso','date'],
+                  ['sueldo','Sueldo Base','number'],
+                ].map(([k,l,t])=>(
+                  <div key={k} className="form-group">
+                    <label className="form-label">{l}</label>
+                    <input className="form-input" type={t} value={form[k]} onChange={e=>setForm(f=>({...f,[k]:e.target.value}))} placeholder={l}/>
+                  </div>
+                ))}
+                <div className="form-group">
+                  <label className="form-label">Tipo de Contrato</label>
+                  <select className="form-input form-select" value={form.contrato} onChange={e=>setForm(f=>({...f,contrato:e.target.value}))}>
+                    {['Indefinido','Plazo Fijo','Por obra o faena'].map(o=><option key={o}>{o}</option>)}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Jornada</label>
+                  <select className="form-input form-select" value={form.jornada} onChange={e=>setForm(f=>({...f,jornada:e.target.value}))}>
+                    {['44h semanales','33h semanales','Puertas adentro','Media jornada'].map(o=><option key={o}>{o}</option>)}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">AFP</label>
+                  <select className="form-input form-select" value={form.afp} onChange={e=>setForm(f=>({...f,afp:e.target.value}))}>
+                    {['Provida','Habitat','Capital','Cuprum','Planvital','Modelo','Uno'].map(o=><option key={o}>{o}</option>)}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Salud</label>
+                  <select className="form-input form-select" value={form.salud} onChange={e=>setForm(f=>({...f,salud:e.target.value}))}>
+                    {['Fonasa','Isapre Masvida','Isapre Cruz Blanca','Isapre Banmédica','Isapre Consalud'].map(o=><option key={o}>{o}</option>)}
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-outline" onClick={()=>setShowModal(false)}>Cancelar</button>
+              <button className="btn btn-primary" onClick={save}><Icon name="check" size={14}/>Guardar</button>
+            </div>
           </div>
         </div>
       )}
@@ -1322,45 +652,708 @@ const Sidebar = ({active, setActive, collapsed, setCollapsed}) => {
   );
 };
 
-/* ─── APP ─── */
-const App = () => {
-  const [active, setActive] = useState('dashboard');
-  const [collapsed, setCollapsed] = useState(false);
-  const [emps, setEmps] = useState(INIT_EMPLOYEES);
+/* ────────────────── EMPLOYEE PROFILE ────────────────── */
+const EmpProfile = ({ emp, setPage }) => {
+  const [tab, setTab] = useState('resumen');
+  const [showItemsMenu, setShowItemsMenu] = useState(false);
+  const [itemsTab, setItemsTab] = useState('bonos');
+  const [showAsistMenu, setShowAsistMenu] = useState(false);
+  const [asistTab, setAsistTab] = useState('ausencias');
+  const liqsEmp = LIQUIDACIONES.filter(l=>l.empId===emp.id);
+  const vacEmp = VACACIONES.filter(v=>v.empId===emp.id);
+  const ausEmp = AUSENCIAS.filter(a=>a.empId===emp.id);
 
-  const pages = {
-    dashboard:     <Dashboard />,
-    colaboradoras: <Colaboradoras emps={emps} setEmps={setEmps}/>,
-    liquidaciones: <Liquidaciones />,
-    asistencia:    <Asistencia />,
-    beneficios:    <Beneficios />,
-    tablas:        <TablasParametros />,
-  };
+  const TABS = ['resumen','liquidaciones','documentos','historia','items','asistencia','vacaciones'];
 
   return (
-    <div style={{display:'flex',minHeight:'100vh',background:'#F1F5F9'}}>
-      <Sidebar active={active} setActive={setActive} collapsed={collapsed} setCollapsed={setCollapsed}/>
-      <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
-        {/* Topbar */}
-        <div style={{background:'#fff',borderBottom:'1px solid #F1F5F9',padding:'10px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:40}}>
-          <div style={{fontSize:13,color:'#9CA3AF'}}>
-            <span style={{color:'#F0197A',fontWeight:700}}>Poppins</span> · ERP Doméstico
+    <div>
+      <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:20}}>
+        <button className="btn btn-ghost btn-sm" onClick={()=>setPage('colaboradoras')}>
+          <Icon name="chevronR" size={13} color="#6B7280"/>
+          <span style={{transform:'rotate(180deg)',display:'inline-block'}}>Colaboradoras</span>
+        </button>
+        <Icon name="chevronR" size={13} color="#9CA3AF"/>
+        <span style={{fontSize:13,color:'#111827',fontWeight:600}}>{emp.nombre}</span>
+      </div>
+
+      <div className="profile-layout">
+        {/* LEFT CARD */}
+        <div>
+          <div className="profile-card" style={{marginBottom:12}}>
+            <div className="profile-card-header">
+              <div className="profile-avatar-lg">{initials(emp.nombre)}</div>
+              <div className="profile-card-name">{emp.nombre}</div>
+              <div className="profile-card-role">{emp.cargo}</div>
+              <div style={{marginTop:8}}>
+                <span className={`badge badge-${emp.estado==='Activo'?'green':emp.estado==='Licencia'?'yellow':'gray'}`}>{emp.estado}</span>
+              </div>
+            </div>
+            <div className="profile-card-body">
+              {[
+                ['RUT', emp.rut],
+                ['Empresa', emp.empleador],
+                ['Área', emp.area],
+                ['Contrato', emp.contrato],
+                ['Jornada', emp.jornada],
+                ['Ingreso', emp.ingreso],
+                ['AFP', emp.afp],
+                ['Salud', emp.salud],
+                ['Banco', emp.banco],
+                ['Cuenta', emp.cuenta],
+              ].map(([k,v])=>(
+                <div key={k} className="profile-info-row">
+                  <span className="profile-info-label">{k}</span>
+                  <span className="profile-info-value">{v}</span>
+                </div>
+              ))}
+            </div>
+            <div className="profile-actions">
+              <button className="btn btn-primary btn-sm" style={{flex:1}}><Icon name="pencil" size={13}/>Editar</button>
+              <button className="btn btn-ghost btn-sm"><Icon name="doc" size={13}/>Documentos</button>
+            </div>
           </div>
-          <div style={{display:'flex',alignItems:'center',gap:10}}>
-            <span className="pill pill-blue" style={{fontSize:11}}>MVP v1.0 — BUK-ready</span>
-            <div style={{width:32,height:32,background:'#F0197A',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontWeight:700,fontSize:12}}>MA</div>
+
+          <div className="card">
+            <div className="card-title" style={{fontSize:12}}>Sueldo Líquido Último Mes</div>
+            <div style={{fontSize:22,fontWeight:700,color:'#111827'}}>
+              {liqsEmp.length ? fmt(liqsEmp[0].liquido) : '—'}
+            </div>
+            <div style={{fontSize:11,color:'#6B7280',marginTop:4}}>{liqsEmp[0]?.periodo}</div>
           </div>
         </div>
-        {/* Page */}
-        <main style={{flex:1,overflowY:'auto',padding:24}} className="fade-in">
-          {pages[active] || (
-            <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:300,color:'#9CA3AF',flexDirection:'column',gap:8}}>
-              <Ico n="cog" s={40} style={{opacity:0.2}}/>
-              <p style={{fontWeight:500}}>Módulo en desarrollo</p>
-              <p style={{fontSize:12}}>Fase 2 — Conexión BUK API</p>
+
+        {/* RIGHT TABS */}
+        <div>
+          <div className="tab-bar">
+            {['resumen','liquidaciones','documentos','historia'].map(t=>(
+              <button key={t} className={`tab-btn${tab===t?' active':''}`} onClick={()=>setTab(t)}>
+                {{resumen:'Resumen',liquidaciones:'Liquidaciones',documentos:'Documentos',historia:'Historia'}[t]}
+              </button>
+            ))}
+            {/* Items dropdown */}
+            <div style={{position:'relative'}}>
+              <button className={`tab-btn${tab==='items'?' active':''}`} onClick={()=>{setTab('items');setShowItemsMenu(v=>!v);}}>
+                Ítems ▾
+              </button>
+              {showItemsMenu && tab==='items' && (
+                <div style={{position:'absolute',top:'100%',left:0,background:'#fff',border:'1px solid #E5E7EB',borderRadius:8,boxShadow:'0 4px 16px rgba(0,0,0,0.08)',zIndex:10,minWidth:160}}>
+                  {[['bonos','Haberes'],['descuentos','Descuentos'],['creditos','Créditos']].map(([k,l])=>(
+                    <button key={k} style={{display:'block',width:'100%',padding:'9px 16px',textAlign:'left',fontSize:13,color: itemsTab===k?'#F0197A':'#374151',background: itemsTab===k?'#FDF0F7':'transparent',border:'none',cursor:'pointer',fontFamily:'inherit'}}
+                      onClick={()=>{setItemsTab(k);setShowItemsMenu(false);}}>
+                      {l}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
-        </main>
+            {/* Asistencia dropdown */}
+            <div style={{position:'relative'}}>
+              <button className={`tab-btn${tab==='asistencia'?' active':''}`} onClick={()=>{setTab('asistencia');setShowAsistMenu(v=>!v);}}>
+                Asistencia ▾
+              </button>
+              {showAsistMenu && tab==='asistencia' && (
+                <div style={{position:'absolute',top:'100%',left:0,background:'#fff',border:'1px solid #E5E7EB',borderRadius:8,boxShadow:'0 4px 16px rgba(0,0,0,0.08)',zIndex:10,minWidth:160}}>
+                  {[['ausencias','Ausencias'],['horas_extra','Horas Extra']].map(([k,l])=>(
+                    <button key={k} style={{display:'block',width:'100%',padding:'9px 16px',textAlign:'left',fontSize:13,color: asistTab===k?'#F0197A':'#374151',background: asistTab===k?'#FDF0F7':'transparent',border:'none',cursor:'pointer',fontFamily:'inherit'}}
+                      onClick={()=>{setAsistTab(k);setShowAsistMenu(false);}}>
+                      {l}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button className={`tab-btn${tab==='vacaciones'?' active':''}`} onClick={()=>setTab('vacaciones')}>Vacaciones</button>
+          </div>
+
+          <div className="tab-content">
+            {/* RESUMEN */}
+            {tab==='resumen' && (
+              <div>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:20}}>
+                  {[
+                    ['Cargo actual', emp.cargo],
+                    ['Fecha ingreso', emp.ingreso],
+                    ['Tipo contrato', emp.contrato],
+                    ['Sueldo base', fmt(emp.sueldo)],
+                    ['Email', emp.email || 'No registrado'],
+                    ['Teléfono', emp.tel || 'No registrado'],
+                  ].map(([k,v])=>(
+                    <div key={k} style={{padding:'12px',background:'#F9FAFB',borderRadius:8}}>
+                      <div style={{fontSize:11,color:'#9CA3AF',marginBottom:4}}>{k}</div>
+                      <div style={{fontSize:13,fontWeight:600,color:'#111827'}}>{v}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{display:'flex',gap:10,marginTop:8}}>
+                  <button className="btn btn-primary btn-sm"><Icon name="cash" size={13}/>Nueva liquidación</button>
+                  <button className="btn btn-outline btn-sm"><Icon name="doc" size={13}/>Subir documento</button>
+                  <button className="btn btn-outline btn-sm"><Icon name="calendar" size={13}/>Registrar ausencia</button>
+                </div>
+              </div>
+            )}
+
+            {/* LIQUIDACIONES */}
+            {tab==='liquidaciones' && (
+              <div>
+                <div style={{display:'flex',justifyContent:'flex-end',marginBottom:12}}>
+                  <button className="btn btn-primary btn-sm"><Icon name="plus" size={13}/>Nueva liquidación</button>
+                </div>
+                <div className="buk-table-wrap">
+                  <table className="buk">
+                    <thead>
+                      <tr>
+                        {['Período','Sueldo Base','HH.Extra','Descuentos','Líquido','Estado','Fecha Pago'].map(h=>(
+                          <th key={h}><div className="th-inner"><div className="th-label">{h}</div></div></th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {liqsEmp.length ? liqsEmp.map(l => (
+                        <tr key={l.id}>
+                          <td style={{fontWeight:600}}>{l.periodo}</td>
+                          <td>{fmt(l.sueldoBase)}</td>
+                          <td>{fmt(l.horasExtra)}</td>
+                          <td style={{color:'#EF4444'}}>{fmt(l.afp+l.salud+l.cesantia+l.impuesto)}</td>
+                          <td style={{fontWeight:700,color:'#111827'}}>{fmt(l.liquido)}</td>
+                          <td><span className={`badge badge-${l.estado==='Pagado'?'green':'yellow'}`}>{l.estado}</span></td>
+                          <td style={{color:'#6B7280'}}>{l.fecha}</td>
+                        </tr>
+                      )) : (
+                        <tr><td colSpan={7}><div className="empty-state"><div className="empty-state-icon">📄</div><div className="empty-state-text">Sin liquidaciones</div></div></td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* DOCUMENTOS */}
+            {tab==='documentos' && (
+              <div>
+                <div style={{display:'flex',justifyContent:'flex-end',marginBottom:12}}>
+                  <button className="btn btn-primary btn-sm"><Icon name="plus" size={13}/>Subir documento</button>
+                </div>
+                <div className="empty-state">
+                  <div className="empty-state-icon">📂</div>
+                  <div className="empty-state-text">No hay documentos subidos</div>
+                  <div style={{fontSize:12,color:'#9CA3AF',marginTop:8}}>Contratos, certificados, finiquitos y más</div>
+                </div>
+              </div>
+            )}
+
+            {/* HISTORIA */}
+            {tab==='historia' && (
+              <div>
+                {[
+                  {fecha:'01/03/2022', accion:'Ingreso a la empresa', user:'Sistema'},
+                  {fecha:'01/01/2023', accion:'Actualización de sueldo base', user:'Rene Aravena'},
+                  {fecha:'01/03/2024', accion:'Renovación de contrato', user:'Rene Aravena'},
+                ].map((ev,i)=>(
+                  <div key={i} style={{display:'flex',gap:16,padding:'12px 0',borderBottom:'1px solid #F3F4F6'}}>
+                    <div style={{width:8,height:8,borderRadius:'50%',background:'#F0197A',marginTop:5,flexShrink:0}}/>
+                    <div>
+                      <div style={{fontSize:13,fontWeight:600,color:'#111827'}}>{ev.accion}</div>
+                      <div style={{fontSize:11,color:'#9CA3AF',marginTop:2}}>{ev.fecha} · {ev.user}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* ITEMS */}
+            {tab==='items' && (
+              <div>
+                <div style={{display:'flex',gap:8,marginBottom:16}}>
+                  {[['bonos','Haberes'],['descuentos','Descuentos'],['creditos','Créditos']].map(([k,l])=>(
+                    <button key={k} className={`btn btn-sm ${itemsTab===k?'btn-primary':'btn-outline'}`} onClick={()=>setItemsTab(k)}>{l}</button>
+                  ))}
+                </div>
+                <div className="empty-state">
+                  <div className="empty-state-icon">💰</div>
+                  <div className="empty-state-text">Sin {itemsTab} registrados este mes</div>
+                </div>
+              </div>
+            )}
+
+            {/* ASISTENCIA */}
+            {tab==='asistencia' && (
+              <div>
+                <div style={{display:'flex',gap:8,marginBottom:16}}>
+                  {[['ausencias','Ausencias'],['horas_extra','Horas Extra']].map(([k,l])=>(
+                    <button key={k} className={`btn btn-sm ${asistTab===k?'btn-primary':'btn-outline'}`} onClick={()=>setAsistTab(k)}>{l}</button>
+                  ))}
+                </div>
+                {asistTab==='ausencias' && (
+                  ausEmp.length ? (
+                    <table className="buk" style={{background:'#fff'}}>
+                      <thead><tr>
+                        {['Tipo','Desde','Hasta','Días','Motivo'].map(h=><th key={h}><div className="th-inner"><div className="th-label">{h}</div></div></th>)}
+                      </tr></thead>
+                      <tbody>
+                        {ausEmp.map(a=>(
+                          <tr key={a.id}>
+                            <td>{a.tipo}</td><td>{a.desde}</td><td>{a.hasta}</td>
+                            <td><span className="badge badge-yellow">{a.dias} días</span></td>
+                            <td>{a.motivo}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : <div className="empty-state"><div className="empty-state-icon">✅</div><div className="empty-state-text">Sin ausencias registradas</div></div>
+                )}
+                {asistTab==='horas_extra' && (
+                  <div className="empty-state"><div className="empty-state-icon">⏱️</div><div className="empty-state-text">Sin horas extra registradas</div></div>
+                )}
+              </div>
+            )}
+
+            {/* VACACIONES */}
+            {tab==='vacaciones' && (
+              <div>
+                <div style={{display:'flex',justifyContent:'flex-end',marginBottom:12}}>
+                  <button className="btn btn-primary btn-sm"><Icon name="plus" size={13}/>Solicitar vacaciones</button>
+                </div>
+                <div style={{background:'#F9FAFB',borderRadius:8,padding:'14px 16px',marginBottom:16,display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:12}}>
+                  {[['Días disponibles','14'],['Días tomados','0'],['Período','2025-2026']].map(([k,v])=>(
+                    <div key={k}>
+                      <div style={{fontSize:11,color:'#9CA3AF'}}>{k}</div>
+                      <div style={{fontSize:18,fontWeight:700,color:'#111827'}}>{v}</div>
+                    </div>
+                  ))}
+                </div>
+                {vacEmp.length ? (
+                  <table className="buk" style={{background:'#fff'}}>
+                    <thead><tr>
+                      {['Tipo','Desde','Hasta','Días','Estado'].map(h=><th key={h}><div className="th-inner"><div className="th-label">{h}</div></div></th>)}
+                    </tr></thead>
+                    <tbody>
+                      {vacEmp.map(v=>(
+                        <tr key={v.id}>
+                          <td>{v.tipo}</td><td>{v.desde}</td><td>{v.hasta}</td>
+                          <td><span className="badge badge-blue">{v.dias} días</span></td>
+                          <td><span className={`badge badge-${v.estado==='Aprobado'?'green':'yellow'}`}>{v.estado}</span></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : <div className="empty-state"><div className="empty-state-icon">🌴</div><div className="empty-state-text">Sin vacaciones registradas</div></div>}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ────────────────── LIQUIDACIONES ────────────────── */
+const Liquidaciones = ({ setPage, setSelLiq }) => {
+  const [perPage, setPerPage] = useState(25);
+  const cols = [
+    { key:'empId', label:'Colaboradora', render: r => {
+      const emp = INIT_EMPLOYEES.find(e=>e.id===r.empId);
+      return <div className="emp-cell">
+        <div className="emp-badge" style={{background:badgeColor(emp?.nombre||'')}}>{initials(emp?.nombre||'?')}</div>
+        <span className="emp-name-link">{emp?.nombre}</span>
+      </div>;
+    }},
+    { key:'periodo', label:'Período' },
+    { key:'sueldoBase', label:'Sueldo Base', render: r => fmt(r.sueldoBase) },
+    { key:'horasExtra', label:'HH. Extra', render: r => fmt(r.horasExtra) },
+    { key:'liquido', label:'Sueldo Líquido', render: r => <strong>{fmt(r.liquido)}</strong> },
+    { key:'estado', label:'Estado', filterable:false, render: r => (
+      <span className={`badge badge-${r.estado==='Pagado'?'green':'yellow'}`}>{r.estado}</span>
+    )},
+    { key:'fecha', label:'Fecha Pago' },
+  ];
+
+  return (
+    <div>
+      <div className="page-header">
+        <div>
+          <div className="page-title">Liquidaciones de Sueldo</div>
+          <div className="page-subtitle">{LIQUIDACIONES.length} liquidaciones registradas</div>
+        </div>
+        <div className="page-actions">
+          <button className="btn btn-outline"><Icon name="download" size={14}/>Exportar</button>
+          <button className="btn btn-primary"><Icon name="plus" size={14}/>Nueva liquidación</button>
+        </div>
+      </div>
+
+      <div className="stat-grid" style={{gridTemplateColumns:'repeat(3,1fr)',marginBottom:20}}>
+        <StatCard label="Total pagado Enero 2026" value={fmt(LIQUIDACIONES.filter(l=>l.estado==='Pagado').reduce((a,l)=>a+l.liquido,0))} iconName="cash" iconBg="#059669"/>
+        <StatCard label="Pendientes de pago" value={LIQUIDACIONES.filter(l=>l.estado==='Pendiente').length} iconName="doc" iconBg="#D97706"/>
+        <StatCard label="Colaboradoras liquidadas" value={new Set(LIQUIDACIONES.map(l=>l.empId)).size} iconName="users" iconBg="#1B1564"/>
+      </div>
+
+      <BukTable columns={cols} data={LIQUIDACIONES} onRowClick={r=>{setSelLiq(r);setPage('liq-detalle');}} perPage={perPage} setPerPage={setPerPage}/>
+    </div>
+  );
+};
+
+/* ────────────────── LIQ DETALLE ────────────────── */
+const LiqDetalle = ({ liq, setPage }) => {
+  const emp = INIT_EMPLOYEES.find(e=>e.id===liq.empId);
+  const totalImponible = liq.sueldoBase + liq.gratificacion + liq.horasExtra;
+  const totalNoImponible = liq.colacion + liq.movilizacion;
+  const totalDescuentos = liq.afp + liq.salud + liq.cesantia + liq.impuesto;
+  const aporteSCS = Math.round(totalImponible * 0.0165);
+  const aporteMutual = Math.round(totalImponible * 0.0093);
+  const aporteTotal = aporteSCS + aporteMutual;
+
+  return (
+    <div>
+      <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:20}}>
+        <button className="btn btn-ghost btn-sm" onClick={()=>setPage('liquidaciones')}>
+          ← Liquidaciones
+        </button>
+        <Icon name="chevronR" size={13} color="#9CA3AF"/>
+        <span style={{fontSize:13,fontWeight:600}}>{emp?.nombre} — {liq.periodo}</span>
+        <div style={{marginLeft:'auto',display:'flex',gap:8}}>
+          <span className={`badge badge-${liq.estado==='Pagado'?'green':'yellow'}`}>{liq.estado}</span>
+          <button className="btn btn-outline btn-sm"><Icon name="download" size={13}/>Descargar PDF</button>
+          <button className="btn btn-primary btn-sm"><Icon name="check" size={13}/>Marcar pagado</button>
+        </div>
+      </div>
+
+      {/* Header info */}
+      <div className="liq-header">
+        <div>
+          <div className="liq-field-label">Colaboradora</div>
+          <div style={{display:'flex',alignItems:'center',gap:10,marginTop:4}}>
+            <div className="emp-badge" style={{background:badgeColor(emp?.nombre||''),width:36,height:36}}>{initials(emp?.nombre||'?')}</div>
+            <div>
+              <div className="liq-field-value">{emp?.nombre}</div>
+              <div style={{fontSize:12,color:'#6B7280'}}>{emp?.rut} · {emp?.cargo}</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div className="liq-field-label">Período</div>
+          <div className="liq-field-value">{liq.periodo}</div>
+          <div className="liq-field-label" style={{marginTop:12}}>Fecha de Pago</div>
+          <div className="liq-field-value">{liq.fecha}</div>
+        </div>
+        <div>
+          <div className="liq-field-label">AFP</div>
+          <div className="liq-field-value">{emp?.afp}</div>
+          <div className="liq-field-label" style={{marginTop:12}}>Salud</div>
+          <div className="liq-field-value">{emp?.salud}</div>
+        </div>
+      </div>
+
+      {/* Haberes Imponibles */}
+      <div className="liq-section">
+        <div className="liq-section-title">Haberes Imponibles</div>
+        <table className="liq">
+          <tbody>
+            <tr><td>Sueldo Base</td><td>{fmt(liq.sueldoBase)}</td></tr>
+            <tr><td>Gratificación Legal (25%)</td><td>{fmt(liq.gratificacion)}</td></tr>
+            {liq.horasExtra > 0 && <tr><td>Horas Extraordinarias</td><td>{fmt(liq.horasExtra)}</td></tr>}
+            <tr style={{background:'#F9FAFB'}}>
+              <td style={{fontWeight:700}}>Total Imponible</td>
+              <td style={{fontWeight:700}}>{fmt(totalImponible)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {/* Haberes No Imponibles */}
+      {totalNoImponible > 0 && (
+        <div className="liq-section">
+          <div className="liq-section-title">Haberes No Imponibles</div>
+          <table className="liq">
+            <tbody>
+              {liq.colacion > 0 && <tr><td>Asignación de Colación</td><td>{fmt(liq.colacion)}</td></tr>}
+              {liq.movilizacion > 0 && <tr><td>Asignación de Movilización</td><td>{fmt(liq.movilizacion)}</td></tr>}
+              <tr style={{background:'#F9FAFB'}}>
+                <td style={{fontWeight:700}}>Total No Imponible</td>
+                <td style={{fontWeight:700}}>{fmt(totalNoImponible)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Descuentos */}
+      <div className="liq-section">
+        <div className="liq-section-title">Descuentos Legales</div>
+        <table className="liq">
+          <tbody>
+            <tr><td>AFP {emp?.afp} (9.5%)</td><td style={{color:'#EF4444'}}>- {fmt(liq.afp)}</td></tr>
+            <tr><td>Salud {emp?.salud} (7%)</td><td style={{color:'#EF4444'}}>- {fmt(liq.salud)}</td></tr>
+            <tr><td>Seguro de Cesantía (0.6%)</td><td style={{color:'#EF4444'}}>- {fmt(liq.cesantia)}</td></tr>
+            {liq.impuesto > 0 && <tr><td>Impuesto Único</td><td style={{color:'#EF4444'}}>- {fmt(liq.impuesto)}</td></tr>}
+            <tr style={{background:'#F9FAFB'}}>
+              <td style={{fontWeight:700}}>Total Descuentos</td>
+              <td style={{fontWeight:700,color:'#EF4444'}}>- {fmt(totalDescuentos)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {/* Total Líquido */}
+      <div className="liq-section">
+        <table className="liq">
+          <tbody>
+            <tr className="liq-total">
+              <td>💰 SUELDO LÍQUIDO A PAGAR</td>
+              <td>{fmt(liq.liquido)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {/* Aporte Patronal */}
+      <div className="liq-section">
+        <div className="liq-section-title">Aporte Patronal (no descuenta del trabajador)</div>
+        <table className="liq">
+          <tbody>
+            <tr><td>Seguro de Cesantía Empleador (2.4%)</td><td style={{color:'#6B7280'}}>{fmt(aporteSCS)}</td></tr>
+            <tr><td>Accidente del Trabajo y Mutual (0.93%)</td><td style={{color:'#6B7280'}}>{fmt(aporteMutual)}</td></tr>
+            <tr style={{background:'#F9FAFB'}}>
+              <td style={{fontWeight:700}}>Total Aporte Patronal</td>
+              <td style={{fontWeight:700,color:'#6B7280'}}>{fmt(aporteTotal)}</td>
+            </tr>
+            <tr style={{background:'#F9FAFB'}}>
+              <td style={{fontWeight:700}}>Costo Total Empleador</td>
+              <td style={{fontWeight:700,color:'#1B1564'}}>{fmt(liq.liquido + aporteTotal)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+/* ────────────────── PROCESOS ────────────────── */
+const Procesos = () => {
+  const [perPage, setPerPage] = useState(25);
+  const cols = [
+    { key:'nombre', label:'Proceso', render: r => <strong>{r.nombre}</strong> },
+    { key:'periodo', label:'Período' },
+    { key:'emps', label:'Colaboradoras', render: r => `${r.emps} colaboradoras` },
+    { key:'total', label:'Total Líquido' },
+    { key:'fecha', label:'Fecha' },
+    { key:'estado', label:'Estado', filterable:false, render: r => (
+      <span className={`badge badge-${r.estado==='Cerrado'?'green':r.estado==='Abierto'?'blue':'yellow'}`}>{r.estado}</span>
+    )},
+  ];
+  return (
+    <div>
+      <div className="page-header">
+        <div>
+          <div className="page-title">Procesos de Remuneraciones</div>
+          <div className="page-subtitle">Historial de procesos mensuales</div>
+        </div>
+        <button className="btn btn-primary"><Icon name="plus" size={14}/>Abrir proceso</button>
+      </div>
+      <BukTable columns={cols} data={PROCESOS} perPage={perPage} setPerPage={setPerPage}/>
+    </div>
+  );
+};
+
+/* ────────────────── VARIABLES ────────────────── */
+const Variables = () => {
+  const [perPage, setPerPage] = useState(25);
+  const cols = [
+    { key:'nombre', label:'Variable', render: r => <strong>{r.nombre}</strong> },
+    { key:'tipo', label:'Tipo' },
+    { key:'monto', label:'Monto', render: r => fmt(r.monto) },
+    { key:'emps', label:'Colaboradoras', render: r => `${r.emps} colabs.` },
+    { key:'estado', label:'Estado', filterable:false, render: r => (
+      <span className={`badge badge-${r.estado==='Activo'?'green':'gray'}`}>{r.estado}</span>
+    )},
+  ];
+  return (
+    <div>
+      <div className="page-header">
+        <div>
+          <div className="page-title">Variables de Remuneración</div>
+          <div className="page-subtitle">Haberes y descuentos aplicados mensualmente</div>
+        </div>
+        <button className="btn btn-primary"><Icon name="plus" size={14}/>Nueva variable</button>
+      </div>
+      <BukTable columns={cols} data={VARIABLES} perPage={perPage} setPerPage={setPerPage}/>
+    </div>
+  );
+};
+
+/* ────────────────── ASISTENCIA ────────────────── */
+const Asistencia = () => {
+  const [perPage, setPerPage] = useState(25);
+  const allAus = AUSENCIAS;
+  const cols = [
+    { key:'empId', label:'Colaboradora', render: r => {
+      const emp = INIT_EMPLOYEES.find(e=>e.id===r.empId);
+      return <div className="emp-cell">
+        <div className="emp-badge" style={{background:badgeColor(emp?.nombre||'')}}>{initials(emp?.nombre||'?')}</div>
+        {emp?.nombre}
+      </div>;
+    }},
+    { key:'tipo', label:'Tipo de Ausencia' },
+    { key:'desde', label:'Desde' },
+    { key:'hasta', label:'Hasta' },
+    { key:'dias', label:'Días', render: r => <span className="badge badge-yellow">{r.dias} días</span> },
+    { key:'motivo', label:'Motivo' },
+  ];
+  return (
+    <div>
+      <div className="page-header">
+        <div>
+          <div className="page-title">Registro de Asistencia</div>
+          <div className="page-subtitle">Ausencias y licencias médicas</div>
+        </div>
+        <button className="btn btn-primary"><Icon name="plus" size={14}/>Registrar ausencia</button>
+      </div>
+      <BukTable columns={cols} data={allAus} perPage={perPage} setPerPage={setPerPage}/>
+    </div>
+  );
+};
+
+/* ────────────────── VACACIONES ────────────────── */
+const VacacionesPage = () => {
+  const [perPage, setPerPage] = useState(25);
+  const cols = [
+    { key:'empId', label:'Colaboradora', render: r => {
+      const emp = INIT_EMPLOYEES.find(e=>e.id===r.empId);
+      return <div className="emp-cell">
+        <div className="emp-badge" style={{background:badgeColor(emp?.nombre||'')}}>{initials(emp?.nombre||'?')}</div>
+        {emp?.nombre}
+      </div>;
+    }},
+    { key:'tipo', label:'Tipo' },
+    { key:'desde', label:'Desde' },
+    { key:'hasta', label:'Hasta' },
+    { key:'dias', label:'Días', render: r => <span className="badge badge-blue">{r.dias} días</span> },
+    { key:'estado', label:'Estado', filterable:false, render: r => (
+      <span className={`badge badge-${r.estado==='Aprobado'?'green':r.estado==='En proceso'?'yellow':'gray'}`}>{r.estado}</span>
+    )},
+  ];
+  return (
+    <div>
+      <div className="page-header">
+        <div>
+          <div className="page-title">Vacaciones y Permisos</div>
+          <div className="page-subtitle">Gestión de vacaciones legales y permisos</div>
+        </div>
+        <button className="btn btn-primary"><Icon name="plus" size={14}/>Solicitar vacaciones</button>
+      </div>
+      <BukTable columns={cols} data={VACACIONES} perPage={perPage} setPerPage={setPerPage}/>
+    </div>
+  );
+};
+
+/* ────────────────── BENEFICIOS ────────────────── */
+const Beneficios = () => (
+  <div>
+    <div className="page-header">
+      <div>
+        <div className="page-title">Beneficios</div>
+        <div className="page-subtitle">Beneficios activos para tus colaboradoras</div>
+      </div>
+      <button className="btn btn-primary"><Icon name="plus" size={14}/>Agregar beneficio</button>
+    </div>
+    <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16}}>
+      {BENEFITS.map(b => (
+        <div key={b.id} className="card">
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:12}}>
+            <div className="stat-icon" style={{background:'#FDF0F7',width:44,height:44,borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center'}}>
+              <Icon name="gift" size={20} color="#F0197A"/>
+            </div>
+            <span className="badge badge-green">{b.estado}</span>
+          </div>
+          <div style={{fontSize:15,fontWeight:700,color:'#111827',marginBottom:4}}>{b.nombre}</div>
+          <div style={{fontSize:12,color:'#6B7280',marginBottom:4}}>Proveedor: {b.proveedor}</div>
+          <div style={{fontSize:12,color:'#6B7280',marginBottom:12}}>Tipo: {b.tipo}</div>
+          <hr className="divider"/>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+            <span style={{fontSize:13,fontWeight:700,color:'#111827'}}>{b.costo}</span>
+            <button className="btn btn-ghost btn-sm"><Icon name="eye" size={13}/>Ver</button>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+/* ────────────────── CONFIGURACION ────────────────── */
+const Configuracion = () => (
+  <div>
+    <div className="page-header">
+      <div>
+        <div className="page-title">Configuración</div>
+        <div className="page-subtitle">Ajustes del sistema y empresa</div>
+      </div>
+    </div>
+    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:20}}>
+      {[
+        {titulo:'Datos de la Empresa', desc:'Nombre, RUT, dirección y datos del empleador', icon:'briefcase'},
+        {titulo:'Usuarios y Accesos', desc:'Gestión de cuentas y permisos del sistema', icon:'users'},
+        {titulo:'Integración BUK API', desc:'Conectar con API de BUK para sincronización', icon:'cog'},
+        {titulo:'Notificaciones', desc:'Alertas de pago, documentos y vencimientos', icon:'bell'},
+      ].map(s => (
+        <div key={s.titulo} className="card" style={{cursor:'pointer',transition:'box-shadow 0.15s'}}
+          onMouseEnter={e=>e.currentTarget.style.boxShadow='0 4px 16px rgba(0,0,0,0.08)'}
+          onMouseLeave={e=>e.currentTarget.style.boxShadow='none'}>
+          <div style={{display:'flex',gap:16,alignItems:'flex-start'}}>
+            <div style={{width:44,height:44,borderRadius:10,background:'#FDF0F7',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+              <Icon name={s.icon} size={20} color="#F0197A"/>
+            </div>
+            <div>
+              <div style={{fontSize:15,fontWeight:700,color:'#111827',marginBottom:4}}>{s.titulo}</div>
+              <div style={{fontSize:13,color:'#6B7280'}}>{s.desc}</div>
+            </div>
+            <div style={{marginLeft:'auto'}}><Icon name="chevronR" size={16} color="#9CA3AF"/></div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+/* ────────────────── APP ────────────────── */
+const App = () => {
+  const [page, setPage] = useState('dashboard');
+  const [selEmp, setSelEmp] = useState(null);
+  const [selLiq, setSelLiq] = useState(null);
+
+  const pageMap = {
+    dashboard: 'Dashboard',
+    colaboradoras: 'Colaboradoras',
+    asistencia: 'Asistencia',
+    vacaciones: 'Vacaciones',
+    liquidaciones: 'Liquidaciones',
+    procesos: 'Procesos',
+    variables: 'Variables',
+    beneficios: 'Beneficios',
+    configuracion: 'Configuración',
+    perfil: selEmp?.nombre || 'Perfil',
+    'liq-detalle': `Liquidación — ${selLiq?.periodo || ''}`,
+  };
+
+  const sidebarPage = ['perfil','liq-detalle'].includes(page)
+    ? (page==='perfil' ? 'colaboradoras' : 'liquidaciones')
+    : page;
+
+  return (
+    <div className="app-shell">
+      <Sidebar active={sidebarPage} setPage={setPage}/>
+      <div className="main-col">
+        <Topbar title={pageMap[page] || page}/>
+        <div className="content-area">
+          {page==='dashboard'     && <Dashboard setPage={setPage} setSelEmp={setSelEmp}/>}
+          {page==='colaboradoras' && <Colaboradoras setPage={setPage} setSelEmp={setSelEmp}/>}
+          {page==='perfil'        && selEmp && <EmpProfile emp={selEmp} setPage={setPage}/>}
+          {page==='liquidaciones' && <Liquidaciones setPage={setPage} setSelLiq={setSelLiq}/>}
+          {page==='liq-detalle'   && selLiq && <LiqDetalle liq={selLiq} setPage={setPage}/>}
+          {page==='procesos'      && <Procesos/>}
+          {page==='variables'     && <Variables/>}
+          {page==='asistencia'    && <Asistencia/>}
+          {page==='vacaciones'    && <VacacionesPage/>}
+          {page==='beneficios'    && <Beneficios/>}
+          {page==='configuracion' && <Configuracion/>}
+        </div>
       </div>
     </div>
   );
