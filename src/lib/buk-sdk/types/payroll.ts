@@ -1,8 +1,17 @@
 /**
  * Tipos para el módulo de Liquidaciones (Payroll) de Buk Chile.
  *
- * Ref: GET /payroll_processes, GET /payroll_processes/{id}/payroll_items
+ * Ref: GET /process, GET /process_periods, GET /payroll_detail/month,
+ *      GET /employees/{id}/statements/{year}-{MM}.pdf
  */
+
+/** Período de proceso */
+export interface BukProcessPeriod {
+  id: number;
+  month: string;
+  end_date: string;
+  status: string;
+}
 
 /** Proceso de liquidación */
 export interface BukPayrollProcess {

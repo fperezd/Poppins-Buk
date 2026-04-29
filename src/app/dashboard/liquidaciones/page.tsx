@@ -68,9 +68,18 @@ function LiquidacionDetail({ liq, empName, onClose }: { liq: Liquidacion; empNam
             <span className="text-emerald-600">{fmt(liq.liquido)}</span>
           </div>
 
-          <button onClick={onClose} className="w-full mt-2 py-2 rounded-lg bg-gray-100 text-sm font-medium text-gray-600 hover:bg-gray-200 transition">
-            Cerrar
-          </button>
+          <div className="flex gap-2 mt-2">
+            <a
+              href={`/api/buk/payroll/pdf?employeeId=${liq.empleadoId}&year=${(liq.periodo || '').split('-')[0] || new Date().getFullYear()}&month=${parseInt((liq.periodo || '').split('-')[1] || '1', 10)}`}
+              download
+              className="flex-1 py-2 rounded-lg bg-[#1B1564] text-white text-sm font-medium text-center hover:bg-[#1B1564]/90 transition"
+            >
+              Descargar PDF
+            </a>
+            <button onClick={onClose} className="flex-1 py-2 rounded-lg bg-gray-100 text-sm font-medium text-gray-600 hover:bg-gray-200 transition">
+              Cerrar
+            </button>
+          </div>
         </div>
       </div>
     </div>

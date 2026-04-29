@@ -146,6 +146,22 @@ export function useCreateAbsence() {
   return useMutation<unknown>('/api/buk/absences', 'POST');
 }
 
+export function useAttendance(startDate?: string, endDate?: string) {
+  const params = new URLSearchParams();
+  if (startDate) params.set('startDate', startDate);
+  if (endDate) params.set('endDate', endDate);
+  const qs = params.toString();
+  return useApi<Array<{
+    employee_id: number;
+    nombre: string;
+    iniciales?: string;
+    color?: string;
+    dias?: Record<string, string>;
+    total_trabajados: number;
+    horas_no_trabajadas: number;
+  }>>(`/api/buk/attendance${qs ? `?${qs}` : ''}`);
+}
+
 export function useHealthCheck() {
   return useApi<{ ok: boolean; latencyMs: number; error?: string }>(
     '/api/buk/health-check',

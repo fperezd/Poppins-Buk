@@ -41,7 +41,7 @@ export class BukSDK {
   readonly overtime: OvertimeModule;
   readonly documents: DocumentsModule;
 
-  private readonly client: BukHttpClient;
+  readonly client: BukHttpClient;
 
   constructor(config?: BukClientConfig) {
     this.client = config ? new BukHttpClient(config) : getDefaultClient();
