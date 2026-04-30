@@ -15,6 +15,8 @@ const NAV_ITEMS = [
   { id: 'horasextra', label: 'Horas Extra', icon: '⏰', href: '/dashboard/horas-extra' },
   { section: 'Beneficios' },
   { id: 'beneficios', label: 'Beneficios', icon: '🎁', href: '/dashboard/beneficios' },
+  { section: 'Documentación' },
+  { id: 'documentos', label: 'Documentos', icon: '📄', href: '/dashboard/documentos' },
   { section: 'Sistema' },
   { id: 'configuracion', label: 'Configuración', icon: '⚙️', href: '/dashboard/configuracion' },
 ];

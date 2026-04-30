@@ -2,8 +2,36 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { User, Briefcase, Shield, ArrowLeft } from 'lucide-react';
+import { User, Briefcase, Shield, ArrowLeft, Users, FileText } from 'lucide-react';
 import type { PoppinsEmployee, PoppinsLiquidacion, PoppinsVacacion } from '@/types/buk';
+
+interface FamilyMember {
+  id: number;
+  nombre: string;
+  apellido: string;
+  parentesco: string;
+  rut: string;
+  fechaNacimiento: string;
+  edad: number;
+  esCargaFamiliar: boolean;
+  genero: string;
+}
+
+interface EmployeeDocument {
+  id: number;
+  tipo: string;
+  nombre: string;
+  fechaCreacion: string;
+  estado: string;
+}
+
+interface VacationBalance {
+  diasTotales: number;
+  diasUsados: number;
+  diasPendientes: number;
+  diasDisponibles: number;
+  diasProgresivos: number;
+}
 
 function StatusBadge({ estado }: { estado: string }) {
   const colors: Record<string, string> = {
@@ -73,6 +101,9 @@ export default function EmployeeDetailPage() {
   const [employee, setEmployee] = useState<PoppinsEmployee | null>(null);
   const [payroll, setPayroll] = useState<PoppinsLiquidacion[]>([]);
   const [absences, setAbsences] = useState<PoppinsVacacion[]>([]);
+  const [family, setFamily] = useState<FamilyMember[]>([]);
+  const [documents, setDocuments] = useState<EmployeeDocument[]>([]);
+  const [vacBalance, setVacBalance] = useState<VacationBalance | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('info');
   const [selectedPayroll, setSelectedPayroll] = useState<PoppinsLiquidacion | null>(null);
@@ -82,7 +113,6 @@ export default function EmployeeDetailPage() {
   useEffect(() => {
     if (!id) return;
 
-    // Fetch employee data
     Promise.all([
       fetch(`/api/buk/employees/${id}`)
         .then(r => r.json())
@@ -97,6 +127,21 @@ export default function EmployeeDetailPage() {
       fetch(`/api/buk/absences?employeeId=${id}`)
         .then(r => r.json())
         .then(json => setAbsences(json.data || []))
+        .catch(() => {}),
+
+      fetch(`/api/buk/family?employeeId=${id}`)
+        .then(r => r.json())
+        .then(json => setFamily(Array.isArray(json.data) ? json.data : []))
+        .catch(() => {}),
+
+      fetch(`/api/buk/documents?employeeId=${id}`)
+        .then(r => r.json())
+        .then(json => setDocuments(Array.isArray(json.data) ? json.data : []))
+        .catch(() => {}),
+
+      fetch(`/api/buk/vacation-balance?employeeId=${id}`)
+        .then(r => r.json())
+        .then(json => setVacBalance(json.data || null))
         .catch(() => {}),
     ]).finally(() => setLoading(false));
   }, [id]);
@@ -151,6 +196,8 @@ export default function EmployeeDetailPage() {
               { id: 'info', label: 'Información' },
               { id: 'payroll', label: 'Liquidaciones' },
               { id: 'absences', label: 'Vacaciones' },
+              { id: 'family', label: 'Familia' },
+              { id: 'documents', label: 'Documentos' },
             ].map(tab => (
               <button
                 key={tab.id}
@@ -286,6 +333,36 @@ export default function EmployeeDetailPage() {
           {/* Vacaciones Tab */}
           {activeTab === 'absences' && (
             <div>
+              {/* Saldo de Vacaciones */}
+              {vacBalance && (
+                <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-4 mb-4 border border-emerald-100">
+                  <div className="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-3">Saldo de Vacaciones</div>
+                  <div className="grid grid-cols-4 gap-3">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-emerald-600">{vacBalance.diasDisponibles}</div>
+                      <div className="text-[10px] text-gray-500">Disponibles</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-gray-700">{vacBalance.diasTotales}</div>
+                      <div className="text-[10px] text-gray-500">Totales</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600">{vacBalance.diasUsados}</div>
+                      <div className="text-[10px] text-gray-500">Usados</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-yellow-600">{vacBalance.diasPendientes}</div>
+                      <div className="text-[10px] text-gray-500">Pendientes</div>
+                    </div>
+                  </div>
+                  {vacBalance.diasProgresivos > 0 && (
+                    <div className="mt-2 text-xs text-emerald-600 text-center">
+                      +{vacBalance.diasProgresivos} días progresivos
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="flex justify-end mb-4">
                 <button className="px-4 py-2 bg-[#F0197A] text-white text-sm font-medium rounded-lg hover:bg-[#d4166c] transition">
                   + Nueva Solicitud
@@ -320,6 +397,90 @@ export default function EmployeeDetailPage() {
                       ))}
                     </tbody>
                   </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Familia Tab */}
+          {activeTab === 'family' && (
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Users size={18} className="text-[#F0197A]" />
+                <h3 className="text-lg font-semibold text-gray-900">Grupo Familiar</h3>
+              </div>
+
+              {family.length === 0 ? (
+                <div className="text-center py-8 text-gray-400">Sin cargas familiares registradas</div>
+              ) : (
+                <>
+                  <div className="bg-blue-50 rounded-lg p-3 mb-4 border border-blue-100">
+                    <div className="text-xs text-blue-700 font-medium">
+                      {family.filter(m => m.esCargaFamiliar).length} cargas familiares reconocidas
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {family.map(member => (
+                      <div key={member.id} className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <div className="font-medium text-gray-900">
+                              {member.nombre} {member.apellido}
+                            </div>
+                            <div className="text-xs text-gray-500 mt-0.5">{member.parentesco}</div>
+                          </div>
+                          {member.esCargaFamiliar && (
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                              Carga familiar
+                            </span>
+                          )}
+                        </div>
+                        <div className="mt-3 space-y-1 text-xs text-gray-500">
+                          <div>RUT: {member.rut}</div>
+                          <div>Nacimiento: {member.fechaNacimiento} ({member.edad} años)</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Documentos Tab */}
+          {activeTab === 'documents' && (
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <FileText size={18} className="text-[#F0197A]" />
+                <h3 className="text-lg font-semibold text-gray-900">Documentos</h3>
+              </div>
+
+              {documents.length === 0 ? (
+                <div className="text-center py-8 text-gray-400">Sin documentos registrados</div>
+              ) : (
+                <div className="space-y-2">
+                  {documents.map(doc => (
+                    <div key={doc.id} className="flex items-center justify-between bg-gray-50 rounded-lg p-3 border border-gray-100 hover:bg-gray-100/80 transition">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-[#1B1564]/10 flex items-center justify-center">
+                          <FileText size={16} className="text-[#1B1564]" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-800">{doc.nombre}</div>
+                          <div className="text-xs text-gray-400">{doc.tipo} &middot; {doc.fechaCreacion}</div>
+                        </div>
+                      </div>
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                        doc.estado === 'firmado' ? 'bg-emerald-100 text-emerald-700'
+                        : doc.estado === 'pendiente_firma' ? 'bg-yellow-100 text-yellow-700'
+                        : doc.estado === 'emitido' ? 'bg-blue-100 text-blue-700'
+                        : 'bg-gray-100 text-gray-500'
+                      }`}>
+                        {doc.estado === 'pendiente_firma' ? 'Pendiente firma' : doc.estado}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

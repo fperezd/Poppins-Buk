@@ -1,7 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAbsences, useEmployees } from '@/hooks/useBuk';
+
+interface VacationBalance {
+  empleadoId: number;
+  nombre?: string;
+  diasTotales: number;
+  diasUsados: number;
+  diasPendientes: number;
+  diasDisponibles: number;
+  diasProgresivos: number;
+  fechaCorte: string;
+}
 
 function StatusBadge({ estado }: { estado: string }) {
   const colors: Record<string, string> = {
@@ -20,6 +31,17 @@ export default function VacacionesPage() {
   const { data: absences, loading, error } = useAbsences();
   const { data: employees } = useEmployees();
   const [updateStates, setUpdateStates] = useState<Record<number, string>>({});
+  const [balances, setBalances] = useState<VacationBalance[]>([]);
+
+  useEffect(() => {
+    fetch('/api/buk/vacation-balance')
+      .then(r => r.json())
+      .then(json => {
+        const data = json.data;
+        setBalances(Array.isArray(data) ? data : data ? [data] : []);
+      })
+      .catch(() => {});
+  }, []);
 
   const empName = (id: number) => employees.find(e => e.id === id)?.nombreCompleto || `Empleado #${id}`;
 
@@ -46,6 +68,36 @@ export default function VacacionesPage() {
           + Nueva Solicitud
         </a>
       </div>
+
+      {/* Saldo de Vacaciones */}
+      {balances.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+          <div className="text-sm font-semibold text-gray-800 mb-3">Saldo de Vacaciones</div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            {balances.map(b => (
+              <div key={b.empleadoId} className="bg-gray-50 rounded-lg p-3">
+                <div className="text-xs text-gray-500 font-medium truncate">
+                  {b.nombre || empName(b.empleadoId)}
+                </div>
+                <div className="flex items-baseline gap-1 mt-1">
+                  <span className="text-xl font-bold text-emerald-600">{b.diasDisponibles}</span>
+                  <span className="text-xs text-gray-400">/ {b.diasTotales} días</span>
+                </div>
+                <div className="mt-2 w-full bg-gray-200 rounded-full h-1.5">
+                  <div
+                    className="bg-emerald-500 h-1.5 rounded-full transition-all"
+                    style={{ width: `${Math.min(100, (b.diasUsados / b.diasTotales) * 100)}%` }}
+                  />
+                </div>
+                <div className="flex justify-between text-[10px] text-gray-400 mt-1">
+                  <span>{b.diasUsados} usados</span>
+                  {b.diasPendientes > 0 && <span className="text-yellow-600">{b.diasPendientes} pend.</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {error && <div className="text-red-500 text-sm">Error: {error}</div>}
 

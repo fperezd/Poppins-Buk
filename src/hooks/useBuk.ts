@@ -168,3 +168,65 @@ export function useHealthCheck() {
     false
   );
 }
+
+export function useVacationBalance(employeeId?: number) {
+  const url = employeeId
+    ? `/api/buk/vacation-balance?employeeId=${employeeId}`
+    : '/api/buk/vacation-balance';
+  return useApi<
+    | Array<{
+        empleadoId: number;
+        nombre?: string;
+        diasTotales: number;
+        diasUsados: number;
+        diasPendientes: number;
+        diasDisponibles: number;
+        diasProgresivos: number;
+        fechaCorte: string;
+      }>
+    | {
+        empleadoId: number;
+        diasTotales: number;
+        diasUsados: number;
+        diasPendientes: number;
+        diasDisponibles: number;
+        diasProgresivos: number;
+        fechaCorte: string;
+      }
+    | null
+  >(url);
+}
+
+export function useFamilyMembers(employeeId: number | null) {
+  return useApi<Array<{
+    id: number;
+    empleadoId: number;
+    nombre: string;
+    apellido: string;
+    parentesco: string;
+    rut: string;
+    fechaNacimiento: string;
+    edad: number;
+    esCargaFamiliar: boolean;
+    genero: string;
+  }>>(
+    employeeId ? `/api/buk/family?employeeId=${employeeId}` : '',
+    employeeId !== null
+  );
+}
+
+export function useDocuments(employeeId?: number) {
+  const url = employeeId
+    ? `/api/buk/documents?employeeId=${employeeId}`
+    : '/api/buk/documents';
+  return useApi<Array<{
+    id: number;
+    empleadoId: number;
+    empleadoNombre?: string;
+    tipo: string;
+    nombre: string;
+    fechaCreacion: string;
+    estado: string;
+    url?: string;
+  }>>(url);
+}
