@@ -17,6 +17,8 @@ const NAV_ITEMS = [
   { id: 'beneficios', label: 'Beneficios', icon: '🎁', href: '/dashboard/beneficios' },
   { section: 'Documentación' },
   { id: 'documentos', label: 'Documentos', icon: '📄', href: '/dashboard/documentos' },
+  { section: 'Empresa Agentica' },
+  { id: 'empresa', label: 'Mi Empresa', icon: '🤖', href: '/dashboard/empresa' },
   { section: 'Sistema' },
   { id: 'configuracion', label: 'Configuración', icon: '⚙️', href: '/dashboard/configuracion' },
 ];
