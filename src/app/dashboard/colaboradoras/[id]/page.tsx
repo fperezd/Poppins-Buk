@@ -1,339 +1,229 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { User, Briefcase, Shield, ArrowLeft } from 'lucide-react';
-import type { PoppinsEmployee, PoppinsLiquidacion, PoppinsVacacion } from '@/types/buk';
+import { useState, use } from 'react';
+import Link from 'next/link';
+import { useColaboradora, useLiquidaciones, useSaldoVacaciones, useVacaciones, useHogar } from '@/hooks/api';
 
-function StatusBadge({ estado }: { estado: string }) {
-  const colors: Record<string, string> = {
-    activo: 'bg-emerald-100 text-emerald-700',
-    inactivo: 'bg-gray-100 text-gray-500',
-    licencia: 'bg-amber-100 text-amber-700',
-    pendiente: 'bg-yellow-100 text-yellow-700',
-    aprobada: 'bg-emerald-100 text-emerald-700',
-    rechazada: 'bg-red-100 text-red-600',
-    Pagado: 'bg-emerald-100 text-emerald-700',
-    Pendiente: 'bg-yellow-100 text-yellow-700',
-  };
-  return (
-    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${colors[estado] || 'bg-gray-100 text-gray-500'}`}>
-      {estado}
-    </span>
-  );
+interface PageProps {
+  params: Promise<{ id: string }>;
 }
 
-function LiquidacionDetail({ liq, empName, onClose }: { liq: PoppinsLiquidacion; empName: string; onClose: () => void }) {
-  const fmt = (n: number) => '$' + n.toLocaleString('es-CL');
+function fmtCLP(n: number) {
+  return '$' + n.toLocaleString('es-CL');
+}
+
+function initials(emp: { first_name?: string; surname?: string }): string {
+  return `${(emp.first_name ?? ' ')[0]}${(emp.surname ?? ' ')[0]}`.toUpperCase();
+}
+
+export default function ColaboradoraDetailPage({ params }: PageProps) {
+  const { id: idStr } = use(params);
+  const id = Number(idStr);
+  const [tab, setTab] = useState<'info' | 'liquidaciones' | 'vacaciones'>('info');
+
+  const { data: emp, loading, error } = useColaboradora(id);
+  const { data: liquidaciones } = useLiquidaciones(id);
+  const { data: saldoVacaciones } = useSaldoVacaciones(id);
+  const { data: vacacionesList } = useVacaciones(id);
+  const { data: hogar } = useHogar(emp?.current_job?.area_id ?? null);
+
+  if (loading) return <div className="text-sm text-gray-400 p-6">Cargando…</div>;
+  if (error) return <div className="text-red-700 text-sm p-3 bg-red-50 rounded-lg">{error.message}</div>;
+  if (!emp) return <div className="text-sm text-gray-500 p-6">No encontrada</div>;
+
+  const haberes = (liquidaciones as Array<{ income_gross?: number; year?: number; month?: number; liquid_reach?: number; closed?: boolean; liquidacion_id?: number }> | null) ?? [];
+
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
-        <div className="bg-gradient-to-r from-[#1B1564] to-[#3730A3] p-5 text-white">
-          <div className="text-lg font-bold">{empName}</div>
-          <div className="text-white/60 text-sm">Liquidación {liq.periodo}</div>
+    <div className="space-y-5">
+      <div>
+        <Link href="/dashboard/colaboradoras" className="text-sm text-gray-500 hover:text-gray-900">← Volver</Link>
+      </div>
+
+      {/* Header */}
+      <div className="bg-white p-5 rounded-xl border border-gray-100 flex items-center gap-4">
+        <div
+          className="w-16 h-16 rounded-full flex items-center justify-center text-lg font-bold text-white"
+          style={{ background: `hsl(${((emp.first_name ?? '?').charCodeAt(0) * 137) % 360}, 60%, 45%)` }}
+        >
+          {initials(emp)}
         </div>
-        <div className="p-5 space-y-3 text-sm">
-          <div className="font-semibold text-gray-700 text-xs uppercase tracking-wide">Haberes</div>
-          <div className="space-y-1">
-            <div className="flex justify-between"><span className="text-gray-500">Sueldo Base</span><span className="font-medium">{fmt(liq.sueldoBase)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">Horas Extra</span><span className="font-medium">{fmt(liq.horasExtra)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">Bonos</span><span className="font-medium">{fmt(liq.bonos)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">Gratificación</span><span className="font-medium">{fmt(liq.gratificacion)}</span></div>
-            <div className="flex justify-between border-t border-gray-100 pt-1 font-semibold"><span>Total Haberes</span><span>{fmt(liq.totalHaberes)}</span></div>
+        <div className="flex-1">
+          <h1 className="text-xl font-bold text-gray-900">{emp.full_name ?? `${emp.first_name} ${emp.surname}`}</h1>
+          <div className="text-sm text-gray-500 mt-1">
+            {emp.current_job?.role?.name ?? '—'} · RUT {emp.rut ?? '—'}
           </div>
-
-          <div className="font-semibold text-gray-700 text-xs uppercase tracking-wide mt-3">Descuentos</div>
-          <div className="space-y-1">
-            <div className="flex justify-between"><span className="text-gray-500">Salud</span><span className="font-medium text-red-500">-{fmt(liq.descSalud)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">AFP</span><span className="font-medium text-red-500">-{fmt(liq.descAfp)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">Cesantía</span><span className="font-medium text-red-500">-{fmt(liq.descCesantia)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">Impuesto Único</span><span className="font-medium text-red-500">-{fmt(liq.impuestoUnico)}</span></div>
-            <div className="flex justify-between border-t border-gray-100 pt-1 font-semibold"><span>Total Descuentos</span><span className="text-red-500">-{fmt(liq.totalDescuentos)}</span></div>
+          <div className="text-xs text-gray-400 mt-0.5">
+            Hogar: {hogar?.name ?? (emp.current_job?.area_id ? `Area #${emp.current_job.area_id}` : 'Sin hogar')} · Desde {emp.current_job?.start_date ?? '—'}
           </div>
+        </div>
+        <span className={`text-xs font-semibold px-2 py-1 rounded-full ${emp.active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
+          {emp.active ? 'activo' : 'inactivo'}
+        </span>
+      </div>
 
-          <div className="flex justify-between border-t-2 border-gray-200 pt-2 text-base font-bold">
-            <span>Líquido a Pagar</span>
-            <span className="text-emerald-600">{fmt(liq.liquido)}</span>
-          </div>
-
-          <button onClick={onClose} className="w-full mt-2 py-2 rounded-lg bg-gray-100 text-sm font-medium text-gray-600 hover:bg-gray-200 transition">
-            Cerrar
-          </button>
+      {/* Tabs */}
+      <div className="border-b border-gray-200">
+        <div className="flex gap-6">
+          {[
+            { id: 'info' as const, label: 'Información' },
+            { id: 'liquidaciones' as const, label: 'Liquidaciones' },
+            { id: 'vacaciones' as const, label: 'Vacaciones' },
+          ].map(t => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`pb-3 text-sm font-medium ${tab === t.id ? 'text-[#F0197A] border-b-2 border-[#F0197A]' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
       </div>
+
+      {/* TAB: Info */}
+      {tab === 'info' && (
+        <div className="grid grid-cols-2 gap-4">
+          <Card title="Contacto">
+            <Field label="Email" value={emp.email ?? '—'} />
+            <Field label="Teléfono" value={emp.phone_number ?? '—'} />
+            <Field label="Email personal" value={(emp.personal_email as string) ?? '—'} />
+          </Card>
+          <Card title="Laboral">
+            <Field label="Cargo" value={emp.current_job?.role?.name ?? '—'} />
+            <Field label="Fecha ingreso" value={emp.current_job?.start_date ?? '—'} />
+            <Field label="Tipo contrato" value={(emp.contract_type as string) ?? 'Indefinido'} />
+            <Field label="Sueldo base" value={emp.base_salary ? fmtCLP(Number(emp.base_salary)) : '—'} />
+          </Card>
+          <Card title="Previsión">
+            <Field label="AFP" value={(emp.pension_fund as string) ?? '—'} />
+            <Field label="Salud" value={(emp.health_company as string) ?? '—'} />
+          </Card>
+          <Card title="Dirección">
+            <Field label="Dirección" value={(emp.address as string) ?? '—'} />
+            <Field label="Comuna" value={(emp.district as string) ?? '—'} />
+            <Field label="Ciudad" value={(emp.city as string) ?? '—'} />
+          </Card>
+        </div>
+      )}
+
+      {/* TAB: Liquidaciones */}
+      {tab === 'liquidaciones' && (
+        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase">
+                <th className="px-5 py-3">Periodo</th>
+                <th className="px-3 py-3 text-right">Bruto</th>
+                <th className="px-3 py-3 text-right">Líquido</th>
+                <th className="px-3 py-3">Estado</th>
+                <th className="px-3 py-3 text-right">PDF</th>
+              </tr>
+            </thead>
+            <tbody>
+              {haberes.map(l => (
+                <tr key={l.liquidacion_id} className="border-b border-gray-50">
+                  <td className="px-5 py-3">{l.year}-{String(l.month).padStart(2, '0')}</td>
+                  <td className="px-3 py-3 text-right">{fmtCLP(Number(l.income_gross ?? 0))}</td>
+                  <td className="px-3 py-3 text-right font-medium">{fmtCLP(Number(l.liquid_reach ?? 0))}</td>
+                  <td className="px-3 py-3">
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${l.closed ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                      {l.closed ? 'Pagada' : 'Pendiente'}
+                    </span>
+                  </td>
+                  <td className="px-3 py-3 text-right">
+                    <a
+                      href={`/api/buk/v1/colaboradoras/${id}/liquidaciones/${l.year}/${l.month}/pdf`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[#F0197A] hover:underline text-xs"
+                    >
+                      Ver PDF
+                    </a>
+                  </td>
+                </tr>
+              ))}
+              {haberes.length === 0 && (
+                <tr><td colSpan={5} className="px-5 py-8 text-center text-gray-400 text-sm">Sin liquidaciones</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* TAB: Vacaciones */}
+      {tab === 'vacaciones' && (
+        <div className="space-y-4">
+          {saldoVacaciones?.vacations && (
+            <div className="bg-white p-4 rounded-xl border border-gray-100">
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">Saldo disponible</h3>
+              <div className="grid grid-cols-3 gap-3">
+                {saldoVacaciones.vacations.map((v, i) => (
+                  <div key={i} className="bg-gray-50 p-3 rounded-lg">
+                    <div className="text-xs text-gray-500">{v.name}</div>
+                    <div className="text-xl font-bold text-gray-900">{v.stock}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+            <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-gray-700">Historial de solicitudes</h3>
+              <Link href={`/dashboard/vacaciones/nueva?colaboradora_id=${id}`} className="text-xs text-[#F0197A] hover:underline">
+                + Nueva solicitud
+              </Link>
+            </div>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase">
+                  <th className="px-5 py-3">Tipo</th>
+                  <th className="px-3 py-3">Desde</th>
+                  <th className="px-3 py-3">Hasta</th>
+                  <th className="px-3 py-3">Días</th>
+                  <th className="px-3 py-3">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(vacacionesList as Array<{ id: number; type?: string; start_date?: string; end_date?: string; working_days?: number; status?: string }> | null ?? []).map(v => (
+                  <tr key={v.id} className="border-b border-gray-50">
+                    <td className="px-5 py-3">{v.type ?? 'vacaciones'}</td>
+                    <td className="px-3 py-3">{v.start_date}</td>
+                    <td className="px-3 py-3">{v.end_date}</td>
+                    <td className="px-3 py-3">{v.working_days ?? '—'}</td>
+                    <td className="px-3 py-3">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
+                        {v.status ?? '—'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+                {(!vacacionesList || (vacacionesList as unknown[]).length === 0) && (
+                  <tr><td colSpan={5} className="px-5 py-8 text-center text-gray-400 text-sm">Sin solicitudes</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-export default function EmployeeDetailPage() {
-  const params = useParams();
-  const router = useRouter();
-  const id = params.id as string;
-
-  const [employee, setEmployee] = useState<PoppinsEmployee | null>(null);
-  const [payroll, setPayroll] = useState<PoppinsLiquidacion[]>([]);
-  const [absences, setAbsences] = useState<PoppinsVacacion[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('info');
-  const [selectedPayroll, setSelectedPayroll] = useState<PoppinsLiquidacion | null>(null);
-
-  const fmt = (n: number) => '$' + n.toLocaleString('es-CL');
-
-  useEffect(() => {
-    if (!id) return;
-
-    // Fetch employee data
-    Promise.all([
-      fetch(`/api/buk/employees/${id}`)
-        .then(r => r.json())
-        .then(json => setEmployee(json.data || null))
-        .catch(() => {}),
-
-      fetch(`/api/buk/payroll?employeeId=${id}`)
-        .then(r => r.json())
-        .then(json => setPayroll(json.data || []))
-        .catch(() => {}),
-
-      fetch(`/api/buk/absences?employeeId=${id}`)
-        .then(r => r.json())
-        .then(json => setAbsences(json.data || []))
-        .catch(() => {}),
-    ]).finally(() => setLoading(false));
-  }, [id]);
-
-  if (loading) {
-    return (
-      <div className="space-y-5">
-        <div className="text-gray-400">Cargando...</div>
-      </div>
-    );
-  }
-
-  if (!employee) {
-    return (
-      <div className="space-y-5">
-        <div className="text-red-500">Empleada no encontrada</div>
-      </div>
-    );
-  }
-
+function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-5">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-[#1B1564] to-[#3730A3] rounded-xl p-6 text-white">
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-2 text-white/80 hover:text-white mb-4 transition"
-        >
-          <ArrowLeft size={18} />
-          <span className="text-sm font-medium">Volver</span>
-        </button>
+    <div className="bg-white p-5 rounded-xl border border-gray-100">
+      <h3 className="text-sm font-semibold text-gray-700 mb-3">{title}</h3>
+      <div className="space-y-2">{children}</div>
+    </div>
+  );
+}
 
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold" style={{ background: employee.color }}>
-            {employee.iniciales}
-          </div>
-          <div>
-            <div className="text-2xl font-bold">{employee.nombreCompleto}</div>
-            <div className="text-white/60">{employee.cargo}</div>
-            <div className="mt-2">
-              <StatusBadge estado={employee.estado} />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="border-b border-gray-100">
-          <div className="flex gap-1 p-1">
-            {[
-              { id: 'info', label: 'Información' },
-              { id: 'payroll', label: 'Liquidaciones' },
-              { id: 'absences', label: 'Vacaciones' },
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition ${
-                  activeTab === tab.id
-                    ? 'bg-[#F0197A] text-white'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="p-6">
-          {/* Información Tab */}
-          {activeTab === 'info' && (
-            <div className="space-y-6">
-              {/* Datos Personales */}
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <User size={18} className="text-[#F0197A]" />
-                  <h3 className="text-lg font-semibold text-gray-900">Datos Personales</h3>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="text-xs text-gray-500 font-semibold uppercase mb-1">RUT</div>
-                    <div className="text-sm font-medium text-gray-900">{employee.rut}</div>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="text-xs text-gray-500 font-semibold uppercase mb-1">Email</div>
-                    <div className="text-sm font-medium text-gray-900">{employee.email || '—'}</div>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="text-xs text-gray-500 font-semibold uppercase mb-1">Teléfono</div>
-                    <div className="text-sm font-medium text-gray-900">{employee.telefono || '—'}</div>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="text-xs text-gray-500 font-semibold uppercase mb-1">Dirección</div>
-                    <div className="text-sm font-medium text-gray-900">{employee.direccion || '—'}</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Datos Laborales */}
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <Briefcase size={18} className="text-[#F0197A]" />
-                  <h3 className="text-lg font-semibold text-gray-900">Datos Laborales</h3>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="text-xs text-gray-500 font-semibold uppercase mb-1">Cargo</div>
-                    <div className="text-sm font-medium text-gray-900">{employee.cargo}</div>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="text-xs text-gray-500 font-semibold uppercase mb-1">Contrato</div>
-                    <div className="text-sm font-medium text-gray-900">{employee.tipoContrato}</div>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="text-xs text-gray-500 font-semibold uppercase mb-1">Fecha de Ingreso</div>
-                    <div className="text-sm font-medium text-gray-900">{employee.fechaIngreso}</div>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="text-xs text-gray-500 font-semibold uppercase mb-1">Sueldo Base</div>
-                    <div className="text-sm font-bold text-emerald-600">{fmt(employee.sueldoBase)}</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Previsión */}
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <Shield size={18} className="text-[#F0197A]" />
-                  <h3 className="text-lg font-semibold text-gray-900">Previsión</h3>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="text-xs text-gray-500 font-semibold uppercase mb-1">AFP</div>
-                    <div className="text-sm font-medium text-gray-900">{employee.afp || '—'}</div>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="text-xs text-gray-500 font-semibold uppercase mb-1">Salud</div>
-                    <div className="text-sm font-medium text-gray-900">{employee.salud || '—'}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Liquidaciones Tab */}
-          {activeTab === 'payroll' && (
-            <div>
-              {payroll.length === 0 ? (
-                <div className="text-center py-8 text-gray-400">Sin liquidaciones</div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                        <th className="px-4 py-3">Período</th>
-                        <th className="px-4 py-3 text-right">Bruto</th>
-                        <th className="px-4 py-3 text-right">Descuentos</th>
-                        <th className="px-4 py-3 text-right">Líquido</th>
-                        <th className="px-4 py-3">Estado</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {payroll.map(liq => (
-                        <tr
-                          key={liq.id}
-                          className="border-b border-gray-50 hover:bg-gray-50/50 cursor-pointer transition"
-                          onClick={() => setSelectedPayroll(liq)}
-                        >
-                          <td className="px-4 py-3 font-medium">{liq.periodo}</td>
-                          <td className="px-4 py-3 text-right">{fmt(liq.sueldoBruto)}</td>
-                          <td className="px-4 py-3 text-right text-red-500">-{fmt(liq.totalDescuentos)}</td>
-                          <td className="px-4 py-3 text-right font-bold text-emerald-600">{fmt(liq.liquido)}</td>
-                          <td className="px-4 py-3">
-                            <StatusBadge estado={liq.estado} />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Vacaciones Tab */}
-          {activeTab === 'absences' && (
-            <div>
-              <div className="flex justify-end mb-4">
-                <button className="px-4 py-2 bg-[#F0197A] text-white text-sm font-medium rounded-lg hover:bg-[#d4166c] transition">
-                  + Nueva Solicitud
-                </button>
-              </div>
-
-              {absences.length === 0 ? (
-                <div className="text-center py-8 text-gray-400">Sin solicitudes</div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                        <th className="px-4 py-3">Tipo</th>
-                        <th className="px-4 py-3">Inicio</th>
-                        <th className="px-4 py-3">Fin</th>
-                        <th className="px-4 py-3">Días</th>
-                        <th className="px-4 py-3">Estado</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {absences.map(abs => (
-                        <tr key={abs.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition">
-                          <td className="px-4 py-3 font-medium">{abs.tipo}</td>
-                          <td className="px-4 py-3">{abs.inicio}</td>
-                          <td className="px-4 py-3">{abs.fin}</td>
-                          <td className="px-4 py-3 font-medium">{abs.dias}</td>
-                          <td className="px-4 py-3">
-                            <StatusBadge estado={abs.estado} />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {selectedPayroll && (
-        <LiquidacionDetail
-          liq={selectedPayroll}
-          empName={employee.nombreCompleto}
-          onClose={() => setSelectedPayroll(null)}
-        />
-      )}
+function Field({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between text-sm">
+      <span className="text-gray-500">{label}</span>
+      <span className="text-gray-800 font-medium">{value}</span>
     </div>
   );
 }

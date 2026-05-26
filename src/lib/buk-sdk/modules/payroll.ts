@@ -1,20 +1,91 @@
 /**
- * Módulo Payroll — Procesos de Liquidación
+ * Modulo Payroll — Liquidaciones y procesos de nomina
  *
- * Endpoints:
- *   GET /payroll_processes                           → Listar procesos
- *   GET /payroll_processes/{id}                      → Detalle de proceso
- *   GET /payroll_processes/{id}/payroll_items         → Ítems (liquidaciones individuales)
- *   GET /payroll_processes/{id}/payroll_items/{item_id} → Detalle de ítem
+ * Paths alineados con Swagger oficial (validados contra tenant prod 2026-05-09):
+ *   GET    /process                                  → procesos de nomina (requiere date)
+ *   POST   /process                                  → crear proceso
+ *   GET    /process/{id}                             → detalle proceso
+ *   DELETE /process/{id}
+ *
+ *   GET    /payroll_detail/month                     → liquidaciones mensuales (todos)
+ *   GET    /payroll_detail/semi_month                → quincenales
+ *   GET    /payroll_detail/week                      → semanales
+ *   GET    /employees/{id}/payroll_detail            → liquidaciones de UN empleado
+ *   GET    /employees/{id}/statements/{year}-{month}.pdf  → PDF de liquidacion
+ *
+ *   ⚠️ ELIMINADO: /payroll_processes y subpaths NO existen en Buk publica.
  */
 
 import { BukHttpClient, type BukListResponse } from '../client';
-import type {
-  BukPayrollProcess,
-  BukPayrollItem,
-  PayrollProcessFilters,
-  PayrollItemFilters,
-} from '../types/payroll';
+
+type Filters = Record<string, string | number | boolean | undefined>;
+
+/**
+ * Linea de liquidacion (haber o descuento) — sub-objeto de PayrollDetail.
+ */
+export interface BukPayrollLine {
+  type: 'haber' | 'descuento' | string;
+  income_type: string;
+  subtype: string | null;
+  name: string;
+  amount: number;
+  resettlement: boolean;
+  taxable: boolean;
+  imponible?: boolean;
+  [k: string]: unknown;
+}
+
+/**
+ * Detalle de liquidacion para UN periodo de UN empleado.
+ * Devuelto por GET /employees/{id}/payroll_detail y /payroll_detail/month.
+ */
+export interface BukPayrollDetail {
+  liquidacion_id: number;
+  person_id: number;
+  employee_id: number;
+  rut: string;
+  month: number;
+  year: number;
+  worked_days: number;
+  noworked_days: number;
+  income_gross: number;
+  income_net: number;
+  income_afp: number;
+  income_ips: number;
+  total_income_taxable: number;
+  total_income_notaxable: number;
+  total_legal_discounts: number;
+  total_other_discounts: number;
+  closed: boolean;
+  liquid_reach: number;
+  taxable_base: number;
+  lines_settlement: BukPayrollLine[];
+}
+
+/**
+ * Proceso de nomina (tienen liquidaciones agrupadas).
+ */
+export interface BukPayrollProcess {
+  id: number;
+  date: string;
+  status: string;
+  company_id?: number;
+  [k: string]: unknown;
+}
+
+export interface ProcessFilters {
+  date?: string;        // requerido por Buk para listar procesos
+  year?: number;
+  month?: number;
+  company_id?: number;
+  status?: string;
+}
+
+export interface PayrollPeriodFilters {
+  start?: string;       // formato DD-MM-YYYY
+  end?: string;
+  company_id?: number;
+}
 
 export class PayrollModule {
   constructor(private readonly client: BukHttpClient) {}
@@ -22,129 +93,116 @@ export class PayrollModule {
   // ── Procesos ──
 
   /**
-   * Listar procesos de liquidación.
+   * Listar procesos de nomina. Buk requiere parametro `date` (al menos year-month).
    */
   async listProcesses(
-    filters?: PayrollProcessFilters,
+    filters: ProcessFilters,
     page = 1,
     pageSize?: number
   ): Promise<BukListResponse<BukPayrollProcess>> {
-    const params: Record<string, string | number | boolean | undefined> = {};
-    if (filters?.year) params.year = filters.year;
-    if (filters?.month) params.month = filters.month;
-    if (filters?.status) params.status = filters.status;
-    if (filters?.company_id) params.company_id = filters.company_id;
-
-    return this.client.list<BukPayrollProcess>('/payroll_processes', params, page, pageSize);
+    return this.client.list<BukPayrollProcess>('/process', filters as Filters, page, pageSize);
   }
 
-  /**
-   * Obtener todos los procesos (auto-paginación).
-   */
-  async listAllProcesses(filters?: PayrollProcessFilters): Promise<BukPayrollProcess[]> {
-    const params: Record<string, string | number | boolean | undefined> = {};
-    if (filters?.year) params.year = filters.year;
-    if (filters?.month) params.month = filters.month;
-    if (filters?.status) params.status = filters.status;
-    if (filters?.company_id) params.company_id = filters.company_id;
-
-    return this.client.listAll<BukPayrollProcess>('/payroll_processes', params);
+  async listAllProcesses(filters: ProcessFilters): Promise<BukPayrollProcess[]> {
+    return this.client.listAll<BukPayrollProcess>('/process', filters as Filters);
   }
 
-  /**
-   * Detalle de un proceso de liquidación.
-   */
-  async getProcess(processId: number): Promise<BukPayrollProcess> {
-    const response = await this.client.get<BukPayrollProcess>(`/payroll_processes/${processId}`);
+  async getProcess(id: number): Promise<BukPayrollProcess> {
+    const response = await this.client.get<BukPayrollProcess>(`/process/${id}`);
     return response.data;
   }
 
-  // ── Ítems de Liquidación ──
+  // ── Liquidaciones (payroll_detail) ──
 
   /**
-   * Listar ítems de liquidación de un proceso.
+   * Liquidaciones mensuales de todos los empleados en un rango.
+   * Parametros `start` y `end` en formato DD-MM-YYYY.
    */
-  async listItems(
-    processId: number,
-    filters?: PayrollItemFilters,
+  async listMonthly(
+    filters?: PayrollPeriodFilters,
     page = 1,
     pageSize?: number
-  ): Promise<BukListResponse<BukPayrollItem>> {
-    const params: Record<string, string | number | boolean | undefined> = {};
-    if (filters?.employee_id) params.employee_id = filters.employee_id;
+  ): Promise<BukListResponse<BukPayrollDetail>> {
+    return this.client.list<BukPayrollDetail>('/payroll_detail/month', filters as Filters, page, pageSize);
+  }
 
-    return this.client.list<BukPayrollItem>(
-      `/payroll_processes/${processId}/payroll_items`,
-      params,
-      page,
-      pageSize
+  async listAllMonthly(filters?: PayrollPeriodFilters): Promise<BukPayrollDetail[]> {
+    return this.client.listAll<BukPayrollDetail>('/payroll_detail/month', filters as Filters);
+  }
+
+  async listSemiMonthly(
+    filters?: PayrollPeriodFilters,
+    page = 1,
+    pageSize?: number
+  ): Promise<BukListResponse<BukPayrollDetail>> {
+    return this.client.list<BukPayrollDetail>('/payroll_detail/semi_month', filters as Filters, page, pageSize);
+  }
+
+  async listWeekly(
+    filters?: PayrollPeriodFilters,
+    page = 1,
+    pageSize?: number
+  ): Promise<BukListResponse<BukPayrollDetail>> {
+    return this.client.list<BukPayrollDetail>('/payroll_detail/week', filters as Filters, page, pageSize);
+  }
+
+  /**
+   * Liquidaciones de UN empleado especifico.
+   * Endpoint: GET /employees/{id}/payroll_detail
+   */
+  async getEmployeePayrollDetail(
+    employeeId: number,
+    filters?: PayrollPeriodFilters
+  ): Promise<BukListResponse<BukPayrollDetail>> {
+    return this.client.list<BukPayrollDetail>(
+      `/employees/${employeeId}/payroll_detail`,
+      filters as Filters
     );
   }
 
   /**
-   * Obtener todos los ítems de un proceso (auto-paginación).
-   */
-  async listAllItems(processId: number, filters?: PayrollItemFilters): Promise<BukPayrollItem[]> {
-    const params: Record<string, string | number | boolean | undefined> = {};
-    if (filters?.employee_id) params.employee_id = filters.employee_id;
-
-    return this.client.listAll<BukPayrollItem>(
-      `/payroll_processes/${processId}/payroll_items`,
-      params
-    );
-  }
-
-  /**
-   * Detalle de un ítem de liquidación específico.
-   */
-  async getItem(processId: number, itemId: number): Promise<BukPayrollItem> {
-    const response = await this.client.get<BukPayrollItem>(
-      `/payroll_processes/${processId}/payroll_items/${itemId}`
-    );
-    return response.data;
-  }
-
-  // ── Helpers ──
-
-  /**
-   * Obtener la liquidación más reciente de un empleado.
-   * Busca en los procesos del más reciente al más antiguo.
-   */
-  async getLatestForEmployee(employeeId: number): Promise<BukPayrollItem | null> {
-    const processes = await this.listAllProcesses();
-    // Ordenar por período descendente
-    const sorted = processes.sort((a, b) => b.period.localeCompare(a.period));
-
-    for (const process of sorted) {
-      const items = await this.listItems(process.id, { employee_id: employeeId }, 1, 25);
-      const match = items.data.find(item => item.employee_id === employeeId);
-      if (match) return match;
-    }
-
-    return null;
-  }
-
-  /**
-   * Obtener liquidaciones de un empleado para un rango de períodos.
+   * Todas las liquidaciones historicas de un empleado (auto-paginate).
    */
   async getEmployeeHistory(
     employeeId: number,
-    fromPeriod?: string, // "2025-01"
-    toPeriod?: string     // "2025-12"
-  ): Promise<BukPayrollItem[]> {
-    const allProcesses = await this.listAllProcesses();
-    const filtered = allProcesses.filter(p => {
-      if (fromPeriod && p.period < fromPeriod) return false;
-      if (toPeriod && p.period > toPeriod) return false;
-      return true;
-    });
+    filters?: PayrollPeriodFilters
+  ): Promise<BukPayrollDetail[]> {
+    return this.client.listAll<BukPayrollDetail>(
+      `/employees/${employeeId}/payroll_detail`,
+      filters as Filters
+    );
+  }
 
-    const results: BukPayrollItem[] = [];
-    for (const process of filtered) {
-      const items = await this.listAllItems(process.id, { employee_id: employeeId });
-      results.push(...items.filter(i => i.employee_id === employeeId));
-    }
+  /**
+   * Latest liquidacion de un empleado (la mas reciente).
+   */
+  async getLatestForEmployee(employeeId: number): Promise<BukPayrollDetail | null> {
+    const history = await this.getEmployeeHistory(employeeId);
+    if (!history.length) return null;
+    history.sort((a, b) => (b.year - a.year) || (b.month - a.month));
+    return history[0];
+  }
 
-    return results.sort((a, b) => a.period.localeCompare(b.period));
+  /**
+   * URL de descarga del PDF de liquidacion. No descarga el binario; devuelve la URL.
+   * Ejemplo: /employees/123/statements/2026-04.pdf
+   */
+  getStatementPdfUrl(employeeId: number, year: number, month: number): string {
+    const m = String(month).padStart(2, '0');
+    return `/employees/${employeeId}/statements/${year}-${m}.pdf`;
+  }
+
+  // ── Aliases legacy (compatibilidad temporal con service layer antiguo) ──
+
+  /** @deprecated Usar listMonthly() o getEmployeePayrollDetail() */
+  async listAllItems(_processId: number, filters?: PayrollPeriodFilters): Promise<BukPayrollDetail[]> {
+    void _processId;
+    return this.listAllMonthly(filters);
+  }
+
+  /** @deprecated Usar getEmployeePayrollDetail() */
+  async getItem(_processId: number, itemId: number): Promise<BukPayrollDetail | null> {
+    void _processId;
+    return this.getLatestForEmployee(itemId);
   }
 }

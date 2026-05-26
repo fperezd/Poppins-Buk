@@ -32,6 +32,13 @@ import { AbsencesModule } from './modules/absences';
 import { OrganizationModule } from './modules/organization';
 import { OvertimeModule } from './modules/overtime';
 import { DocumentsModule } from './modules/documents';
+import { ProcessesModule } from './modules/processes';
+import { AssignsModule } from './modules/assigns';
+import { CreditsModule } from './modules/credits';
+import { AttendanceModule } from './modules/attendance';
+import { JobsModule } from './modules/jobs';
+import { HolidaysModule } from './modules/holidays';
+import { SubstitutionsModule } from './modules/substitutions';
 
 export class BukSDK {
   readonly employees: EmployeesModule;
@@ -40,6 +47,13 @@ export class BukSDK {
   readonly organization: OrganizationModule;
   readonly overtime: OvertimeModule;
   readonly documents: DocumentsModule;
+  readonly processes: ProcessesModule;
+  readonly assigns: AssignsModule;
+  readonly credits: CreditsModule;
+  readonly attendance: AttendanceModule;
+  readonly jobs: JobsModule;
+  readonly holidays: HolidaysModule;
+  readonly substitutions: SubstitutionsModule;
 
   private readonly client: BukHttpClient;
 
@@ -51,12 +65,28 @@ export class BukSDK {
     this.organization = new OrganizationModule(this.client);
     this.overtime = new OvertimeModule(this.client);
     this.documents = new DocumentsModule(this.client);
+    this.processes = new ProcessesModule(this.client);
+    this.assigns = new AssignsModule(this.client);
+    this.credits = new CreditsModule(this.client);
+    this.attendance = new AttendanceModule(this.client);
+    this.jobs = new JobsModule(this.client);
+    this.holidays = new HolidaysModule(this.client);
+    this.substitutions = new SubstitutionsModule(this.client);
   }
 
   /**
    * Health check — verifica conectividad con la API.
    * Hace un request liviano (page_size=1) a /employees.
    */
+
+  /**
+   * Escape hatch: acceso directo al cliente HTTP para endpoints aún no envueltos
+   * por los módulos. Usar con prudencia — preferir agregar método al módulo correspondiente.
+   */
+  raw(): BukHttpClient {
+    return this.client;
+  }
+
   async healthCheck(): Promise<{ ok: boolean; latencyMs: number; error?: string }> {
     const start = Date.now();
     try {
@@ -100,3 +130,10 @@ export { BukSDK as default };
 export { BukHttpClient, BukApiError, BukConfigError } from './client';
 export type { BukClientConfig, BukListResponse, BukSingleResponse, BukPagination } from './client';
 export * from './types';
+export type { BukProcess, BukProcessType, BukProcessStatus, CreateProcessInput } from './modules/processes';
+export type { BukAssign, BukAssignItem, CreateAssignInput, UpdateAssignInput } from './modules/assigns';
+export type { BukCredit, BukCreditType, CreateCreditInput, UpdateCreditInput, CreditListFilters } from './modules/credits';
+export type { BukWorkingDay, BukNonWorkedHour, BukNonWorkedHourType, SetWorkingDaysInput, NonWorkedHourInput } from './modules/attendance';
+export type { BukJobEvent, BukFiniquito, TerminateJobInput, TerminationReason, CreateFiniquitoInput } from './modules/jobs';
+export type { BukHoliday } from './modules/holidays';
+export type { BukSubstitution, CreateSubstitutionInput, UpdateSubstitutionInput } from './modules/substitutions';

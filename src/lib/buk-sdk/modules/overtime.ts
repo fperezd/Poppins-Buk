@@ -1,92 +1,91 @@
 /**
- * Módulo Overtime — Horas Extra
+ * Modulo Overtime — Horas Extras
  *
- * Endpoints:
- *   GET    /overtimes            → Listar horas extra
- *   POST   /overtimes            → Registrar horas extra
- *   PUT    /overtimes/{id}       → Actualizar
- *   DELETE /overtimes/{id}       → Eliminar
+ * Paths alineados con Swagger oficial (validados contra tenant prod 2026-05-09):
+ *   GET   /attendances/overtime          → listar horas extra
+ *   POST  /attendances/overtime          → crear
+ *   PUT   /attendances/overtime          → actualizar (bulk)
+ *   GET   /attendances/overtime/{id}     → detalle
+ *   GET   /attendances/overtime/types    → tipos disponibles
+ *
+ *   ⚠️ ELIMINADO: DELETE /overtimes/{id} no existe en Swagger. Para anular
+ *   una hora extra, marcarla como cancelada via PUT o eliminar la entrada
+ *   en attendance.
  */
 
 import { BukHttpClient, type BukListResponse } from '../client';
-import type { BukOvertime, CreateOvertimeRequest } from '../types/supplementary';
+
+type Filters = Record<string, string | number | boolean | undefined>;
+
+export interface BukOvertime {
+  id: number;
+  employee_id: number;
+  date: string;
+  hours: number;
+  type_id?: number;
+  type_name?: string;
+  status?: string;
+  observations?: string;
+  [k: string]: unknown;
+}
+
+export interface BukOvertimeType {
+  id: number;
+  name: string;
+  proporcion: number;
+  category: number;
+}
+
+export interface OvertimeFilters {
+  employee_id?: number;
+  start_date?: string;
+  end_date?: string;
+  status?: string;
+}
+
+export interface CreateOvertimeRequest {
+  employee_id: number;
+  date: string;
+  hours: number;
+  type_id: number;
+  observations?: string;
+}
 
 export class OvertimeModule {
   constructor(private readonly client: BukHttpClient) {}
 
-  /**
-   * Listar horas extra.
-   */
   async list(
-    filters?: {
-      employee_id?: number;
-      start_date?: string;
-      end_date?: string;
-      status?: string;
-    },
+    filters?: OvertimeFilters,
     page = 1,
     pageSize?: number
   ): Promise<BukListResponse<BukOvertime>> {
-    const params: Record<string, string | number | boolean | undefined> = {};
-    if (filters?.employee_id) params.employee_id = filters.employee_id;
-    if (filters?.start_date) params.start_date = filters.start_date;
-    if (filters?.end_date) params.end_date = filters.end_date;
-    if (filters?.status) params.status = filters.status;
-
-    return this.client.list<BukOvertime>('/overtimes', params, page, pageSize);
+    return this.client.list<BukOvertime>('/attendances/overtime', filters as Filters, page, pageSize);
   }
 
-  /**
-   * Todas las horas extra (auto-paginación).
-   */
-  async listAll(filters?: {
-    employee_id?: number;
-    start_date?: string;
-    end_date?: string;
-    status?: string;
-  }): Promise<BukOvertime[]> {
-    const params: Record<string, string | number | boolean | undefined> = {};
-    if (filters?.employee_id) params.employee_id = filters.employee_id;
-    if (filters?.start_date) params.start_date = filters.start_date;
-    if (filters?.end_date) params.end_date = filters.end_date;
-    if (filters?.status) params.status = filters.status;
-
-    return this.client.listAll<BukOvertime>('/overtimes', params);
+  async listAll(filters?: OvertimeFilters): Promise<BukOvertime[]> {
+    return this.client.listAll<BukOvertime>('/attendances/overtime', filters as Filters);
   }
 
-  /**
-   * Registrar horas extra.
-   */
+  async get(id: number): Promise<BukOvertime> {
+    const response = await this.client.get<BukOvertime>(`/attendances/overtime/${id}`);
+    return response.data;
+  }
+
   async create(data: CreateOvertimeRequest): Promise<BukOvertime> {
-    return this.client.post<BukOvertime>('/overtimes', data as unknown as Record<string, unknown>);
+    return this.client.post<BukOvertime>('/attendances/overtime', data as unknown as Record<string, unknown>);
   }
 
   /**
-   * Actualizar registro de horas extra.
+   * Update bulk (Buk acepta PUT /attendances/overtime para actualizar varios).
    */
-  async update(id: number, data: Partial<CreateOvertimeRequest>): Promise<BukOvertime> {
-    return this.client.put<BukOvertime>(`/overtimes/${id}`, data as unknown as Record<string, unknown>);
+  async update(data: Record<string, unknown>): Promise<BukOvertime> {
+    return this.client.put<BukOvertime>('/attendances/overtime', data);
   }
 
   /**
-   * Eliminar registro de horas extra.
+   * Tipos de hora extra (50%, 100%, etc.).
    */
-  async delete(id: number): Promise<void> {
-    return this.client.delete(`/overtimes/${id}`);
-  }
-
-  /**
-   * Horas extra de un empleado en un mes específico.
-   */
-  async getEmployeeMonthly(employeeId: number, year: number, month: number): Promise<BukOvertime[]> {
-    const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
-    const lastDay = new Date(year, month, 0).getDate();
-    const endDate = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
-
-    return this.listAll({
-      employee_id: employeeId,
-      start_date: startDate,
-      end_date: endDate,
-    });
+  async listTypes(): Promise<BukListResponse<BukOvertimeType>> {
+    return this.client.list<BukOvertimeType>('/attendances/overtime/types');
   }
 }

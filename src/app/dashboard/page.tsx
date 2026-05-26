@@ -1,304 +1,193 @@
 'use client';
 
 import Link from 'next/link';
-import { Users, DollarSign, Clock, Calendar, UserPlus, LogOut, Clock3 } from 'lucide-react';
-import { useEmployees, usePayroll, useAbsences } from '@/hooks/useBuk';
+import { useMe, useColaboradoras, useHogares, useEmpleadores, useTareas, useSaldoVacaciones } from '@/hooks/api';
 
-interface KpiCardProps {
-  label: string;
-  value: string | number;
-  sub?: string;
-  icon: React.ReactNode;
-  bgColor: string;
-}
+export default function DashboardHome() {
+  const { data: me, loading: meLoading } = useMe();
 
-function KpiCard({ label, value, sub, icon, bgColor }: KpiCardProps) {
-  return (
-    <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex flex-col gap-2">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">{label}</span>
-        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${bgColor}`}>
-          {icon}
-        </div>
+  if (meLoading) {
+    return <div className="p-6 text-sm text-gray-400">Cargando…</div>;
+  }
+
+  if (!me) {
+    return (
+      <div className="p-6 text-sm text-gray-700">
+        No se pudo cargar tu perfil. Verifica que tengas un registro en <code>user_profiles</code>.
       </div>
-      <div className="text-2xl font-bold text-gray-900">{value}</div>
-      {sub && <div className="text-xs text-gray-400">{sub}</div>}
-    </div>
-  );
-}
-
-function StatusBadge({ estado }: { estado: string }) {
-  const colors: Record<string, string> = {
-    activo: 'bg-emerald-100 text-emerald-700',
-    inactivo: 'bg-gray-100 text-gray-500',
-    licencia: 'bg-amber-100 text-amber-700',
-    pendiente: 'bg-yellow-100 text-yellow-700',
-    aprobada: 'bg-emerald-100 text-emerald-700',
-    rechazada: 'bg-red-100 text-red-600',
-  };
-  return (
-    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${colors[estado] || 'bg-gray-100 text-gray-500'}`}>
-      {estado}
-    </span>
-  );
-}
-
-function CostDistributionBar({ payroll }: { payroll: any[] }) {
-  const totalHaberes = payroll.reduce((sum, p) => sum + (p.haberes || 0), 0);
-  const totalDescuentos = payroll.reduce((sum, p) => sum + (p.descuentos || 0), 0);
-  const totalLiquido = payroll.reduce((sum, p) => sum + (p.liquido || 0), 0);
-
-  const total = totalHaberes + totalDescuentos;
-  const pctHaberes = total > 0 ? (totalHaberes / total * 100) : 0;
-  const pctDescuentos = total > 0 ? (totalDescuentos / total * 100) : 0;
-
-  const fmt = (n: number) => '$' + n.toLocaleString('es-CL');
+    );
+  }
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2 h-6 rounded-full overflow-hidden bg-gray-100">
-        <div className="h-full bg-emerald-500" style={{ width: `${pctHaberes}%` }}></div>
-        <div className="h-full bg-red-500" style={{ width: `${pctDescuentos}%` }}></div>
-      </div>
-      <div className="grid grid-cols-3 gap-3 text-xs">
-        <div>
-          <div className="flex items-center gap-1.5 mb-1">
-            <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-            <span className="font-medium text-gray-600">Haberes</span>
-          </div>
-          <div className="font-bold text-gray-900">{fmt(totalHaberes)}</div>
-        </div>
-        <div>
-          <div className="flex items-center gap-1.5 mb-1">
-            <div className="w-3 h-3 rounded-full bg-red-500"></div>
-            <span className="font-medium text-gray-600">Descuentos</span>
-          </div>
-          <div className="font-bold text-gray-900">{fmt(totalDescuentos)}</div>
-        </div>
-        <div>
-          <div className="flex items-center gap-1.5 mb-1">
-            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-            <span className="font-medium text-gray-600">Líquido</span>
-          </div>
-          <div className="font-bold text-gray-900">{fmt(totalLiquido)}</div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function EmployeeStatusBreakdown({ employees }: { employees: any[] }) {
-  const activos = employees.filter(e => e.estado === 'activo').length;
-  const inactivos = employees.filter(e => e.estado === 'inactivo').length;
-  const licencia = employees.filter(e => e.estado === 'licencia').length;
-  const total = employees.length;
-
-  const statuses = [
-    { label: 'Activos', count: activos, color: 'bg-emerald-500', textColor: 'text-emerald-600' },
-    { label: 'Inactivos', count: inactivos, color: 'bg-gray-400', textColor: 'text-gray-600' },
-    { label: 'En Licencia', count: licencia, color: 'bg-amber-500', textColor: 'text-amber-600' },
-  ];
-
-  return (
-    <div className="flex items-center justify-center gap-8">
-      {statuses.map(status => (
-        <div key={status.label} className="text-center">
-          <div className="relative w-20 h-20 mx-auto mb-2">
-            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="45" fill="none" stroke="#f3f4f6" strokeWidth="8" />
-              <circle
-                cx="50"
-                cy="50"
-                r="45"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="8"
-                strokeDasharray={`${(status.count / total) * 282.7} 282.7`}
-                className={status.textColor}
-              />
-            </svg>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="font-bold text-lg text-gray-900">{status.count}</span>
-            </div>
-          </div>
-          <span className="text-xs font-medium text-gray-600">{status.label}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function QuickActionCard({ href, icon: Icon, label }: { href: string; icon: any; label: string }) {
-  return (
-    <Link
-      href={href}
-      className="flex flex-col items-center gap-3 p-4 rounded-xl bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-[#F0197A]/30 transition-all group"
-    >
-      <div className="w-10 h-10 rounded-lg bg-[#F0197A]/10 flex items-center justify-center group-hover:bg-[#F0197A]/20 transition-colors">
-        <Icon className="w-5 h-5 text-[#F0197A]" />
-      </div>
-      <span className="text-sm font-medium text-gray-700 text-center">{label}</span>
-    </Link>
-  );
-}
-
-export default function DashboardPage() {
-  const { data: employees, loading: loadingEmp } = useEmployees();
-  const { data: payroll, loading: loadingPay } = usePayroll();
-  const { data: absences, loading: loadingAbs } = useAbsences();
-
-  const activos = employees.filter(e => e.estado === 'activo').length;
-  const costoMensual = payroll.reduce((sum, l) => sum + l.liquido, 0);
-  const solicitudesPendientes = absences.filter(a => a.estado === 'pendiente').length;
-
-  const fmt = (n: number) => '$' + n.toLocaleString('es-CL');
-  const now = new Date();
-  const lastUpdate = now.toLocaleString('es-CL', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-
-  return (
-    <div className="space-y-6 pb-6">
-      <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-
-      {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard
-          icon={<Users className="w-5 h-5 text-white" />}
-          label="Colaboradoras"
-          value={loadingEmp ? '...' : employees.length}
-          sub={`${activos} activas`}
-          bgColor="bg-emerald-500"
-        />
-        <KpiCard
-          icon={<DollarSign className="w-5 h-5 text-white" />}
-          label="Costo Mensual"
-          value={loadingPay ? '...' : fmt(costoMensual)}
-          sub="Líquido total"
-          bgColor="bg-blue-500"
-        />
-        <KpiCard
-          icon={<Clock className="w-5 h-5 text-white" />}
-          label="Solicitudes Pendientes"
-          value={loadingAbs ? '...' : solicitudesPendientes}
-          bgColor="bg-amber-500"
-        />
-        <KpiCard
-          icon={<Calendar className="w-5 h-5 text-white" />}
-          label="Período"
-          value="Mar 2026"
-          sub="En curso"
-          bgColor="bg-[#1B1564]"
-        />
-      </div>
-
-      {/* Quick Actions */}
+    <div className="space-y-5">
       <div>
-        <h2 className="text-sm font-semibold text-gray-700 mb-3">Acciones Rápidas</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <QuickActionCard href="/dashboard/colaboradoras/nuevo" icon={UserPlus} label="Nueva Colaboradora" />
-          <QuickActionCard href="/dashboard/vacaciones/nueva" icon={LogOut} label="Solicitar Vacaciones" />
-          <QuickActionCard href="/dashboard/horas-extra" icon={Clock3} label="Registrar Horas Extra" />
-        </div>
+        <h1 className="text-xl font-bold text-gray-900">
+          Hola, {me.buk_employee?.first_name ?? me.email?.split('@')[0] ?? 'usuario'}
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">
+          {me.rol === 'admin' && 'Vista de administración Poppins'}
+          {me.rol === 'empleador' && (me.buk_area?.name ?? 'Tu hogar')}
+          {me.rol === 'colaboradora' && 'Vista de colaboradora'}
+        </p>
       </div>
 
-      {/* Cost Distribution and Status Breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {/* Cost Distribution */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-          <h2 className="text-sm font-semibold text-gray-800 mb-4">Distribución de Costos</h2>
-          {loadingPay ? (
-            <div className="text-sm text-gray-400">Cargando...</div>
-          ) : (
-            <CostDistributionBar payroll={payroll} />
-          )}
-        </div>
-
-        {/* Employee Status */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-          <h2 className="text-sm font-semibold text-gray-800 mb-4">Estado de Colaboradoras</h2>
-          {loadingEmp ? (
-            <div className="text-sm text-gray-400">Cargando...</div>
-          ) : (
-            <EmployeeStatusBreakdown employees={employees} />
-          )}
-        </div>
-      </div>
-
-      {/* Quick tables */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {/* Employees summary */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
-            <span className="text-sm font-semibold text-gray-800">Colaboradoras</span>
-            <a href="/dashboard/colaboradoras" className="text-xs text-[#F0197A] font-medium hover:underline">Ver todas →</a>
-          </div>
-          {loadingEmp ? (
-            <div className="p-5 text-sm text-gray-400">Cargando...</div>
-          ) : (
-            <table className="w-full text-sm">
-              <tbody>
-                {employees.slice(0, 5).map(emp => (
-                  <tr key={emp.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50">
-                    <td className="px-5 py-2.5">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0" style={{ background: emp.color }}>
-                          {emp.iniciales}
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-800">{emp.nombreCompleto}</div>
-                          <div className="text-xs text-gray-400">{emp.cargo}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-3 py-2.5 text-right">
-                      <StatusBadge estado={emp.estado} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-
-        {/* Recent absences */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
-            <span className="text-sm font-semibold text-gray-800">Solicitudes Recientes</span>
-            <a href="/dashboard/vacaciones" className="text-xs text-[#F0197A] font-medium hover:underline">Ver todas →</a>
-          </div>
-          {loadingAbs ? (
-            <div className="p-5 text-sm text-gray-400">Cargando...</div>
-          ) : absences.length === 0 ? (
-            <div className="p-5 text-sm text-gray-400">Sin solicitudes</div>
-          ) : (
-            <table className="w-full text-sm">
-              <tbody>
-                {absences.slice(0, 5).map(abs => (
-                  <tr key={abs.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50">
-                    <td className="px-5 py-2.5">
-                      <div className="font-medium text-gray-800">{abs.tipo}</div>
-                      <div className="text-xs text-gray-400">{abs.inicio} → {abs.fin} · {abs.dias}d</div>
-                    </td>
-                    <td className="px-3 py-2.5 text-right">
-                      <StatusBadge estado={abs.estado} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
-
-      {/* Last Update */}
-      <div className="text-right">
-        <p className="text-xs text-gray-400">Última actualización: {lastUpdate}</p>
-      </div>
+      {me.rol === 'admin' && <AdminDashboard />}
+      {me.rol === 'empleador' && <EmpleadorDashboard areaId={me.buk_area_id} />}
+      {me.rol === 'colaboradora' && <ColaboradoraDashboard empleadoId={me.buk_employee_id} />}
     </div>
+  );
+}
+
+// ── Admin ──
+
+function AdminDashboard() {
+  const { data: colabs, loading: lc } = useColaboradoras();
+  const { data: hogares, loading: lh } = useHogares();
+  const { data: empleadores, loading: le } = useEmpleadores();
+
+  return (
+    <>
+      <div className="grid grid-cols-4 gap-4">
+        <Card title="Hogares" value={lh ? '…' : (hogares?.length ?? 0)} href="/dashboard/colaboradoras" />
+        <Card title="Empleadores" value={le ? '…' : (empleadores?.length ?? 0)} href="/dashboard/colaboradoras" />
+        <Card title="Colaboradoras" value={lc ? '…' : (colabs?.length ?? 0)} href="/dashboard/colaboradoras" highlight />
+        <Card title="Activas" value={lc ? '…' : (colabs?.filter(c => c.active).length ?? 0)} />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <QuickAction href="/dashboard/colaboradoras/nuevo" label="Crear colaboradora" />
+        <QuickAction href="/dashboard/colaboradoras" label="Ver todas las colaboradoras" />
+      </div>
+
+      <RecentColaboradoras />
+    </>
+  );
+}
+
+function RecentColaboradoras() {
+  const { data, loading } = useColaboradoras();
+  const recent = (data ?? []).slice(0, 5);
+  return (
+    <section className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-gray-700">Colaboradoras recientes</h3>
+        <Link href="/dashboard/colaboradoras" className="text-xs text-[#F0197A] hover:underline">
+          Ver todas →
+        </Link>
+      </div>
+      {loading ? (
+        <div className="p-5 text-sm text-gray-400">Cargando…</div>
+      ) : (
+        <table className="w-full text-sm">
+          <tbody>
+            {recent.map(c => (
+              <tr key={c.id} className="border-b border-gray-50 hover:bg-gray-50/50">
+                <td className="px-5 py-3 font-medium text-gray-800">{c.full_name ?? `${c.first_name} ${c.surname}`}</td>
+                <td className="px-3 py-3 text-gray-500 text-xs">{c.current_job?.role?.name ?? '—'}</td>
+                <td className="px-3 py-3 text-gray-500 text-xs">{c.rut ?? '—'}</td>
+                <td className="px-3 py-3 text-right">
+                  <Link href={`/dashboard/colaboradoras/${c.id}`} className="text-xs text-[#F0197A] hover:underline">Ver</Link>
+                </td>
+              </tr>
+            ))}
+            {recent.length === 0 && (
+              <tr><td className="px-5 py-8 text-center text-gray-400 text-sm">Sin colaboradoras aún</td></tr>
+            )}
+          </tbody>
+        </table>
+      )}
+    </section>
+  );
+}
+
+// ── Empleador ──
+
+function EmpleadorDashboard({ areaId }: { areaId: number | null }) {
+  const { data: colabs, loading } = useColaboradoras(areaId ? { hogar_id: areaId } : undefined);
+  const { data: tareas } = useTareas({ hogar_id: areaId ?? undefined, estado: 'pendiente' });
+
+  const colabActivas = (colabs ?? []).filter(c => c.active);
+
+  return (
+    <>
+      <div className="grid grid-cols-3 gap-4">
+        <Card title="Colaboradoras en mi hogar" value={loading ? '…' : colabActivas.length} highlight />
+        <Card title="Tareas pendientes" value={(tareas as unknown[] | null)?.length ?? 0} />
+        <Card title="Mensajes nuevos" value={0} />
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <QuickAction href="/dashboard/colaboradoras" label="Mis colaboradoras" />
+        <QuickAction href="/dashboard/vacaciones" label="Vacaciones" />
+        <QuickAction href="/dashboard/liquidaciones" label="Liquidaciones" />
+      </div>
+
+      <section className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+        <div className="px-5 py-3 border-b border-gray-100">
+          <h3 className="text-sm font-semibold text-gray-700">Mis colaboradoras</h3>
+        </div>
+        <table className="w-full text-sm">
+          <tbody>
+            {colabActivas.map(c => (
+              <tr key={c.id} className="border-b border-gray-50">
+                <td className="px-5 py-3 font-medium text-gray-800">{c.full_name}</td>
+                <td className="px-3 py-3 text-gray-500 text-xs">{c.current_job?.role?.name ?? '—'}</td>
+                <td className="px-3 py-3 text-right">
+                  <Link href={`/dashboard/colaboradoras/${c.id}`} className="text-xs text-[#F0197A] hover:underline">Ver perfil</Link>
+                </td>
+              </tr>
+            ))}
+            {colabActivas.length === 0 && (
+              <tr><td className="px-5 py-8 text-center text-gray-400 text-sm">Sin colaboradoras asignadas</td></tr>
+            )}
+          </tbody>
+        </table>
+      </section>
+    </>
+  );
+}
+
+// ── Colaboradora ──
+
+function ColaboradoraDashboard({ empleadoId }: { empleadoId: number | null }) {
+  const { data: saldo, loading: ls } = useSaldoVacaciones(empleadoId);
+  const { data: tareas } = useTareas({ colaboradora_id: empleadoId ?? undefined, estado: 'pendiente' });
+  const totalDias = (saldo?.vacations ?? []).reduce((acc, v) => acc + v.stock, 0);
+
+  return (
+    <>
+      <div className="grid grid-cols-3 gap-4">
+        <Card title="Mis tareas pendientes" value={(tareas as unknown[] | null)?.length ?? 0} highlight />
+        <Card title="Días de vacaciones disponibles" value={ls ? '…' : Math.round(totalDias)} />
+        <Card title="Mensajes nuevos" value={0} />
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <QuickAction href={`/dashboard/colaboradoras/${empleadoId}`} label="Mi perfil" />
+        <QuickAction href="/dashboard/vacaciones" label="Solicitar vacaciones" />
+        <QuickAction href="/dashboard/liquidaciones" label="Mis liquidaciones" />
+      </div>
+    </>
+  );
+}
+
+// ── UI helpers ──
+
+function Card({ title, value, href, highlight }: { title: string; value: string | number; href?: string; highlight?: boolean }) {
+  const content = (
+    <div className={`p-4 rounded-xl border ${highlight ? 'border-[#F0197A]/40 bg-pink-50/50' : 'border-gray-100 bg-white'}`}>
+      <div className="text-xs text-gray-500 uppercase tracking-wide">{title}</div>
+      <div className="text-2xl font-bold text-gray-900 mt-1">{value}</div>
+    </div>
+  );
+  return href ? <Link href={href} className="hover:opacity-80">{content}</Link> : content;
+}
+
+function QuickAction({ href, label }: { href: string; label: string }) {
+  return (
+    <Link href={href} className="bg-white p-4 rounded-xl border border-gray-100 hover:border-[#F0197A] hover:shadow-sm transition flex items-center gap-3">
+      <div className="w-10 h-10 rounded-full bg-pink-50 flex items-center justify-center text-[#F0197A]">→</div>
+      <span className="text-sm font-medium text-gray-800">{label}</span>
+    </Link>
   );
 }

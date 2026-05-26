@@ -1,110 +1,123 @@
 'use client';
 
 import { useState } from 'react';
-import { usePayroll, useEmployees } from '@/hooks/useBuk';
-import type { PoppinsLiquidacion } from '@/types/buk';
+import Link from 'next/link';
+import { useQuery, useColaboradoras } from '@/hooks/api';
 
-function LiquidacionDetail({ liq, empName, onClose }: { liq: PoppinsLiquidacion; empName: string; onClose: () => void }) {
-  const fmt = (n: number) => '$' + n.toLocaleString('es-CL');
-  return (
-    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
-        <div className="bg-gradient-to-r from-[#1B1564] to-[#3730A3] p-5 text-white">
-          <div className="text-lg font-bold">{empName}</div>
-          <div className="text-white/60 text-sm">Liquidación {liq.periodo}</div>
-        </div>
-        <div className="p-5 space-y-3 text-sm">
-          <div className="font-semibold text-gray-700 text-xs uppercase tracking-wide">Haberes</div>
-          <div className="space-y-1">
-            <div className="flex justify-between"><span className="text-gray-500">Sueldo Base</span><span className="font-medium">{fmt(liq.sueldoBase)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">Horas Extra</span><span className="font-medium">{fmt(liq.horasExtra)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">Bonos</span><span className="font-medium">{fmt(liq.bonos)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">Gratificación</span><span className="font-medium">{fmt(liq.gratificacion)}</span></div>
-            <div className="flex justify-between border-t border-gray-100 pt-1 font-semibold"><span>Total Haberes</span><span>{fmt(liq.totalHaberes)}</span></div>
-          </div>
+interface LiqRow {
+  liquidacion_id: number;
+  employee_id: number;
+  rut?: string;
+  month: number;
+  year: number;
+  income_gross?: number;
+  liquid_reach?: number;
+  total_legal_discounts?: number;
+  total_other_discounts?: number;
+  closed?: boolean;
+}
 
-          <div className="font-semibold text-gray-700 text-xs uppercase tracking-wide mt-3">Descuentos</div>
-          <div className="space-y-1">
-            <div className="flex justify-between"><span className="text-gray-500">Salud</span><span className="font-medium text-red-500">-{fmt(liq.descSalud)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">AFP</span><span className="font-medium text-red-500">-{fmt(liq.descAfp)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">Cesantía</span><span className="font-medium text-red-500">-{fmt(liq.descCesantia)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">Impuesto Único</span><span className="font-medium text-red-500">-{fmt(liq.impuestoUnico)}</span></div>
-            <div className="flex justify-between border-t border-gray-100 pt-1 font-semibold"><span>Total Descuentos</span><span className="text-red-500">-{fmt(liq.totalDescuentos)}</span></div>
-          </div>
-
-          <div className="flex justify-between border-t-2 border-gray-200 pt-2 text-base font-bold">
-            <span>Líquido a Pagar</span>
-            <span className="text-emerald-600">{fmt(liq.liquido)}</span>
-          </div>
-
-          <button onClick={onClose} className="w-full mt-2 py-2 rounded-lg bg-gray-100 text-sm font-medium text-gray-600 hover:bg-gray-200 transition">
-            Cerrar
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+function fmtCLP(n: number) {
+  return '$' + (n || 0).toLocaleString('es-CL');
 }
 
 export default function LiquidacionesPage() {
-  const { data: payroll, loading, error } = usePayroll();
-  const { data: employees } = useEmployees();
-  const [selected, setSelected] = useState<PoppinsLiquidacion | null>(null);
+  const [periodicidad, setPeriodicidad] = useState<'month' | 'semi_month' | 'week'>('month');
+  const { data, loading, error } = useQuery<LiqRow[]>('/liquidaciones', { periodicidad });
+  const { data: colabs } = useColaboradoras();
 
-  const empName = (id: number) => employees.find(e => e.id === id)?.nombreCompleto || `Empleado #${id}`;
-  const fmt = (n: number) => '$' + n.toLocaleString('es-CL');
+  const rows = (data as LiqRow[] | null) ?? [];
+  const empName = (id: number) => colabs?.find(c => c.id === id)?.full_name ?? `Empleado #${id}`;
+
+  const totalBruto = rows.reduce((acc, r) => acc + (Number(r.income_gross) || 0), 0);
+  const totalLiquido = rows.reduce((acc, r) => acc + (Number(r.liquid_reach) || 0), 0);
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900">Liquidaciones</h1>
-        <div className="text-sm text-gray-500">Período: Marzo 2026</div>
+      <h1 className="text-xl font-bold text-gray-900">Liquidaciones</h1>
+
+      <div className="flex gap-2">
+        {(['month', 'semi_month', 'week'] as const).map(p => (
+          <button
+            key={p}
+            onClick={() => setPeriodicidad(p)}
+            className={`px-3 py-1.5 text-xs rounded-full border ${periodicidad === p ? 'bg-gray-900 text-white border-gray-900' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+          >
+            {p === 'month' ? 'Mensual' : p === 'semi_month' ? 'Quincenal' : 'Semanal'}
+          </button>
+        ))}
       </div>
 
-      {error && <div className="text-red-500 text-sm">Error: {error}</div>}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-white p-4 rounded-xl border border-gray-100">
+          <div className="text-xs text-gray-500 uppercase">Liquidaciones</div>
+          <div className="text-2xl font-bold text-gray-900 mt-1">{rows.length}</div>
+        </div>
+        <div className="bg-white p-4 rounded-xl border border-gray-100">
+          <div className="text-xs text-gray-500 uppercase">Total bruto</div>
+          <div className="text-2xl font-bold text-gray-900 mt-1">{fmtCLP(totalBruto)}</div>
+        </div>
+        <div className="bg-white p-4 rounded-xl border border-gray-100">
+          <div className="text-xs text-gray-500 uppercase">Total líquido</div>
+          <div className="text-2xl font-bold text-emerald-700 mt-1">{fmtCLP(totalLiquido)}</div>
+        </div>
+      </div>
+
+      {error && <div className="text-red-700 text-sm p-3 bg-red-50 rounded-lg">{error.message}</div>}
 
       {loading ? (
-        <div className="text-sm text-gray-400">Cargando liquidaciones...</div>
+        <div className="text-sm text-gray-400">Cargando…</div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <section className="bg-white rounded-xl border border-gray-100 overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              <tr className="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase">
                 <th className="px-5 py-3">Colaboradora</th>
-                <th className="px-3 py-3">Período</th>
+                <th className="px-3 py-3">Periodo</th>
                 <th className="px-3 py-3 text-right">Bruto</th>
-                <th className="px-3 py-3 text-right">Descuentos</th>
+                <th className="px-3 py-3 text-right">Desc. legales</th>
                 <th className="px-3 py-3 text-right">Líquido</th>
                 <th className="px-3 py-3">Estado</th>
+                <th className="px-3 py-3 text-right">PDF</th>
               </tr>
             </thead>
             <tbody>
-              {payroll.map(liq => (
-                <tr
-                  key={liq.id}
-                  className="border-b border-gray-50 hover:bg-gray-50/50 cursor-pointer"
-                  onClick={() => setSelected(liq)}
-                >
-                  <td className="px-5 py-3 font-medium text-gray-800">{empName(liq.empleadoId)}</td>
-                  <td className="px-3 py-3 text-gray-600">{liq.periodo}</td>
-                  <td className="px-3 py-3 text-right font-medium">{fmt(liq.sueldoBruto)}</td>
-                  <td className="px-3 py-3 text-right text-red-500">-{fmt(liq.totalDescuentos)}</td>
-                  <td className="px-3 py-3 text-right font-bold text-emerald-600">{fmt(liq.liquido)}</td>
+              {rows.map(r => (
+                <tr key={r.liquidacion_id} className="border-b border-gray-50 hover:bg-gray-50/50">
+                  <td className="px-5 py-3">
+                    <Link href={`/dashboard/colaboradoras/${r.employee_id}`} className="font-medium text-gray-800 hover:text-[#F0197A]">
+                      {empName(r.employee_id)}
+                    </Link>
+                    <div className="text-xs text-gray-400">{r.rut}</div>
+                  </td>
+                  <td className="px-3 py-3">{r.year}-{String(r.month).padStart(2, '0')}</td>
+                  <td className="px-3 py-3 text-right">{fmtCLP(Number(r.income_gross))}</td>
+                  <td className="px-3 py-3 text-right text-gray-500">{fmtCLP(Number(r.total_legal_discounts))}</td>
+                  <td className="px-3 py-3 text-right font-medium text-emerald-700">{fmtCLP(Number(r.liquid_reach))}</td>
                   <td className="px-3 py-3">
-                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
-                      liq.estado === 'pagado' ? 'bg-emerald-100 text-emerald-700' : 'bg-yellow-100 text-yellow-700'
-                    }`}>
-                      {liq.estado}
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${r.closed ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                      {r.closed ? 'Cerrada' : 'Abierta'}
                     </span>
+                  </td>
+                  <td className="px-3 py-3 text-right">
+                    <a
+                      href={`/api/buk/v1/colaboradoras/${r.employee_id}/liquidaciones/${r.year}/${r.month}/pdf`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[#F0197A] hover:underline text-xs"
+                    >
+                      PDF
+                    </a>
                   </td>
                 </tr>
               ))}
+              {rows.length === 0 && (
+                <tr><td colSpan={7} className="px-5 py-8 text-center text-gray-400 text-sm">Sin liquidaciones del periodo</td></tr>
+              )}
             </tbody>
           </table>
-        </div>
+        </section>
       )}
-
-      {selected && <LiquidacionDetail liq={selected} empName={empName(selected.empleadoId)} onClose={() => setSelected(null)} />}
     </div>
   );
 }

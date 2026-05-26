@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Poppins · ERP Doméstico</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@700;800&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #F0F2F5; color: #1F2937; font-size: 14px; line-height: 1.5; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 4px; }
+
+    /* ── SHELL ── */
+    .shell { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+    /* ── TOPBAR ── */
+    .topbar { height: 52px; min-height: 52px; background: #fff; border-bottom: 1px solid #E5E7EB; display: flex; align-items: center; padding: 0 16px; gap: 10px; z-index: 100; }
+    .tb-hamburger { border: none; background: transparent; cursor: pointer; color: #6B7280; padding: 6px; border-radius: 6px; display: flex; }
+    .tb-hamburger:hover { background: #F3F4F6; }
+    .tb-period { display: flex; align-items: center; gap: 6px; padding: 5px 12px; border: 1px solid #E5E7EB; border-radius: 20px; font-size: 13px; font-weight: 500; color: #374151; cursor: pointer; white-space: nowrap; }
+    .tb-period:hover { background: #F9FAFB; }
+    .tb-search { display: flex; align-items: center; gap: 8px; background: #F3F4F6; border-radius: 8px; padding: 0 12px; height: 34px; flex: 1; max-width: 380px; }
+    .tb-search input { border: none; background: transparent; outline: none; font-family: inherit; font-size: 13px; color: #374151; width: 100%; }
+    .tb-search input::placeholder { color: #9CA3AF; }
+    .tb-spacer { flex: 1; }
+    .tb-icon { border: none; background: transparent; cursor: pointer; color: #6B7280; padding: 7px; border-radius: 7px; display: flex; align-items: center; justify-content: center; transition: background 0.12s; }
+    .tb-icon:hover { background: #F3F4F6; color: #374151; }
+    .tb-user-chip { display: flex; align-items: center; gap: 8px; padding: 4px 10px 4px 4px; border-radius: 20px; cursor: pointer; border: 1px solid #E5E7EB; }
+    .tb-user-chip:hover { background: #F9FAFB; }
+    .tb-avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, #1B1564, #3730A3); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; }
+    .tb-user-name { font-size: 12px; font-weight: 500; color: #374151; }
+
+    /* ── BODY AREA ── */
+    .body-area { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── SIDEBAR ── */
+    .sidebar { width: 220px; min-width: 220px; background: #1B1564; display: flex; flex-direction: column; overflow-y: auto; }
+    .sb-brand { padding: 18px 16px 14px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+    .sb-brand-icon { width: 36px; height: 36px; background: #F0197A; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+    .sb-brand-name { font-family: 'Poppins', sans-serif; font-size: 17px; font-weight: 800; color: #fff; line-height: 1; }
+    .sb-brand-sub { font-size: 9px; color: rgba(255,255,255,0.4); font-weight: 400; letter-spacing: 0.06em; margin-top: 1px; }
+    .sb-section { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.28); padding: 14px 16px 4px; }
+    .sb-item { display: flex; align-items: center; gap: 9px; padding: 8px 16px; font-size: 13px; color: rgba(255,255,255,0.6); cursor: pointer; border: none; background: transparent; width: 100%; text-align: left; border-left: 3px solid transparent; transition: all 0.12s; }
+    .sb-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.9); }
+    .sb-item.active { background: rgba(240,25,122,0.15); color: #fff; border-left-color: #F0197A; font-weight: 600; }
+    .sb-bottom { margin-top: auto; padding: 14px 16px; border-top: 1px solid rgba(255,255,255,0.07); }
+    .sb-user { display: flex; align-items: center; gap: 9px; }
+    .sb-uavatar { width: 32px; height: 32px; border-radius: 50%; background: rgba(240,25,122,0.7); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; }
+    .sb-uname { font-size: 12px; font-weight: 600; color: #fff; }
+    .sb-urole { font-size: 10px; color: rgba(255,255,255,0.38); }
+
+    /* ── MAIN CONTENT ── */
+    .main-content { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+    .page-area { flex: 1; overflow-y: auto; padding: 20px; background: #F0F2F5; }
+
+    /* ── 3-PANEL PROFILE LAYOUT ── */
+    .profile-shell { display: flex; gap: 16px; align-items: flex-start; }
+
+    /* ── FICHA CARD (middle panel) ── */
+    .ficha-card { width: 220px; min-width: 220px; background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: hidden; }
+    .ficha-top { padding: 20px 16px 14px; text-align: center; position: relative; border-bottom: 1px solid #F3F4F6; }
+    .ficha-badge { position: absolute; top: 12px; right: 12px; background: #10B981; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px; }
+    .ficha-avatar-wrap { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #EEF2FF, #C7D2FE); display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; border: 3px solid #E5E7EB; }
+    .ficha-initials { font-size: 28px; font-weight: 700; color: #4338CA; }
+    .ficha-name { font-size: 14px; font-weight: 700; color: #111827; margin-bottom: 2px; line-height: 1.3; }
+    .ficha-role { font-size: 12px; color: #6B7280; }
+    .ficha-actions { display: flex; align-items: center; gap: 6px; padding: 10px 14px; border-bottom: 1px solid #F3F4F6; }
+    .ficha-btn-icon { width: 30px; height: 30px; border: 1px solid #E5E7EB; border-radius: 6px; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #9CA3AF; transition: all 0.12s; flex-shrink: 0; }
+    .ficha-btn-icon:hover { background: #FEF2F2; border-color: #FECACA; color: #EF4444; }
+    .ficha-btn-dropdown { flex: 1; height: 30px; border: 1px solid #E5E7EB; border-radius: 6px; background: #fff; cursor: pointer; font-size: 12px; font-weight: 500; color: #374151; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; transition: background 0.12s; font-family: inherit; }
+    .ficha-btn-dropdown:hover { background: #F9FAFB; }
+    .ficha-btn-edit { width: 30px; height: 30px; border: none; border-radius: 6px; background: #1B1564; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0; }
+    .ficha-update-btn { display: flex; align-items: center; gap: 6px; width: calc(100% - 28px); margin: 10px 14px; height: 32px; border: 1px solid #E5E7EB; border-radius: 6px; background: #fff; cursor: pointer; font-size: 12px; font-weight: 500; color: #374151; padding: 0 10px; transition: background 0.12s; font-family: inherit; }
+    .ficha-update-btn:hover { background: #F9FAFB; }
+    .ficha-section { border-top: 1px solid #F3F4F6; }
+    .ficha-section-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; cursor: pointer; font-size: 13px; font-weight: 600; color: #374151; user-select: none; }
+    .ficha-section-header:hover { background: #F9FAFB; }
+    .ficha-section-body { padding: 0 14px 12px; }
+    .ficha-info-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #F9FAFB; }
+    .ficha-info-label { font-size: 11px; color: #9CA3AF; }
+    .ficha-info-val { font-size: 11px; font-weight: 500; color: #374151; text-align: right; max-width: 120px; }
+
+    /* ── CONTENT PANEL (right) ── */
+    .content-panel { flex: 1; min-width: 0; background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); display: flex; flex-direction: column; overflow: hidden; }
+
+    /* ── TAB BAR (BUK exact style) ── */
+    .tab-bar { display: flex; border-bottom: 1px solid #E5E7EB; overflow-x: auto; flex-shrink: 0; }
+    .tab-bar::-webkit-scrollbar { height: 0; }
+    .tab-btn { padding: 13px 16px; font-size: 13px; font-weight: 500; color: #6B7280; cursor: pointer; border: none; background: transparent; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; transition: all 0.12s; font-family: inherit; display: flex; align-items: center; gap: 4px; }
+    .tab-btn:hover { color: #F0197A; }
+    .tab-btn.active { color: #F0197A; border-bottom-color: #F0197A; font-weight: 600; }
+    .tab-content { flex: 1; overflow-y: auto; }
+    .tab-inner { padding: 18px 20px; }
+
+    /* ── TAB DROPDOWN ── */
+    .tab-dd-wrap { position: relative; }
+    .tab-dropdown { position: absolute; top: calc(100% + 4px); left: 0; background: #fff; border: 1px solid #E5E7EB; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); z-index: 50; min-width: 150px; padding: 4px 0; }
+    .tab-dd-item { display: block; width: 100%; padding: 9px 16px; text-align: left; font-size: 13px; color: #374151; background: transparent; border: none; cursor: pointer; font-family: inherit; transition: background 0.1s; }
+    .tab-dd-item:hover { background: #F9FAFB; color: #F0197A; }
+
+    /* ── RESUMEN CONTENT ── */
+    .resumen-grid { display: grid; grid-template-columns: 1fr 240px; gap: 20px; }
+    .resumen-fields { }
+    .resumen-row { display: flex; align-items: baseline; padding: 10px 0; border-bottom: 1px solid #F3F4F6; gap: 16px; }
+    .resumen-label { font-size: 13px; font-weight: 600; color: #374151; width: 160px; flex-shrink: 0; }
+    .resumen-val { font-size: 13px; color: #374151; flex: 1; }
+    .resumen-val.link { color: #F0197A; cursor: pointer; }
+    .resumen-val.link:hover { text-decoration: underline; }
+    .resumen-mini-chart { background: #F9FAFB; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+    .resumen-mini-title { font-size: 11px; font-weight: 600; color: #374151; margin-bottom: 8px; }
+    .mini-bars { display: flex; align-items: flex-end; gap: 3px; height: 50px; }
+    .mini-bar { flex: 1; border-radius: 2px 2px 0 0; }
+
+    /* ── ACTION ROW ── */
+    .action-row { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 20px; border-bottom: 1px solid #F3F4F6; flex-shrink: 0; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 7px; font-size: 13px; font-weight: 500; border: none; cursor: pointer; transition: all 0.12s; font-family: inherit; white-space: nowrap; }
+    .btn-primary { background: #1B1564; color: #fff; }
+    .btn-primary:hover { background: #2D25A0; }
+    .btn-pink { background: #F0197A; color: #fff; }
+    .btn-pink:hover { background: #BE0F61; }
+    .btn-outline { background: #fff; color: #374151; border: 1px solid #D1D5DB; }
+    .btn-outline:hover { background: #F9FAFB; }
+    .btn-outline-pink { background: #fff; color: #F0197A; border: 1px solid #F0197A; }
+    .btn-outline-pink:hover { background: #FDF0F7; }
+    .btn-ghost { background: transparent; color: #6B7280; border: 1px solid #E5E7EB; }
+    .btn-ghost:hover { background: #F3F4F6; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+    .btn-dd { position: relative; display: inline-flex; align-items: center; }
+    .btn-dd-menu { position: absolute; top: calc(100% + 4px); right: 0; background: #fff; border: 1px solid #E5E7EB; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); z-index: 50; min-width: 180px; padding: 4px 0; }
+    .btn-dd-item { display: block; width: 100%; padding: 9px 14px; font-size: 13px; color: #374151; text-align: left; background: transparent; border: none; cursor: pointer; font-family: inherit; }
+    .btn-dd-item:hover { background: #F9FAFB; color: #F0197A; }
+
+    /* ── LIQ TABLE ── */
+    .liq-table-wrap { overflow-x: auto; }
+    .liq-table-toolbar { display: flex; align-items: center; gap: 16px; padding: 10px 0 12px; flex-wrap: wrap; }
+    .liq-table-toolbar-label { font-size: 13px; color: #6B7280; display: flex; align-items: center; gap: 6px; }
+    .liq-table-toolbar-label select { border: 1px solid #D1D5DB; border-radius: 6px; padding: 3px 6px; font-family: inherit; font-size: 13px; }
+    .liq-search { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+    .liq-search span { font-size: 13px; color: #6B7280; }
+    .liq-search input { border: 1px solid #D1D5DB; border-radius: 6px; padding: 5px 10px; font-family: inherit; font-size: 13px; outline: none; }
+    .liq-search input:focus { border-color: #F0197A; }
+    table.liq { width: 100%; border-collapse: collapse; }
+    table.liq th { background: #F9FAFB; font-size: 12px; font-weight: 600; color: #6B7280; text-align: left; padding: 9px 12px; border-bottom: 1px solid #E5E7EB; white-space: nowrap; border-right: 1px solid #F3F4F6; }
+    table.liq th:first-child { width: 36px; }
+    table.liq td { padding: 10px 12px; border-bottom: 1px solid #F3F4F6; font-size: 13px; color: #374151; white-space: nowrap; }
+    table.liq tr:hover td { background: #FAFAFA; }
+    .liq-link { color: #F0197A; cursor: pointer; font-weight: 600; }
+    .liq-link:hover { text-decoration: underline; }
+    .liq-pagination { display: flex; align-items: center; gap: 6px; padding: 12px 0 4px; font-size: 12px; color: #6B7280; }
+    .page-btn { border: 1px solid #D1D5DB; background: #fff; border-radius: 5px; padding: 4px 8px; font-size: 12px; cursor: pointer; color: #374151; font-family: inherit; }
+    .page-btn:hover { background: #F3F4F6; }
+    .page-btn.active { background: #1B1564; color: #fff; border-color: #1B1564; }
+
+    /* ── MODAL ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+    .modal-box { background: #fff; border-radius: 10px; width: 700px; max-width: 100%; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+    .modal-header { background: #1B1564; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+    .modal-title { font-size: 15px; font-weight: 700; color: #fff; }
+    .modal-close { border: none; background: rgba(255,255,255,0.15); cursor: pointer; color: #fff; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+    .modal-close:hover { background: rgba(255,255,255,0.25); }
+    .modal-body { overflow-y: auto; flex: 1; padding: 0; }
+    .modal-emp-header { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; padding: 16px 20px; border-bottom: 1px solid #E5E7EB; background: #FAFAFA; }
+    .modal-emp-col { display: flex; align-items: flex-start; gap: 10px; }
+    .modal-emp-avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #EEF2FF, #C7D2FE); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: #4338CA; flex-shrink: 0; }
+    .modal-emp-info { font-size: 12px; color: #374151; line-height: 1.7; }
+    .modal-emp-info strong { display: block; font-size: 13px; font-weight: 700; color: #111827; }
+    .modal-content { padding: 0 20px 16px; }
+    .modal-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-top: 16px; }
+    .modal-col { }
+    .modal-col:first-child { border-right: 1px solid #E5E7EB; padding-right: 20px; }
+    .modal-col:last-child { padding-left: 20px; }
+    .modal-section-title { font-size: 12px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #F3F4F6; display: flex; justify-content: space-between; }
+    .modal-section-total { color: #111827; }
+    .modal-line { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; color: #6B7280; border-bottom: 1px solid #F9FAFB; }
+    .modal-line:last-child { border-bottom: none; }
+    .modal-footer-row { display: grid; grid-template-columns: 1fr 1fr; margin-top: 12px; border-radius: 6px; overflow: hidden; }
+    .modal-footer-cell { background: #EEF2FF; padding: 9px 12px; font-size: 12px; font-weight: 600; color: #1F2937; border-right: 1px solid #D1D5DB; }
+    .modal-footer-cell:last-child { border-right: none; }
+    .modal-three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; margin-top: 6px; border-radius: 6px; overflow: hidden; }
+    .modal-three-cell { background: #F3F4F6; padding: 9px 12px; font-size: 12px; color: #6B7280; border-right: 1px solid #E5E7EB; }
+    .modal-three-cell:last-child { border-right: none; }
+    .modal-liquido { background: #1B1564; color: #fff; padding: 12px 20px; margin: 8px 0 0; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 14px; }
+
+    /* ── SECTION ACCORDION (Historia, Asistencia, Vacaciones) ── */
+    .section-block { border: 1px solid #E5E7EB; border-radius: 8px; overflow: hidden; margin-bottom: 12px; }
+    .section-header { background: #EEF2FF; padding: 11px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
+    .section-header-title { font-size: 13px; font-weight: 600; color: #1B1564; }
+    .section-body { background: #fff; padding: 16px; }
+
+    /* ── HISTORIA TIMELINE ── */
+    .timeline-entry { display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid #F3F4F6; }
+    .timeline-dot { width: 28px; height: 28px; border-radius: 50%; background: #10B981; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+    .timeline-content { flex: 1; }
+    .timeline-date { font-size: 12px; color: #9CA3AF; margin-bottom: 4px; }
+    .timeline-title { font-size: 13px; font-weight: 600; color: #111827; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+    .timeline-duration { font-size: 11px; color: #9CA3AF; font-weight: 400; }
+    .timeline-grid { display: grid; grid-template-columns: 140px 1fr; gap: 4px 12px; }
+    .tg-label { font-size: 12px; color: #9CA3AF; }
+    .tg-val { font-size: 12px; color: #374151; }
+
+    /* ── DOCUMENTOS ── */
+    .docs-toggle { display: flex; gap: 0; margin-bottom: 14px; }
+    .docs-toggle-btn { padding: 6px 16px; font-size: 13px; border: 1px solid #D1D5DB; background: #fff; cursor: pointer; color: #374151; font-family: inherit; transition: all 0.12s; }
+    .docs-toggle-btn:first-child { border-radius: 6px 0 0 6px; }
+    .docs-toggle-btn:last-child { border-radius: 0 6px 6px 0; border-left: none; }
+    .docs-toggle-btn.active { background: #fff; border-color: #1B1564; color: #1B1564; font-weight: 600; }
+    .docs-toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .docs-folder-chip { display: flex; align-items: center; gap: 6px; padding: 5px 12px; border: 1px solid #E5E7EB; border-radius: 6px; font-size: 13px; color: #374151; background: #F9FAFB; }
+    .empty-state { text-align: center; padding: 40px 20px; color: #9CA3AF; }
+    .empty-icon { font-size: 32px; margin-bottom: 10px; }
+    .empty-text { font-size: 13px; }
+
+    /* ── VACACIONES TABLE ── */
+    table.vac { width: 100%; border-collapse: collapse; font-size: 13px; }
+    table.vac th { font-size: 12px; font-weight: 600; color: #6B7280; padding: 8px 12px; text-align: right; border-bottom: 1px solid #E5E7EB; }
+    table.vac th:first-child { text-align: left; }
+    table.vac td { padding: 8px 12px; border-bottom: 1px solid #F3F4F6; text-align: right; color: #374151; }
+    table.vac td:first-child { text-align: left; color: #6B7280; }
+    table.vac tr:last-child td { font-weight: 700; color: #111827; border-bottom: none; }
+    table.simple { width: 100%; border-collapse: collapse; font-size: 13px; }
+    table.simple th { font-size: 12px; font-weight: 600; color: #6B7280; padding: 8px 12px; text-align: left; border-bottom: 1px solid #E5E7EB; background: #F9FAFB; }
+    table.simple td { padding: 9px 12px; border-bottom: 1px solid #F3F4F6; color: #374151; }
+    table.simple tr:last-child td { border-bottom: none; }
+
+    /* ── BADGES ── */
+    .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+    .badge-green { background: #D1FAE5; color: #065F46; }
+    .badge-yellow { background: #FEF3C7; color: #92400E; }
+    .badge-blue { background: #DBEAFE; color: #1E40AF; }
+    .badge-pink { background: #FCE7F3; color: #9D174D; }
+    .badge-gray { background: #F3F4F6; color: #4B5563; }
+
+    /* ── DASHBOARD ── */
+    .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+    .page-title { font-size: 20px; font-weight: 700; color: #111827; }
+    .page-sub { font-size: 13px; color: #6B7280; margin-top: 2px; }
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
+    .stat-card { background: #fff; border-radius: 10px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .stat-icon { width: 38px; height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+    .stat-label { font-size: 12px; color: #6B7280; font-weight: 500; }
+    .stat-value { font-size: 22px; font-weight: 700; color: #111827; margin-top: 2px; }
+    .stat-meta { font-size: 11px; color: #9CA3AF; margin-top: 3px; }
+    .card { background: #fff; border-radius: 10px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .card-title { font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 14px; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+
+    /* ── COLABS LIST TABLE (BUK-style) ── */
+    .buk-table-wrap { background: #fff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); overflow: hidden; }
+    .buk-toolbar { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid #F3F4F6; }
+    .buk-per-page { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #6B7280; }
+    .buk-per-page select { border: 1px solid #E5E7EB; border-radius: 6px; padding: 4px 8px; font-family: inherit; font-size: 13px; }
+    .buk-count { font-size: 13px; color: #6B7280; }
+    .buk-right { margin-left: auto; display: flex; gap: 8px; }
+    table.buk { width: 100%; border-collapse: collapse; }
+    table.buk th { background: #F9FAFB; font-size: 12px; font-weight: 600; color: #6B7280; text-align: left; padding: 0; border-bottom: 1px solid #E5E7EB; }
+    .th-inner { display: flex; flex-direction: column; }
+    .th-label { display: flex; align-items: center; gap: 4px; padding: 9px 12px 5px; cursor: pointer; font-size: 12px; }
+    .th-label:hover { color: #374151; }
+    .th-filter { padding: 0 8px 7px; }
+    .th-filter input { width: 100%; border: 1px solid #E5E7EB; border-radius: 5px; padding: 4px 8px; font-family: inherit; font-size: 12px; outline: none; }
+    .th-filter input:focus { border-color: #F0197A; }
+    .th-filter input::placeholder { color: #C4C4C4; font-size: 11px; }
+    table.buk td { padding: 11px 12px; border-bottom: 1px solid #F3F4F6; font-size: 13px; color: #374151; vertical-align: middle; }
+    table.buk tr:hover td { background: #FAFAFA; }
+    .emp-cell { display: flex; align-items: center; gap: 9px; }
+    .emp-badge { border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; }
+    .emp-link { color: #F0197A; cursor: pointer; font-weight: 500; }
+    .emp-link:hover { text-decoration: underline; }
+
+    /* ── MISC ── */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-label { font-size: 12px; font-weight: 600; color: #374151; }
+    .form-input { border: 1px solid #E5E7EB; border-radius: 7px; padding: 8px 11px; font-family: inherit; font-size: 13px; color: #111827; outline: none; }
+    .form-input:focus { border-color: #F0197A; box-shadow: 0 0 0 3px rgba(240,25,122,0.08); }
+    .required { color: #EF4444; }
+    .icon-btn { border: none; background: transparent; cursor: pointer; color: #9CA3AF; padding: 5px; border-radius: 6px; display: flex; align-items: center; }
+    .icon-btn:hover { background: #F3F4F6; color: #374151; }
+    .divider { border: none; border-top: 1px solid #F3F4F6; margin: 14px 0; }
+    .date-chip { display: flex; align-items: center; gap: 6px; border: 1px solid #E5E7EB; border-radius: 6px; padding: 5px 10px; font-size: 13px; color: #374151; }
+    .date-chip input { border: none; outline: none; font-family: inherit; font-size: 13px; color: #374151; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useRef, useEffect } = React;
+
+/* ── DATA ── */
+const COLORS = ['#1B1564','#F0197A','#059669','#7C3AED','#D97706','#2563EB'];
+const bc = n => COLORS[n.charCodeAt(0) % COLORS.length];
+const ini = n => n.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+const fmt = n => '$ ' + Number(n).toLocaleString('es-CL');
+
+const EMPLOYEES = [
+  {id:1,nombre:'Martínez García, María',rut:'12.345.678-9',cargo:'Empleada de Casa Particular',area:'Hogar',contrato:'Indefinido',ingreso:'01/03/2022',jornada:'Mensual 44h (L,M,M,J,V)',sueldo:500000,liquidoTeorico:440200,afp:'Provida',salud:'Fonasa',banco:'BancoEstado',cuenta:'Cta. Corriente',estado:'Activo',empleador:'Familia Aravena Riffo',email:'mmartinez@gmail.com',tel:'+56 9 1234 5678',ficha:'F1'},
+  {id:2,nombre:'López Silva, Ana Lucía',rut:'15.678.901-2',cargo:'Cuidadora de Adulto Mayor',area:'Cuidado',contrato:'Plazo Fijo',ingreso:'15/06/2023',jornada:'Mensual 33h (L,M,M,J,V)',sueldo:450000,liquidoTeorico:395400,afp:'Habitat',salud:'Isapre Masvida',banco:'Santander',cuenta:'Cta. Vista',estado:'Activo',empleador:'Familia Aravena Riffo',email:'alopez@gmail.com',tel:'+56 9 2345 6789',ficha:'F1'},
+  {id:3,nombre:'González Rojas, Carmen',rut:'11.222.333-4',cargo:'Nana Puertas Adentro',area:'Hogar',contrato:'Indefinido',ingreso:'01/01/2021',jornada:'Puertas adentro',sueldo:520000,liquidoTeorico:456800,afp:'Capital',salud:'Fonasa',banco:'Banco de Chile',cuenta:'Cta. Corriente',estado:'Activo',empleador:'Familia Aravena Riffo',email:'cgonzalez@gmail.com',tel:'+56 9 3456 7890',ficha:'F1'},
+  {id:4,nombre:'Rodríguez Pérez, Julia',rut:'14.555.666-7',cargo:'Asistente de Hogar',area:'Hogar',contrato:'Indefinido',ingreso:'10/09/2022',jornada:'Mensual 44h (L,M,M,J,V)',sueldo:480000,liquidoTeorico:421700,afp:'Planvital',salud:'Fonasa',banco:'BancoEstado',cuenta:'Cta. Rut',estado:'Licencia',empleador:'Familia Aravena Riffo',email:'jrodriguez@gmail.com',tel:'+56 9 4567 8901',ficha:'F1'},
+  {id:5,nombre:'Soto Fuentes, Rosa',rut:'16.888.999-0',cargo:'Cocinera',area:'Alimentación',contrato:'Plazo Fijo',ingreso:'01/11/2023',jornada:'Mensual 44h (L,M,M,J,V)',sueldo:550000,liquidoTeorico:483300,afp:'Cuprum',salud:'Isapre Cruz Blanca',banco:'Itaú',cuenta:'Cta. Corriente',estado:'Activo',empleador:'Familia Aravena Riffo',email:'rsoto@gmail.com',tel:'+56 9 5678 9012',ficha:'F2'},
+];
+
+const LIQUIDACIONES = [
+  {id:1,empId:1,mes:'02-2026',sueldoBruto:1213354,sueldo:982608,aporte:40404,hhExtra:0,recargos:0,hhNoTrab:0,diasNoTrab:0,habImp:541667,gratif:41667,hhExt:0,habNoImp:80000,descLeg:181467,cotPrevi:51417,cotSalud:37917,segCes:5500,impUnico:0,otrosDesc:0,totalHab:1213354,totalDesc:230746,impPrevSalud:1213354,impCes:1213354,baseTrib:984394,liquido:982608,estado:'Pagado',fecha:'28/02/2026'},
+  {id:2,empId:1,mes:'01-2026',sueldoBruto:563667,sueldo:563667,aporte:23400,hhExtra:25000,recargos:0,hhNoTrab:0,diasNoTrab:0,habImp:566667,gratif:41667,hhExt:25000,habNoImp:80000,descLeg:62600,cotPrevi:47500,cotSalud:30000,segCes:5500,impUnico:0,otrosDesc:0,totalHab:646667,totalDesc:83000,impPrevSalud:566667,impCes:566667,baseTrib:522500,liquido:563667,estado:'Pagado',fecha:'31/01/2026'},
+  {id:3,empId:2,mes:'02-2026',sueldoBruto:487500,sueldo:430500,aporte:18200,hhExtra:0,recargos:0,hhNoTrab:0,diasNoTrab:0,habImp:487500,gratif:37500,hhExt:0,habNoImp:80000,descLeg:57000,cotPrevi:42750,cotSalud:27000,segCes:4950,impUnico:0,otrosDesc:0,totalHab:567500,totalDesc:80000,impPrevSalud:487500,impCes:487500,baseTrib:437500,liquido:430500,estado:'Pagado',fecha:'28/02/2026'},
+];
+
+const VACACIONES_DATA = {
+  saldo: { acumuladas: [1.2, 0.0], tomadas: [0.0, 0.0], vencidas: [0.0, 0.0], futuro: [0.0, 0.0], total: [1.2, 0.0] },
+  tomadas: [],
+  acumuladas: [
+    {fecha:'01-03-2026', dias:'1.2 días', tipo:'Legales (Proporcionales)', periodo:'2026-2027'},
+    {fecha:'01-03-2026', dias:'0.0 días', tipo:'Días Administrativos (Proporcionales)', periodo:'2026-2027'},
+  ]
+};
+
+/* ── ICONS ── */
+const Ic = ({n, s=16, c='currentColor'}) => {
+  const p = {
+    home: 'M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z',
+    users: 'M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z',
+    cash: 'M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4zM18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z',
+    cal: 'M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z',
+    gift: 'M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-5V9a1 1 0 10-2 0v1H4a2 2 0 110-4h1.17C5.06 5.687 5 5.35 5 5zm4 1V5a1 1 0 10-1 1h1zm3 0a1 1 0 10-1-1v1h1zM9 11H3v5a2 2 0 002 2h4v-7zm2 7h4a2 2 0 002-2v-5h-6v7z',
+    cog: 'M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z',
+    search: 'M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z',
+    bell: 'M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z',
+    eye: 'M10 12a2 2 0 100-4 2 2 0 000 4zM.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10z',
+    plus: 'M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z',
+    pencil: 'M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z',
+    trash: 'M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z',
+    x: 'M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z',
+    chev: 'M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z',
+    chevR: 'M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z',
+    print: 'M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a1 1 0 001 1h8a1 1 0 001-1v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a1 1 0 00-1-1H6a1 1 0 00-1 1zm2 0h6v3H7V4zm-1 9h8v4H6v-4zm-2-4a1 1 0 100 2 1 1 0 000-2z',
+    detail: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z',
+    clock: 'M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z',
+    folder: 'M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z',
+    doc: 'M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z',
+    bars: 'M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm1 5a1 1 0 100 2h12a1 1 0 100-2H4z',
+    link: 'M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14',
+    umbrella: '',
+  };
+  if (n === 'umbrella') return (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M23 12a11.05 11.05 0 0 0-22 0zm-5 7a3 3 0 0 1-6 0v-7"/>
+    </svg>
+  );
+  return <svg width={s} height={s} viewBox="0 0 20 20" fill={c}><path fillRule="evenodd" d={p[n]} clipRule="evenodd"/></svg>;
+};
+
+/* ── SIDEBAR ── */
+const NAV = [
+  {s:'Principal'},
+  {id:'dashboard',l:'Dashboard',i:'home'},
+  {s:'Administrativo'},
+  {id:'colaboradoras',l:'Colaboradoras',i:'users'},
+  {id:'asistencia',l:'Asistencia',i:'cal'},
+  {id:'vacaciones',l:'Vacaciones y Permisos',i:'cal'},
+  {s:'Remuneraciones'},
+  {id:'liquidaciones',l:'Liquidaciones',i:'cash'},
+  {id:'procesos',l:'Procesos',i:'doc'},
+  {s:'Beneficios'},
+  {id:'beneficios',l:'Beneficios',i:'gift'},
+  {s:'Sistema'},
+  {id:'configuracion',l:'Configuración',i:'cog'},
+];
+const Sidebar = ({active, setPage}) => (
+  <nav className="sidebar">
+    <div className="sb-brand">
+      <div className="sb-brand-icon"><Ic n="umbrella" s={20} c="#fff"/></div>
+      <div><div className="sb-brand-name">Poppins</div><div className="sb-brand-sub">ERP Doméstico</div></div>
+    </div>
+    {NAV.map((it,i) => it.s
+      ? <div key={i} className="sb-section">{it.s}</div>
+      : <button key={it.id} className={`sb-item${active===it.id?' active':''}`} onClick={()=>setPage(it.id)}>
+          <Ic n={it.i} s={15}/> {it.l}
+        </button>
+    )}
+    <div style={{flex:1}}/>
+    <div className="sb-bottom">
+      <div className="sb-user">
+        <div className="sb-uavatar">RA</div>
+        <div><div className="sb-uname">Rene Aravena</div><div className="sb-urole">Administrador</div></div>
+      </div>
+    </div>
+  </nav>
+);
+
+/* ── TOPBAR ── */
+const Topbar = ({period}) => (
+  <div className="topbar">
+    <button className="tb-hamburger"><Ic n="bars" s={18}/></button>
+    <div className="tb-period"><Ic n="cal" s={14} c="#6B7280"/>{period}</div>
+    <div className="tb-search">
+      <Ic n="search" s={14} c="#9CA3AF"/>
+      <input placeholder="Buscar (Ctrl + B)"/>
+    </div>
+    <div className="tb-spacer"/>
+    <button className="tb-icon"><Ic n="eye" s={17}/></button>
+    <button className="tb-icon"><Ic n="cog" s={17}/></button>
+    <button className="tb-icon"><Ic n="link" s={17}/></button>
+    <button className="tb-icon" style={{fontSize:14,fontWeight:700,width:32,height:32,border:'1px solid #E5E7EB',borderRadius:'50%'}}>?</button>
+    <div className="tb-user-chip">
+      <div className="tb-avatar">RA</div>
+      <span className="tb-user-name">Rene Aleja...</span>
+    </div>
+  </div>
+);
+
+/* ── FICHA CARD ── */
+const FichaCard = ({emp, onEdit}) => {
+  const [infoOpen, setInfoOpen] = useState(true);
+  const [prevOpen, setPrevOpen] = useState(false);
+  return (
+    <div className="ficha-card">
+      <div className="ficha-top">
+        <div className="ficha-badge">{emp.ficha}</div>
+        <div className="ficha-avatar-wrap">
+          <span className="ficha-initials">{ini(emp.nombre)}</span>
+        </div>
+        <div className="ficha-name">{emp.nombre}</div>
+        <div className="ficha-role">{emp.cargo}</div>
+      </div>
+      <div className="ficha-actions">
+        <button className="ficha-btn-icon" title="Eliminar"><Ic n="trash" s={13}/></button>
+        <button className="ficha-btn-dropdown">
+          <span>Ficha: {emp.ficha}</span><Ic n="chev" s={12} c="#9CA3AF"/>
+        </button>
+        <button className="ficha-btn-edit" onClick={onEdit}><Ic n="pencil" s={13}/></button>
+      </div>
+      <div style={{padding:'0 14px 10px'}}>
+        <button className="ficha-update-btn">
+          <Ic n="pencil" s={12} c="#6B7280"/> Actualizar Datos
+        </button>
+      </div>
+      <div className="ficha-section">
+        <div className="ficha-section-header" onClick={()=>setInfoOpen(v=>!v)}>
+          <span>Información General</span>
+          <Ic n={infoOpen?'chev':'chevR'} s={14} c="#9CA3AF"/>
+        </div>
+        {infoOpen && (
+          <div className="ficha-section-body">
+            {[['RUT',emp.rut],['Email',emp.email||'—'],['Teléfono',emp.tel||'—'],['Estado',emp.estado]].map(([k,v])=>(
+              <div key={k} className="ficha-info-row">
+                <span className="ficha-info-label">{k}</span>
+                <span className="ficha-info-val">{v}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="ficha-section">
+        <div className="ficha-section-header" onClick={()=>setPrevOpen(v=>!v)}>
+          <span>Previsión y Pago</span>
+          <Ic n={prevOpen?'chev':'chevR'} s={14} c="#9CA3AF"/>
+        </div>
+        {prevOpen && (
+          <div className="ficha-section-body">
+            {[['AFP',emp.afp],['Salud',emp.salud],['Banco',emp.banco],['Cuenta',emp.cuenta]].map(([k,v])=>(
+              <div key={k} className="ficha-info-row">
+                <span className="ficha-info-label">{k}</span>
+                <span className="ficha-info-val">{v}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/* ── TAB DROPDOWN ── */
+const TabDd = ({label, items, active, onSelect, activeTab}) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef();
+  useEffect(()=>{
+    const h = e => { if(ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', h);
+    return ()=>document.removeEventListener('mousedown', h);
+  },[]);
+  return (
+    <div className="tab-dd-wrap" ref={ref}>
+      <button className={`tab-btn${active?' active':''}`} onClick={()=>setOpen(v=>!v)}>
+        {label} <Ic n="chev" s={12}/>
+      </button>
+      {open && (
+        <div className="tab-dropdown">
+          {items.map(it=>(
+            <button key={it.id} className="tab-dd-item"
+              style={{color: activeTab===it.id?'#F0197A':'#374151', background: activeTab===it.id?'#FDF0F7':'transparent'}}
+              onClick={()=>{onSelect(it.id); setOpen(false);}}>
+              {it.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ── RESUMEN TAB ── */
+const TabResumen = ({emp, onEdit}) => {
+  const [termMenu, setTermMenu] = useState(false);
+  return (
+    <>
+      <div className="action-row">
+        <div className="btn-dd" style={{position:'relative'}}>
+          <button className="btn btn-outline-pink" onClick={()=>setTermMenu(v=>!v)}>
+            Terminar trabajo <Ic n="chev" s={12}/>
+          </button>
+          {termMenu && (
+            <div className="btn-dd-menu">
+              <button className="btn-dd-item" onClick={()=>setTermMenu(false)}>Sin finiquito</button>
+              <button className="btn-dd-item" onClick={()=>setTermMenu(false)}>Con finiquito</button>
+            </div>
+          )}
+        </div>
+        <button className="btn btn-primary" onClick={onEdit}>Editar trabajo</button>
+      </div>
+      <div className="tab-inner">
+        <div className="resumen-grid">
+          <div className="resumen-fields">
+            {[
+              ['Cargo', emp.cargo, true],
+              ['Empresa', emp.empleador, false],
+              ['Supervisor', 'Aravena, Rene Alejandro', true],
+              ['Equipo', '1 Colaboradora', true],
+              ['Sueldo Base', `${fmt(emp.sueldo)} (Líquido: ${fmt(emp.liquidoTeorico)})`, false],
+              ['Tipo Contrato', emp.contrato, false],
+              ['Jornada Laboral', emp.jornada, false],
+              ['Fecha Ingreso Compañía', `${emp.ingreso}`, false],
+              ['Saldo Vacaciones', '1.2 días', false],
+            ].map(([k,v,link])=>(
+              <div key={k} className="resumen-row">
+                <span className="resumen-label">{k}</span>
+                <span className={`resumen-val${link?' link':''}`}>{v}</span>
+              </div>
+            ))}
+          </div>
+          <div>
+            <div className="resumen-mini-chart">
+              <div className="resumen-mini-title">Días no Trabajados</div>
+              <div className="mini-bars">
+                {[0,0,0,0].map((v,i)=>(
+                  <div key={i} className="mini-bar" style={{height:`${Math.max(6, (v+1)*12)}px`, background: v>0?'#F0197A':'#E5E7EB'}}/>
+                ))}
+              </div>
+              <div style={{fontSize:10,color:'#9CA3AF',marginTop:4,textAlign:'center'}}>Feb</div>
+            </div>
+            <div className="resumen-mini-chart">
+              <div className="resumen-mini-title">Horas Extras</div>
+              <div className="mini-bars">
+                {[0,0,0,0].map((v,i)=>(
+                  <div key={i} className="mini-bar" style={{height:`${Math.max(6, (v+1)*12)}px`, background: v>0?'#1B1564':'#E5E7EB'}}/>
+                ))}
+              </div>
+              <div style={{fontSize:10,color:'#9CA3AF',marginTop:4,textAlign:'center'}}>Feb</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+/* ── LIQUIDACIONES TAB ── */
+const TabLiquidaciones = ({emp}) => {
+  const [liqModal, setLiqModal] = useState(null);
+  const empLiqs = LIQUIDACIONES.filter(l=>l.empId===emp.id);
+  return (
+    <>
+      <div className="action-row">
+        <button className="btn btn-primary"><Ic n="plus" s={13}/>Nueva liquidación</button>
+        <button className="btn btn-outline">Acciones <Ic n="chev" s={12}/></button>
+      </div>
+      <div className="tab-inner">
+        <div className="liq-table-toolbar">
+          <div className="liq-table-toolbar-label">Mostrar <select defaultValue="25"><option>25</option><option>50</option></select> registros</div>
+          <div className="liq-search"><span>Buscar:</span><input/></div>
+        </div>
+        <div className="liq-table-wrap">
+          <table className="liq">
+            <thead>
+              <tr>
+                <th><input type="checkbox" style={{cursor:'pointer'}}/></th>
+                <th>Mes <Ic n="chev" s={10}/></th>
+                <th>Sueldo Bruto <Ic n="chev" s={10}/></th>
+                <th>Sueldo Líquido <Ic n="chev" s={10}/></th>
+                <th>Aporte Patronal <Ic n="chev" s={10}/></th>
+                <th>Horas Extras <Ic n="chev" s={10}/></th>
+                <th>Recargos <Ic n="chev" s={10}/></th>
+                <th>Horas no Trabajadas <Ic n="chev" s={10}/></th>
+                <th>Días no Trabajados <Ic n="chev" s={10}/></th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {empLiqs.length ? empLiqs.map(l=>(
+                <tr key={l.id}>
+                  <td><input type="checkbox" style={{cursor:'pointer'}}/></td>
+                  <td><span className="liq-link" onClick={()=>setLiqModal(l)}>{l.mes}</span></td>
+                  <td>{fmt(l.sueldoBruto)}</td>
+                  <td>{fmt(l.sueldo)}</td>
+                  <td>{fmt(l.aporte)}</td>
+                  <td>{l.hhExtra} hrs</td>
+                  <td>{l.recargos} hrs</td>
+                  <td>{l.hhNoTrab} hrs</td>
+                  <td>{l.diasNoTrab} días</td>
+                  <td>
+                    <div style={{display:'flex',gap:4}}>
+                      <button className="icon-btn" title="Imprimir" onClick={()=>setLiqModal(l)}><Ic n="print" s={14}/></button>
+                      <button className="icon-btn" title="Detalle" onClick={()=>setLiqModal(l)}><Ic n="detail" s={14}/></button>
+                    </div>
+                  </td>
+                </tr>
+              )) : (
+                <tr><td colSpan={10}><div className="empty-state"><div className="empty-icon">📄</div><div className="empty-text">Sin liquidaciones</div></div></td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        <div className="liq-pagination">
+          <button className="page-btn">‹ Anterior</button>
+          <button className="page-btn active">1</button>
+          <button className="page-btn">Siguiente ›</button>
+          <span style={{marginLeft:8}}>Mostrando registros del 1 al {empLiqs.length} de un total de {empLiqs.length} registros</span>
+        </div>
+      </div>
+
+      {/* LIQUIDACION MODAL */}
+      {liqModal && (
+        <div className="modal-overlay" onClick={()=>setLiqModal(null)}>
+          <div className="modal-box" onClick={e=>e.stopPropagation()}>
+            <div className="modal-header">
+              <span className="modal-title">Pago de Sueldo {liqModal.mes.replace('-',' ').replace('02','Febrero').replace('01','Enero').replace('2026','2026')}</span>
+              <div style={{display:'flex',alignItems:'center',gap:8}}>
+                <button className="icon-btn" style={{color:'rgba(255,255,255,0.7)'}} title="Imprimir"><Ic n="print" s={16} c="rgba(255,255,255,0.7)"/></button>
+                <button className="modal-close" onClick={()=>setLiqModal(null)}><Ic n="x" s={14}/></button>
+              </div>
+            </div>
+            <div className="modal-body">
+              <div className="modal-emp-header">
+                <div className="modal-emp-col">
+                  <div className="modal-emp-avatar">{ini(emp.nombre)}</div>
+                  <div className="modal-emp-info">
+                    <strong>Sr(a): {emp.nombre.split(',').reverse().join(' ').trim()}</strong>
+                    RUT: {emp.rut}<br/>
+                    Cargo: {emp.cargo}<br/>
+                    Sueldo Base: {fmt(emp.sueldo)}
+                  </div>
+                </div>
+                <div className="modal-emp-info">
+                  <strong>Tipo Contrato: {emp.contrato}</strong>
+                  Inicio Contrato: {emp.ingreso}<br/>
+                  Días Trabajados: 30 días
+                </div>
+                <div className="modal-emp-info">
+                  <strong>Previsión: {emp.afp} (11.27%)</strong>
+                  Salud: {emp.salud}<br/>
+                  UF: $ 39.790,63
+                </div>
+              </div>
+              <div className="modal-content">
+                <div className="modal-two-col">
+                  <div className="modal-col">
+                    <div className="modal-section-title">
+                      HABERES IMPONIBLES
+                      <span className="modal-section-total">{fmt(liqModal.habImp)}</span>
+                    </div>
+                    <div className="modal-line"><span>Sueldo Base</span><span>{fmt(emp.sueldo)}</span></div>
+                    <div className="modal-line"><span>Gratificación</span><span>{fmt(liqModal.gratif)}</span></div>
+                    {liqModal.hhExt>0 && <div className="modal-line"><span>Horas Extra</span><span>{fmt(liqModal.hhExt)}</span></div>}
+                    <div style={{marginTop:14}}>
+                      <div className="modal-section-title">
+                        HABERES NO IMPONIBLES
+                        <span className="modal-section-total">{fmt(liqModal.habNoImp)}</span>
+                      </div>
+                      {liqModal.habNoImp>0
+                        ? <div className="modal-line"><span>Asignaciones</span><span>{fmt(liqModal.habNoImp)}</span></div>
+                        : <div className="modal-line" style={{color:'#9CA3AF'}}><span>Sin haberes no imponibles</span><span>$ 0</span></div>
+                      }
+                    </div>
+                  </div>
+                  <div className="modal-col">
+                    <div className="modal-section-title">
+                      DESCUENTOS LEGALES
+                      <span className="modal-section-total" style={{color:'#EF4444'}}>{fmt(liqModal.descLeg)}</span>
+                    </div>
+                    <div className="modal-line"><span>Cotiz. Previ. Obligatoria</span><span>{fmt(liqModal.cotPrevi)}</span></div>
+                    <div className="modal-line"><span>Cotiz. Salud Obligatoria</span><span>{fmt(liqModal.cotSalud)}</span></div>
+                    <div className="modal-line"><span>Seguro Cesantía</span><span>{fmt(liqModal.segCes)}</span></div>
+                    {liqModal.impUnico>0 && <div className="modal-line"><span>Impuesto Único</span><span>{fmt(liqModal.impUnico)}</span></div>}
+                    <div style={{marginTop:14}}>
+                      <div className="modal-section-title">
+                        OTROS DESCUENTOS
+                        <span className="modal-section-total">{fmt(liqModal.otrosDesc)}</span>
+                      </div>
+                      <div className="modal-line" style={{color:'#9CA3AF'}}><span>Sin otros descuentos</span><span>$ 0</span></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer-row" style={{marginTop:14}}>
+                  <div className="modal-footer-cell">TOTAL HABERES {fmt(liqModal.totalHab)}</div>
+                  <div className="modal-footer-cell">TOTAL DESCUENTOS {fmt(liqModal.totalDesc)}</div>
+                </div>
+                <div className="modal-three-col" style={{marginTop:6}}>
+                  <div className="modal-three-cell">IMP. PREV./SALUD: {fmt(liqModal.impPrevSalud)}</div>
+                  <div className="modal-three-cell">IMP. CESANTÍA: {fmt(liqModal.impCes)}</div>
+                  <div className="modal-three-cell">BASE TRIBUTARIA: {fmt(liqModal.baseTrib)}</div>
+                </div>
+                <div className="modal-liquido">
+                  <span>LÍQUIDO A RECIBIR:</span>
+                  <span style={{fontSize:18}}>{fmt(liqModal.liquido)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
+/* ── DOCUMENTOS TAB ── */
+const TabDocumentos = ({emp}) => {
+  const [docTab, setDocTab] = useState('todos');
+  const [actionsOpen, setActionsOpen] = useState(false);
+  return (
+    <>
+      <div className="action-row">
+        <div className="btn-dd" style={{position:'relative'}}>
+          <button className="btn btn-outline" onClick={()=>setActionsOpen(v=>!v)}>
+            Acciones <Ic n="chev" s={12}/>
+          </button>
+          {actionsOpen && (
+            <div className="btn-dd-menu" style={{right:0,left:'auto'}}>
+              <button className="btn-dd-item" onClick={()=>setActionsOpen(false)}>Crear carpeta</button>
+              <button className="btn-dd-item" onClick={()=>setActionsOpen(false)}>Subir archivo</button>
+            </div>
+          )}
+        </div>
+        <button className="btn btn-primary">Solicitar Documento</button>
+      </div>
+      <div className="tab-inner">
+        <div className="docs-toggle">
+          <button className={`docs-toggle-btn${docTab==='todos'?' active':''}`} onClick={()=>setDocTab('todos')}>Todos</button>
+          <button className={`docs-toggle-btn${docTab==='pendientes'?' active':''}`} onClick={()=>setDocTab('pendientes')}>Pendientes</button>
+        </div>
+        <div className="docs-toolbar">
+          <div className="docs-folder-chip"><Ic n="folder" s={14} c="#6B7280"/>{emp.nombre.split(',')[0]}, {emp.nombre.split(',')[1]?.trim()}</div>
+        </div>
+        <div className="empty-state">
+          <div className="empty-icon">📂</div>
+          <div className="empty-text">No hay elementos para mostrar</div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+/* ── HISTORIA TAB ── */
+const TabHistoria = ({emp}) => {
+  const [trabajosOpen, setTrabajosOpen] = useState(true);
+  const [planesOpen, setPlanesOpen] = useState(true);
+  return (
+    <div className="tab-inner">
+      <div className="section-block">
+        <div className="section-header" onClick={()=>setTrabajosOpen(v=>!v)}>
+          <span className="section-header-title">Trabajos</span>
+          <Ic n={trabajosOpen?'chev':'chevR'} s={14} c="#1B1564"/>
+        </div>
+        {trabajosOpen && (
+          <div className="section-body">
+            <div className="timeline-entry">
+              <div className="timeline-dot"><Ic n="doc" s={13} c="#fff"/></div>
+              <div className="timeline-content">
+                <div className="timeline-date">{emp.ingreso}</div>
+                <div className="timeline-title">
+                  Ingreso
+                  <span className="timeline-duration"><Ic n="clock" s={12} c="#9CA3AF"/> Duración: en curso</span>
+                </div>
+                <div className="timeline-grid">
+                  {[['Cargo',emp.cargo],['Sub-área',emp.empleador],['Empresa',`${emp.empleador}`],['Jornada Laboral',emp.jornada],['Sueldo Base',fmt(emp.sueldo)],['Sueldo Líquido Teórico',fmt(emp.liquidoTeorico)],['Tipo de Contrato',emp.contrato],['Tipo de Jornada','Ordinaria ART 22']].map(([k,v])=>(
+                    <React.Fragment key={k}><span className="tg-label">{k}:</span><span className="tg-val">{v}</span></React.Fragment>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="section-block">
+        <div className="section-header" onClick={()=>setPlanesOpen(v=>!v)}>
+          <span className="section-header-title">Planes</span>
+          <Ic n={planesOpen?'chev':'chevR'} s={14} c="#1B1564"/>
+        </div>
+        {planesOpen && (
+          <div className="section-body">
+            <div className="timeline-entry">
+              <div className="timeline-dot" style={{background:'#F0197A'}}><Ic n="doc" s={13} c="#fff"/></div>
+              <div className="timeline-content">
+                <div className="timeline-date">{emp.ingreso}</div>
+                <div className="timeline-title">Ingreso <span className="timeline-duration"><Ic n="clock" s={12} c="#9CA3AF"/> en curso</span></div>
+                <div className="timeline-grid">
+                  {[['Régimen Previsional',`${emp.afp} (AFP)`],['Fonasa/Isapre',emp.salud],['AFC','Menos de 11 Años'],['Jubilado','No'],['ID','1'],['Aumentar cotización en 1%','No']].map(([k,v])=>(
+                    <React.Fragment key={k}><span className="tg-label">{k}:</span><span className="tg-val">{v}</span></React.Fragment>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/* ── ASISTENCIA TAB ── */
+const TabAsistencia = ({emp}) => {
+  const [regMenu, setRegMenu] = useState(false);
+  const [diasOpen, setDiasOpen] = useState(true);
+  const [horasOpen, setHorasOpen] = useState(true);
+  return (
+    <>
+      <div className="action-row">
+        <div className="btn-dd" style={{position:'relative'}}>
+          <button className="btn btn-primary" onClick={()=>setRegMenu(v=>!v)}>
+            Registrar Ausencia <Ic n="chev" s={12}/>
+          </button>
+          {regMenu && (
+            <div className="btn-dd-menu">
+              <button className="btn-dd-item" onClick={()=>setRegMenu(false)}>Inasistencia</button>
+              <button className="btn-dd-item" onClick={()=>setRegMenu(false)}>Licencias</button>
+              <button className="btn-dd-item" onClick={()=>setRegMenu(false)}>Permisos</button>
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="tab-inner">
+        <div className="section-block">
+          <div className="section-header" onClick={()=>setDiasOpen(v=>!v)}>
+            <span className="section-header-title">Días</span>
+            <Ic n={diasOpen?'chev':'chevR'} s={14} c="#1B1564"/>
+          </div>
+          {diasOpen && (
+            <div className="section-body">
+              <div className="empty-state" style={{padding:'20px'}}>
+                <div className="empty-text">No hay elementos para mostrar</div>
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="section-block">
+          <div className="section-header" onClick={()=>setHorasOpen(v=>!v)}>
+            <span className="section-header-title">Horas</span>
+            <Ic n={horasOpen?'chev':'chevR'} s={14} c="#1B1564"/>
+          </div>
+          {horasOpen && (
+            <div className="section-body">
+              <div className="empty-state" style={{padding:'20px'}}>
+                <div className="empty-text">No hay elementos para mostrar</div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+};
+
+/* ── ÍTEMS TAB ── */
+const TabItems = ({subTab}) => (
+  <div className="tab-inner">
+    <div className="empty-state">
+      <div className="empty-icon">💰</div>
+      <div className="empty-text">Sin {subTab==='haberes'?'haberes':subTab==='descuentos'?'descuentos':'créditos'} registrados</div>
+    </div>
+  </div>
+);
+
+/* ── VACACIONES TAB ── */
+const TabVacaciones = ({emp}) => {
+  const [vacOpen, setVacOpen] = useState(true);
+  const [tomOpen, setTomOpen] = useState(true);
+  const [acumOpen, setAcumOpen] = useState(true);
+  const d = VACACIONES_DATA;
+  const rows = [
+    ['(+) Acumuladas', ...d.saldo.acumuladas],
+    ['(-) Tomadas', ...d.saldo.tomadas],
+    ['(-) Vencidas', ...d.saldo.vencidas],
+    ['(-) Tomadas en el futuro', ...d.saldo.futuro],
+    ['(=) Total saldo', ...d.saldo.total],
+  ];
+  return (
+    <>
+      <div className="action-row">
+        <button className="btn btn-primary"><Ic n="plus" s={13}/>Solicitar vacaciones</button>
+      </div>
+      <div className="tab-inner">
+        <div className="section-block">
+          <div className="section-header" onClick={()=>setVacOpen(v=>!v)}>
+            <span className="section-header-title">Vacaciones</span>
+            <Ic n={vacOpen?'chev':'chevR'} s={14} c="#1B1564"/>
+          </div>
+          {vacOpen && (
+            <div className="section-body">
+              <div className="date-chip" style={{marginBottom:12,display:'inline-flex'}}>
+                <Ic n="cal" s={13} c="#6B7280"/>
+                <input type="text" defaultValue="01-03-2026" style={{width:90}}/>
+              </div>
+              <table className="vac">
+                <thead>
+                  <tr>
+                    <th>Saldo</th>
+                    <th>Legales</th>
+                    <th>Días Administrativos</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map(([label,leg,admin])=>(
+                    <tr key={label}>
+                      <td>{label}</td>
+                      <td>{leg.toFixed(1)} días</td>
+                      <td>{admin.toFixed(1)} días</td>
+                      <td>{(leg+admin).toFixed(1)} días</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+        <div className="section-block">
+          <div className="section-header" onClick={()=>setTomOpen(v=>!v)}>
+            <span className="section-header-title">Vacaciones tomadas</span>
+            <Ic n={tomOpen?'chev':'chevR'} s={14} c="#1B1564"/>
+          </div>
+          {tomOpen && (
+            <div className="section-body">
+              <div style={{display:'flex',justifyContent:'flex-end',gap:8,marginBottom:12}}>
+                <button className="btn btn-outline btn-sm">Solicitar</button>
+                <button className="btn btn-primary btn-sm">Agregar</button>
+              </div>
+              <table className="simple">
+                <thead><tr>
+                  {['Inicio','Término','Número de Días','Tipo','Estado','Opciones'].map(h=><th key={h}>{h}</th>)}
+                </tr></thead>
+                <tbody>
+                  <tr><td colSpan={6}><div className="empty-state" style={{padding:16}}><div className="empty-text">No hay elementos para mostrar</div></div></td></tr>
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+        <div className="section-block">
+          <div className="section-header" onClick={()=>setAcumOpen(v=>!v)}>
+            <span className="section-header-title">Vacaciones acumuladas</span>
+            <Ic n={acumOpen?'chev':'chevR'} s={14} c="#1B1564"/>
+          </div>
+          {acumOpen && (
+            <div className="section-body">
+              <div style={{display:'flex',justifyContent:'flex-end',marginBottom:12}}>
+                <button className="btn btn-primary btn-sm">Agregar</button>
+              </div>
+              <table className="simple">
+                <thead><tr>
+                  {['Fecha','Número de días','Tipo','Período','Opciones'].map(h=><th key={h}>{h}</th>)}
+                </tr></thead>
+                <tbody>
+                  {d.acumuladas.map((r,i)=>(
+                    <tr key={i}>
+                      <td>{r.fecha}</td><td>{r.dias}</td><td>{r.tipo}</td><td>{r.periodo}</td>
+                      <td><button className="icon-btn"><Ic n="pencil" s={13}/></button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+};
+
+/* ── EDITAR TRABAJO (inline form) ── */
+const EditarTrabajo = ({emp, onClose}) => (
+  <div className="content-panel" style={{marginTop:0}}>
+    <div style={{padding:'20px', borderBottom:'1px solid #E5E7EB'}}>
+      <div style={{fontSize:18,fontWeight:700,color:'#111827',marginBottom:4}}>Editar Trabajo</div>
+      <div style={{fontSize:12,color:'#9CA3AF'}}>Los campos marcados con <span style={{color:'#EF4444'}}>*</span> son obligatorios.</div>
+    </div>
+    <div style={{padding:'20px',overflowY:'auto',flex:1}}>
+      <div className="form-group" style={{marginBottom:16,maxWidth:480}}>
+        <label className="form-label">Fecha de Inicio <span className="required">*</span></label>
+        <input className="form-input" type="text" defaultValue={emp.ingreso.split('/').reverse().join('-')} />
+      </div>
+      <div style={{border:'1px solid #E5E7EB',borderRadius:8,padding:'14px 16px',marginBottom:16}}>
+        <div style={{display:'flex',justifyContent:'space-between',cursor:'pointer',marginBottom:10}}>
+          <span style={{fontSize:14,fontWeight:600,color:'#1B1564'}}>Organización</span>
+          <Ic n="chev" s={14} c="#6B7280"/>
+        </div>
+        <div className="form-grid">
+          <div className="form-group">
+            <label className="form-label">Área <span className="required">*</span></label>
+            <div style={{border:'1px solid #E5E7EB',borderRadius:7,padding:'8px 11px',display:'flex',alignItems:'center',justifyContent:'space-between',background:'#F9FAFB'}}>
+              <span style={{fontSize:13,color:'#374151'}}>{emp.empleador} ×</span>
+              <Ic n="chev" s={12} c="#9CA3AF"/>
+            </div>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Cargo <span className="required">*</span></label>
+            <div style={{border:'1px solid #E5E7EB',borderRadius:7,padding:'8px 11px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+              <span style={{fontSize:13,color:'#374151'}}>{emp.cargo}</span>
+              <Ic n="chev" s={12} c="#9CA3AF"/>
+            </div>
+            <div style={{fontSize:11,color:'#9CA3AF',marginTop:4}}>Si no encuentras el cargo, asegúrate de que haya sido creado y que esté asociado al área.</div>
+          </div>
+          <div className="form-group" style={{gridColumn:'1/-1'}}>
+            <label className="form-label">Descripción del cargo</label>
+            <textarea className="form-input" rows={3} style={{resize:'vertical'}} defaultValue={`Banda Salarial del Cargo: No definida\n\nDescripción específica: Empleada del hogar, realiza labores domésticas.`}/>
+          </div>
+        </div>
+      </div>
+      <div style={{display:'flex',gap:10,justifyContent:'flex-end'}}>
+        <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
+        <button className="btn btn-primary" onClick={onClose}>Guardar cambios</button>
+      </div>
+    </div>
+  </div>
+);
+
+/* ── EMPLOYEE PROFILE PAGE ── */
+const ProfilePage = ({emp, setPage}) => {
+  const [tab, setTab] = useState('resumen');
+  const [itemsSubTab, setItemsSubTab] = useState('haberes');
+  const [asistSubTab, setAsistSubTab] = useState('ausencias');
+  const [editMode, setEditMode] = useState(false);
+
+  const TABS = [
+    {id:'resumen',label:'Resumen'},
+    {id:'liquidaciones',label:'Liquidaciones'},
+    {id:'documentos',label:'Documentos'},
+    {id:'historia',label:'Historia'},
+  ];
+
+  return (
+    <div>
+      {/* BREADCRUMB */}
+      <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:14,fontSize:13}}>
+        <button className="btn btn-ghost btn-sm" onClick={()=>setPage('colaboradoras')}>← Colaboradoras</button>
+        <Ic n="chevR" s={13} c="#9CA3AF"/>
+        <span style={{color:'#111827',fontWeight:600}}>{emp.nombre}</span>
+      </div>
+
+      <div className="profile-shell">
+        <FichaCard emp={emp} onEdit={()=>setEditMode(v=>!v)}/>
+
+        {editMode ? (
+          <EditarTrabajo emp={emp} onClose={()=>setEditMode(false)}/>
+        ) : (
+          <div className="content-panel">
+            {/* TAB BAR */}
+            <div className="tab-bar">
+              {TABS.map(t=>(
+                <button key={t.id} className={`tab-btn${tab===t.id?' active':''}`} onClick={()=>setTab(t.id)}>{t.label}</button>
+              ))}
+              <TabDd label="Asistencia" active={tab==='asistencia'} activeTab={asistSubTab}
+                items={[{id:'ausencias',label:'Ausencias'},{id:'horas_extra',label:'Horas Extra'}]}
+                onSelect={id=>{setAsistSubTab(id);setTab('asistencia');}}/>
+              <TabDd label="Ítems" active={tab==='items'} activeTab={itemsSubTab}
+                items={[{id:'haberes',label:'Haberes'},{id:'descuentos',label:'Descuentos'},{id:'creditos',label:'Créditos'}]}
+                onSelect={id=>{setItemsSubTab(id);setTab('items');}}/>
+              <button className={`tab-btn${tab==='vacaciones'?' active':''}`} onClick={()=>setTab('vacaciones')}>Vacaciones</button>
+            </div>
+
+            {/* TAB CONTENT */}
+            <div className="tab-content">
+              {tab==='resumen'      && <TabResumen emp={emp} onEdit={()=>setEditMode(true)}/>}
+              {tab==='liquidaciones'&& <TabLiquidaciones emp={emp}/>}
+              {tab==='documentos'   && <TabDocumentos emp={emp}/>}
+              {tab==='historia'     && <TabHistoria emp={emp}/>}
+              {tab==='asistencia'   && <TabAsistencia emp={emp}/>}
+              {tab==='items'        && <TabItems subTab={itemsSubTab}/>}
+              {tab==='vacaciones'   && <TabVacaciones emp={emp}/>}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/* ── COLABORADORAS LIST ── */
+const ColaboradorasList = ({setPage, setSelEmp}) => {
+  const [perPage, setPerPage] = useState(25);
+  const [filters, setFilters] = useState({});
+  const [showModal, setShowModal] = useState(false);
+  const [employees, setEmployees] = useState(EMPLOYEES);
+  const [form, setForm] = useState({nombre:'',rut:'',cargo:'',ingreso:'',sueldo:'',contrato:'Indefinido',jornada:'44h semanales',afp:'Provida',salud:'Fonasa'});
+
+  const cols = [
+    {key:'nombre',label:'Nombre'},
+    {key:'rut',label:'Número de Documento'},
+    {key:'cargo',label:'Cargo'},
+    {key:'ingreso',label:'Fecha Ingreso'},
+    {key:'sueldo',label:'Sueldo Base'},
+    {key:'estado',label:'Estado'},
+  ];
+
+  const filtered = employees.filter(e=>
+    Object.entries(filters).every(([k,v])=>!v||String(e[k]??'').toLowerCase().includes(v.toLowerCase()))
+  );
+
+  const save = ()=>{
+    setEmployees(prev=>[...prev,{...form,id:prev.length+1,sueldo:Number(form.sueldo)||0,liquidoTeorico:Math.round(Number(form.sueldo)*0.88)||0,area:'Hogar',banco:'BancoEstado',cuenta:'Cta. Rut',estado:'Activo',empleador:'Familia Aravena Riffo',email:'',tel:'',ficha:'F1'}]);
+    setShowModal(false);
+    setForm({nombre:'',rut:'',cargo:'',ingreso:'',sueldo:'',contrato:'Indefinido',jornada:'44h semanales',afp:'Provida',salud:'Fonasa'});
+  };
+
+  return (
+    <div>
+      <div className="page-header">
+        <div>
+          <div className="page-title">Colaboradoras Vigentes</div>
+          <div className="page-sub">{employees.length} colaboradoras registradas</div>
+        </div>
+        <button className="btn btn-primary" onClick={()=>setShowModal(true)}><Ic n="plus" s={14}/>Crear</button>
+      </div>
+
+      <div className="buk-table-wrap">
+        <div className="buk-toolbar">
+          <div className="buk-per-page">Ver <select value={perPage} onChange={e=>setPerPage(+e.target.value)}>{[10,25,50].map(n=><option key={n} value={n}>{n}</option>)}</select></div>
+          <span className="buk-count">de {employees.length}</span>
+          <div className="buk-right">
+            <button className="btn btn-ghost btn-sm"><Ic n="eye" s={13}/>Exportar</button>
+          </div>
+        </div>
+        <table className="buk">
+          <thead>
+            <tr>
+              <th style={{width:36}}><div className="th-inner"><div className="th-label"><input type="checkbox"/></div></div></th>
+              {cols.map(c=>(
+                <th key={c.key}>
+                  <div className="th-inner">
+                    <div className="th-label">{c.label} <span style={{color:'#D1D5DB',fontSize:10}}>⇅</span></div>
+                    {c.key!=='estado' && (
+                      <div className="th-filter">
+                        <input placeholder="Buscar por..." value={filters[c.key]||''} onChange={e=>setFilters(f=>({...f,[c.key]:e.target.value}))}/>
+                      </div>
+                    )}
+                  </div>
+                </th>
+              ))}
+              <th style={{width:36}}><div className="th-inner"><div className="th-label"/></div></th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.slice(0,perPage).map(emp=>(
+              <tr key={emp.id}>
+                <td><input type="checkbox" style={{cursor:'pointer'}}/></td>
+                <td>
+                  <div className="emp-cell">
+                    <div className="emp-badge" style={{width:28,height:28,background:bc(emp.nombre)}}>{ini(emp.nombre)}</div>
+                    <span className="emp-link" onClick={()=>{setSelEmp(emp);setPage('perfil');}}>{emp.nombre}</span>
+                  </div>
+                </td>
+                <td>{emp.rut}</td>
+                <td>{emp.cargo}</td>
+                <td>{emp.ingreso}</td>
+                <td>{fmt(emp.sueldo)}</td>
+                <td>
+                  <span className={`badge badge-${emp.estado==='Activo'?'green':emp.estado==='Licencia'?'yellow':'gray'}`}>{emp.estado}</span>
+                </td>
+                <td>
+                  <button className="icon-btn" onClick={()=>{setSelEmp(emp);setPage('perfil');}}><Ic n="chevR" s={14}/></button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {showModal && (
+        <div className="modal-overlay" onClick={()=>setShowModal(false)}>
+          <div className="modal-box" onClick={e=>e.stopPropagation()}>
+            <div className="modal-header">
+              <span className="modal-title">Nueva Colaboradora</span>
+              <button className="modal-close" onClick={()=>setShowModal(false)}><Ic n="x" s={14}/></button>
+            </div>
+            <div className="modal-body" style={{padding:24}}>
+              <div className="form-grid">
+                {[['nombre','Nombre completo (Apellidos, Nombre)','text'],['rut','RUT','text'],['cargo','Cargo','text'],['ingreso','Fecha de Ingreso','text'],['sueldo','Sueldo Base','number']].map(([k,l,t])=>(
+                  <div key={k} className="form-group">
+                    <label className="form-label">{l} <span className="required">*</span></label>
+                    <input className="form-input" type={t} value={form[k]} onChange={e=>setForm(f=>({...f,[k]:e.target.value}))} placeholder={l}/>
+                  </div>
+                ))}
+                {[['contrato','Tipo Contrato',['Indefinido','Plazo Fijo','Por obra o faena']],['jornada','Jornada',['44h semanales','33h semanales','Puertas adentro']],['afp','AFP',['Provida','Habitat','Capital','Cuprum','Planvital']],['salud','Salud',['Fonasa','Isapre Masvida','Isapre Cruz Blanca']]].map(([k,l,opts])=>(
+                  <div key={k} className="form-group">
+                    <label className="form-label">{l}</label>
+                    <select className="form-input" value={form[k]} onChange={e=>setForm(f=>({...f,[k]:e.target.value}))}>
+                      {opts.map(o=><option key={o}>{o}</option>)}
+                    </select>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{padding:'14px 24px',borderTop:'1px solid #E5E7EB',display:'flex',justifyContent:'flex-end',gap:10}}>
+              <button className="btn btn-outline" onClick={()=>setShowModal(false)}>Cancelar</button>
+              <button className="btn btn-primary" onClick={save}>Guardar</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ── DASHBOARD ── */
+const Dashboard = ({setPage, setSelEmp}) => {
+  const activas = EMPLOYEES.filter(e=>e.estado==='Activo').length;
+  const totalLiq = LIQUIDACIONES.reduce((a,l)=>a+l.sueldo,0);
+  return (
+    <div>
+      <div className="page-header">
+        <div>
+          <div className="page-title">¡Buen día, Rene! 👋</div>
+          <div className="page-sub">Resumen de tu equipo doméstico — Febrero 2026</div>
+        </div>
+        <div style={{display:'flex',gap:8}}>
+          <button className="btn btn-outline" onClick={()=>setPage('colaboradoras')}>Ver colaboradoras</button>
+          <button className="btn btn-primary" onClick={()=>setPage('colaboradoras')}><Ic n="plus" s={14}/>Nueva colaboradora</button>
+        </div>
+      </div>
+      <div className="stat-grid">
+        {[
+          {label:'Colaboradoras activas',val:activas,meta:`${EMPLOYEES.length} en total`,bg:'#1B1564',ic:'users'},
+          {label:'Gasto mensual',val:fmt(totalLiq),meta:'Febrero 2026',bg:'#F0197A',ic:'cash'},
+          {label:'Procesos abiertos',val:'0',meta:'Todo al día',bg:'#059669',ic:'doc'},
+          {label:'Próximas vacaciones',val:'1',meta:'Carmen G. — marzo',bg:'#D97706',ic:'cal'},
+        ].map(s=>(
+          <div key={s.label} className="stat-card">
+            <div className="stat-icon" style={{background:s.bg+'22'}}><Ic n={s.ic} s={20} c={s.bg}/></div>
+            <div className="stat-label">{s.label}</div>
+            <div className="stat-value" style={{fontSize: typeof s.val==='string'&&s.val.includes('$')?'16px':'22px'}}>{s.val}</div>
+            <div className="stat-meta">{s.meta}</div>
+          </div>
+        ))}
+      </div>
+      <div className="two-col">
+        <div className="card">
+          <div className="card-title">Colaboradoras</div>
+          {EMPLOYEES.map(emp=>(
+            <div key={emp.id} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 0',borderBottom:'1px solid #F3F4F6',cursor:'pointer'}}
+              onClick={()=>{setSelEmp(emp);setPage('perfil');}}>
+              <div className="emp-badge" style={{width:32,height:32,background:bc(emp.nombre),fontSize:12}}>{ini(emp.nombre)}</div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:13,fontWeight:600,color:'#111827'}}>{emp.nombre}</div>
+                <div style={{fontSize:11,color:'#9CA3AF'}}>{emp.cargo}</div>
+              </div>
+              <span className={`badge badge-${emp.estado==='Activo'?'green':emp.estado==='Licencia'?'yellow':'gray'}`}>{emp.estado}</span>
+            </div>
+          ))}
+        </div>
+        <div className="card">
+          <div className="card-title">Últimas Liquidaciones</div>
+          {LIQUIDACIONES.map(l=>{
+            const emp = EMPLOYEES.find(e=>e.id===l.empId);
+            return (
+              <div key={l.id} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 0',borderBottom:'1px solid #F3F4F6'}}>
+                <div className="emp-badge" style={{width:30,height:30,background:bc(emp?.nombre||''),fontSize:11}}>{ini(emp?.nombre||'?')}</div>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:12,fontWeight:600,color:'#111827'}}>{emp?.nombre?.split(',')[0]}</div>
+                  <div style={{fontSize:11,color:'#9CA3AF'}}>{l.mes}</div>
+                </div>
+                <div style={{textAlign:'right'}}>
+                  <div style={{fontSize:12,fontWeight:700}}>{fmt(l.sueldo)}</div>
+                  <span className={`badge badge-${l.estado==='Pagado'?'green':'yellow'}`} style={{fontSize:10}}>{l.estado}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ── SIMPLE PAGES ── */
+const SimplePage = ({title, sub, children}) => (
+  <div>
+    <div className="page-header"><div><div className="page-title">{title}</div><div className="page-sub">{sub}</div></div></div>
+    {children}
+  </div>
+);
+
+/* ── APP ── */
+const App = () => {
+  const [page, setPage] = useState('dashboard');
+  const [selEmp, setSelEmp] = useState(null);
+  const period = 'Febrero 2026';
+
+  const sideActive = {'perfil':'colaboradoras'}[page] || page;
+
+  return (
+    <div className="shell">
+      <Topbar period={period}/>
+      <div className="body-area">
+        <Sidebar active={sideActive} setPage={setPage}/>
+        <div className="main-content">
+          <div className="page-area">
+            {page==='dashboard' && <Dashboard setPage={setPage} setSelEmp={setSelEmp}/>}
+            {page==='colaboradoras' && <ColaboradorasList setPage={setPage} setSelEmp={setSelEmp}/>}
+            {page==='perfil' && selEmp && <ProfilePage emp={selEmp} setPage={setPage}/>}
+            {page==='liquidaciones' && (
+              <SimplePage title="Liquidaciones" sub="Gestión de sueldos">
+                <div className="card">
+                  <p style={{color:'#6B7280',fontSize:13}}>Selecciona una colaboradora para ver sus liquidaciones, o navega a su perfil.</p>
+                </div>
+              </SimplePage>
+            )}
+            {page==='asistencia' && (
+              <SimplePage title="Asistencia" sub="Control de ausencias y permisos">
+                <div className="card">
+                  <div className="empty-state"><div className="empty-icon">📅</div><div className="empty-text">Sin registros de ausencia este mes</div></div>
+                </div>
+              </SimplePage>
+            )}
+            {page==='vacaciones' && (
+              <SimplePage title="Vacaciones y Permisos" sub="Gestión de vacaciones legales">
+                <div className="card">
+                  <div className="empty-state"><div className="empty-icon">🌴</div><div className="empty-text">Sin solicitudes de vacaciones pendientes</div></div>
+                </div>
+              </SimplePage>
+            )}
+            {page==='procesos' && (
+              <SimplePage title="Procesos" sub="Procesos mensuales de remuneraciones">
+                <div className="card">
+                  <div className="empty-state"><div className="empty-icon">📋</div><div className="empty-text">Sin procesos abiertos</div></div>
+                </div>
+              </SimplePage>
+            )}
+            {page==='beneficios' && (
+              <SimplePage title="Beneficios" sub="Beneficios activos para tus colaboradoras">
+                <div className="card">
+                  <div className="empty-state"><div className="empty-icon">🎁</div><div className="empty-text">Sin beneficios configurados</div></div>
+                </div>
+              </SimplePage>
+            )}
+            {page==='configuracion' && (
+              <SimplePage title="Configuración" sub="Ajustes del sistema">
+                <div className="card">
+                  <div className="empty-state"><div className="empty-icon">⚙️</div><div className="empty-text">Configuración del sistema</div></div>
+                </div>
+              </SimplePage>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

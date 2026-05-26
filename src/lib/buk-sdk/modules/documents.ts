@@ -1,51 +1,80 @@
 /**
- * Módulo Documents — Documentos de empleados
+ * Modulo Documents — Documentos del empleado
  *
- * Endpoints:
- *   GET /employees/{id}/documents     → Documentos de un empleado
- *   GET /documents                    → Todos los documentos
+ * Paths alineados con Swagger oficial (validados contra tenant prod 2026-05-09):
+ *   GET   /employees/{id}/docs                 → listar docs de un empleado
+ *   POST  /employees/{id}/docs                 → subir doc
+ *   GET   /employees/{id}/docs/{file_id}       → metadata de un doc
+ *   GET   /docs/{id}                           → especificaciones del doc
+ *   POST  /docs/{id}/signatures/process        → procesar firma
+ *
+ *   ⚠️ ELIMINADO: /documents (sin prefijo /employees) no existe en Buk.
  */
 
-import { BukHttpClient, type BukListResponse } from '../client';
-import type { BukDocument } from '../types/supplementary';
+import { BukHttpClient } from '../client';
+
+export interface BukEmployeeFile {
+  file_id: number;
+  path?: string;
+  filename?: string;
+  visible?: boolean;
+  signable_by_employee?: boolean;
+  signable_by_legal_agent?: boolean;
+  signatures?: unknown[];
+  reviewer_id?: number;
+  created_at?: string;
+  [k: string]: unknown;
+}
+
+export interface BukEmployeeDocsResponse {
+  employee_files: BukEmployeeFile[];
+}
 
 export class DocumentsModule {
   constructor(private readonly client: BukHttpClient) {}
 
   /**
    * Listar documentos de un empleado.
+   * Respuesta no paginada: { employee_files: [...] }
    */
-  async listByEmployee(
-    employeeId: number,
-    page = 1,
-    pageSize?: number
-  ): Promise<BukListResponse<BukDocument>> {
-    return this.client.list<BukDocument>(
-      `/employees/${employeeId}/documents`,
-      undefined,
-      page,
-      pageSize
+  async listEmployeeDocs(employeeId: number): Promise<BukEmployeeFile[]> {
+    const response = await this.client.request<BukEmployeeDocsResponse>(
+      `/employees/${employeeId}/docs`
+    );
+    return response.employee_files || [];
+  }
+
+  /**
+   * Metadata de un documento especifico.
+   */
+  async getEmployeeDoc(employeeId: number, fileId: number): Promise<BukEmployeeFile> {
+    return this.client.request<BukEmployeeFile>(
+      `/employees/${employeeId}/docs/${fileId}`
     );
   }
 
   /**
-   * Todos los documentos de un empleado.
+   * Subir documento. El body debe incluir el archivo en formato base64 o multipart
+   * segun la implementacion de Buk.
    */
-  async listAllByEmployee(employeeId: number): Promise<BukDocument[]> {
-    return this.client.listAll<BukDocument>(`/employees/${employeeId}/documents`);
+  async uploadEmployeeDoc(employeeId: number, data: Record<string, unknown>): Promise<BukEmployeeFile> {
+    return this.client.post<BukEmployeeFile>(
+      `/employees/${employeeId}/docs`,
+      data
+    );
   }
 
   /**
-   * Listar todos los documentos del sistema.
+   * Especificaciones del documento por su id global.
    */
-  async list(
-    filters?: { document_type?: string },
-    page = 1,
-    pageSize?: number
-  ): Promise<BukListResponse<BukDocument>> {
-    const params: Record<string, string | number | boolean | undefined> = {};
-    if (filters?.document_type) params.document_type = filters.document_type;
+  async getDocSpec(docId: number): Promise<unknown> {
+    return this.client.request<unknown>(`/docs/${docId}`);
+  }
 
-    return this.client.list<BukDocument>('/documents', params, page, pageSize);
+  /**
+   * Procesar firma de un documento.
+   */
+  async processSignature(docId: number, data: Record<string, unknown>): Promise<unknown> {
+    return this.client.post<unknown>(`/docs/${docId}/signatures/process`, data);
   }
 }

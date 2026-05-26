@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\ManuelAravena\\\\Poppins_Buk\" -Force)",
+      "Bash(Select-Object Name, FullName, PSIsContainer)",
+      "Bash(Format-Table -AutoSize)",
+      "PowerShell($items = Get-ChildItem \"c:\\\\Users\\\\ManuelAravena\\\\Poppins_Buk\\\\node_modules\" -ErrorAction SilentlyContinue; Write-Output \"Count: $\\($items.Count\\)\")",
+      "PowerShell($next = Get-ChildItem \"c:\\\\Users\\\\ManuelAravena\\\\Poppins_Buk\\\\node_modules\" -Filter \"next\" -Directory -ErrorAction SilentlyContinue; Write-Output \"next exists: $\\($next -ne $null\\)\")"
+    ]
+  }
+}

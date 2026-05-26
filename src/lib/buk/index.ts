@@ -1,14 +1,15 @@
 /**
- * Service Layer — Punto de entrada único para datos.
+ * Service Layer — Punto de entrada unico para datos.
  *
  * Prioridad:
- * 1. USE_MOCK_DATA=true → mock data (dev sin conexiones)
- * 2. Supabase (si hay datos en DB) → lectura local
- * 3. BUK SDK → fetch remoto tipado
+ * 1. USE_MOCK_DATA=true -> mock data (dev sin conexiones)
+ * 2. Supabase (si hay datos en DB) -> lectura local
+ * 3. BUK SDK -> fetch remoto tipado
  */
 
 import { getBukSDK } from '@/lib/buk-sdk';
 import type { BukEmployeeSummary } from '@/lib/buk-sdk/types/employees';
+import type { BukPayrollDetail, BukPayrollLine } from '@/lib/buk-sdk/modules/payroll';
 import { mapBukEmployees, mapBukPayrollItems, mapBukAbsences } from './mappers';
 import { MOCK_EMPLOYEES, MOCK_PAYROLL_ITEMS, MOCK_ABSENCES, MOCK_BENEFITS } from './mock-data';
 import type { Employee, Payroll, Absence, Benefit } from '@/types/database';
@@ -16,8 +17,7 @@ import { createClient } from '@/lib/supabase/server';
 
 const useMock = process.env.USE_MOCK_DATA === 'true';
 
-// ── Helper: mapear BukEmployeeSummary → PoppinsEmployee shape ──
-
+// Helper: mapear BukEmployeeSummary -> PoppinsEmployee shape
 function mapSdkEmployee(emp: BukEmployeeSummary) {
   return {
     id: emp.id,
@@ -41,21 +41,14 @@ function mapSdkEmployee(emp: BukEmployeeSummary) {
   };
 }
 
-// ── Employees ──
+// Employees
 
 export async function getEmployees() {
-  if (useMock) {
-    return mapBukEmployees(MOCK_EMPLOYEES);
-  }
+  if (useMock) return mapBukEmployees(MOCK_EMPLOYEES);
 
-  // Intentar Supabase primero
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase
-      .from('employees')
-      .select('*')
-      .order('nombre');
-
+    const { data, error } = await supabase.from('employees').select('*').order('nombre');
     const rows = data as unknown as Employee[] | null;
     if (!error && rows && rows.length > 0) {
       return rows.map(emp => ({
@@ -79,11 +72,8 @@ export async function getEmployees() {
         empleador: '',
       }));
     }
-  } catch {
-    // Supabase no disponible, seguir con BUK SDK
-  }
+  } catch { /* Supabase no disponible */ }
 
-  // Fallback: BUK SDK
   const sdk = getBukSDK();
   const response = await sdk.employees.listActive();
   return response.data.map(mapSdkEmployee);
@@ -120,8 +110,63 @@ export async function getEmployee(id: number) {
   };
 }
 
-// ── Payroll ──
+// Helpers para mapear lines_settlement -> campos Poppins
+function sumLines(
+  lines: BukPayrollLine[],
+  predicate: (l: BukPayrollLine) => boolean
+): number {
+  return lines.filter(predicate).reduce((acc, l) => acc + (Number(l.amount) || 0), 0);
+}
 
+function mapBukPayrollDetailToPoppins(d: BukPayrollDetail) {
+  const lines = d.lines_settlement || [];
+  const lc = (s: unknown) => String(s || '').toLowerCase();
+
+  const sueldoBase = sumLines(lines, l => lc(l.name).includes('sueldo base') || lc(l.income_type) === 'remuneracion_fija');
+  const horasExtra = sumLines(lines, l => lc(l.name).includes('hora extra') || lc(l.income_type).includes('overtime'));
+  const bonos = sumLines(lines, l => l.type === 'haber' && lc(l.income_type).includes('bono'));
+  const gratificacion = sumLines(lines, l => lc(l.name).includes('gratific'));
+
+  const descSalud = sumLines(lines, l => l.type === 'descuento' && (lc(l.name).includes('salud') || lc(l.name).includes('isapre') || lc(l.name).includes('fonasa')));
+  const descAfp = sumLines(lines, l => l.type === 'descuento' && lc(l.name).includes('afp'));
+  const descCesantia = sumLines(lines, l => l.type === 'descuento' && lc(l.name).includes('cesant'));
+  const impuestoUnico = sumLines(lines, l => l.type === 'descuento' && (lc(l.name).includes('impuesto') || lc(l.name).includes('iuss')));
+
+  const totalHaberes = d.income_gross || sumLines(lines, l => l.type === 'haber');
+  const totalDescuentos = (d.total_legal_discounts || 0) + (d.total_other_discounts || 0);
+  const otrosDescuentos = Math.max(0, totalDescuentos - descSalud - descAfp - descCesantia - impuestoUnico);
+
+  return {
+    id: d.liquidacion_id,
+    empleadoId: d.employee_id,
+    periodo: `${d.year}-${String(d.month).padStart(2, '0')}`,
+    sueldoBruto: totalHaberes,
+    sueldoBase,
+    horasExtra,
+    bonos,
+    gratificacion,
+    descSalud,
+    descAfp,
+    descCesantia,
+    impuestoUnico,
+    otrosDescuentos,
+    totalHaberes,
+    totalDescuentos,
+    liquido: d.liquid_reach ?? d.income_net,
+    estado: d.closed ? 'Pagado' : 'Pendiente',
+    fechaPago: null as string | null,
+  };
+}
+
+// Payroll
+
+/**
+ * Liquidaciones del periodo o de un empleado.
+ *
+ * Usa GET /employees/{id}/payroll_detail (per-employee) o GET /payroll_detail/month (todos).
+ * El shape real de Buk: liquidacion_id, income_gross, income_net, lines_settlement[], etc.
+ * Hacemos un mapeo a PoppinsLiquidacion derivando haberes/descuentos de lines_settlement.
+ */
 export async function getPayrollItems(employeeId?: number) {
   if (useMock) {
     const items = employeeId
@@ -130,7 +175,6 @@ export async function getPayrollItems(employeeId?: number) {
     return mapBukPayrollItems(items);
   }
 
-  // Intentar Supabase
   try {
     const supabase = await createClient();
     let query = supabase.from('payroll').select('*').order('periodo', { ascending: false });
@@ -168,41 +212,63 @@ export async function getPayrollItems(employeeId?: number) {
 
   // Fallback: BUK SDK
   const sdk = getBukSDK();
-  const processes = await sdk.payroll.listAllProcesses();
-  const allItems = [];
-  for (const process of processes) {
-    const items = await sdk.payroll.listAllItems(
-      process.id,
-      employeeId ? { employee_id: employeeId } : undefined
-    );
-    allItems.push(...items);
-  }
-  const filtered = employeeId
-    ? allItems.filter(i => i.employee_id === employeeId)
-    : allItems;
-  return filtered.map(item => ({
-    id: item.id,
-    empleadoId: item.employee_id,
-    periodo: item.period,
-    sueldoBruto: item.total_earnings,
-    sueldoBase: item.base_salary,
-    horasExtra: item.overtime_amount,
-    bonos: item.bonuses,
-    gratificacion: item.gratification,
-    descSalud: item.health_amount,
-    descAfp: item.afp_amount,
-    descCesantia: item.unemployment_insurance,
-    impuestoUnico: item.tax_amount,
-    otrosDescuentos: item.other_deductions,
-    totalHaberes: item.total_earnings,
-    totalDescuentos: item.total_deductions,
-    liquido: item.net_salary,
-    estado: item.status === 'paid' ? 'Pagado' : 'Pendiente',
-    fechaPago: item.payment_date || null,
-  }));
+  const details = employeeId
+    ? await sdk.payroll.getEmployeeHistory(employeeId)
+    : await sdk.payroll.listAllMonthly();
+
+  return details.map(d => {
+    // Helper: sumar lines que cumplen un predicado
+    const sumLines = (pred: (l: typeof d.lines_settlement[number]) => boolean) =>
+      (d.lines_settlement || []).filter(pred).reduce((acc, l) => acc + (Number(l.amount) || 0), 0);
+
+    const find = (pred: (l: typeof d.lines_settlement[number]) => boolean) =>
+      (d.lines_settlement || []).find(pred);
+
+    const haberes = (d.lines_settlement || []).filter(l => l.type === 'haber');
+    const descuentos = (d.lines_settlement || []).filter(l => l.type === 'descuento');
+
+    const sueldoBaseLine = find(l => l.type === 'haber' && /sueldo base/i.test(String(l.name)));
+    const horasExtraSum = sumLines(l => l.type === 'haber' && /hora.?extra/i.test(String(l.name)));
+    const bonosSum = sumLines(l => l.type === 'haber' && /bono/i.test(String(l.name)));
+    const gratifLine = find(l => l.type === 'haber' && /gratific/i.test(String(l.name)));
+    const saludLine = find(l => l.type === 'descuento' && /(salud|isapre|fonasa)/i.test(String(l.name)));
+    const afpLine = find(l => l.type === 'descuento' && /afp/i.test(String(l.name)));
+    const cesantiaLine = find(l => l.type === 'descuento' && /cesant/i.test(String(l.name)));
+    const impuestoLine = find(l => l.type === 'descuento' && /impuesto/i.test(String(l.name)));
+
+    const descSalud = Number(saludLine?.amount || 0);
+    const descAfp = Number(afpLine?.amount || 0);
+    const descCesantia = Number(cesantiaLine?.amount || 0);
+    const impuestoUnico = Number(impuestoLine?.amount || 0);
+    const totalDescuentos = descuentos.reduce((a, l) => a + (Number(l.amount) || 0), 0);
+    const otrosDescuentos = Math.max(0, totalDescuentos - descSalud - descAfp - descCesantia - impuestoUnico);
+    const totalHaberes = haberes.reduce((a, l) => a + (Number(l.amount) || 0), 0);
+
+    const periodoMes = String(d.month).padStart(2, '0');
+    return {
+      id: d.liquidacion_id,
+      empleadoId: d.employee_id,
+      periodo: `${d.year}-${periodoMes}`,
+      sueldoBruto: Number(d.income_gross) || totalHaberes,
+      sueldoBase: Number(sueldoBaseLine?.amount || 0),
+      horasExtra: horasExtraSum,
+      bonos: bonosSum,
+      gratificacion: Number(gratifLine?.amount || 0),
+      descSalud,
+      descAfp,
+      descCesantia,
+      impuestoUnico,
+      otrosDescuentos,
+      totalHaberes: totalHaberes || Number(d.income_gross) || 0,
+      totalDescuentos: totalDescuentos || (Number(d.total_legal_discounts) || 0) + (Number(d.total_other_discounts) || 0),
+      liquido: Number(d.liquid_reach) || Number(d.income_net) || 0,
+      estado: d.closed ? 'Pagado' : 'Pendiente',
+      fechaPago: null as string | null,
+    };
+  }).filter(item => !employeeId || item.empleadoId === employeeId);
 }
 
-// ── Absences ──
+// Absences
 
 export async function getAbsences(employeeId?: number) {
   if (useMock) {
@@ -212,15 +278,11 @@ export async function getAbsences(employeeId?: number) {
     return mapBukAbsences(items);
   }
 
-  // Intentar Supabase
   try {
     const supabase = await createClient();
     let query = supabase.from('absences').select('*').order('fecha_inicio', { ascending: false });
-    if (employeeId) {
-      query = query.eq('employee_id', employeeId);
-    }
+    if (employeeId) query = query.eq('employee_id', employeeId);
     const { data, error } = await query;
-
     const rows = data as unknown as Absence[] | null;
     if (!error && rows && rows.length > 0) {
       return rows.map(a => ({
@@ -236,11 +298,8 @@ export async function getAbsences(employeeId?: number) {
         observaciones: a.observaciones ?? '',
       }));
     }
-  } catch {
-    // Supabase no disponible
-  }
+  } catch { /* Supabase no disponible */ }
 
-  // Fallback: BUK SDK
   const sdk = getBukSDK();
   const response = await sdk.absences.listAbsences(
     employeeId ? { employee_id: employeeId } : undefined
@@ -259,53 +318,91 @@ export async function getAbsences(employeeId?: number) {
   }));
 }
 
+/**
+ * Crear una ausencia/vacacion/licencia/permiso.
+ * Fase 1: ahora soporta vacaciones, licencias y permisos contra paths reales.
+ */
 export async function createAbsence(absenceData: Record<string, unknown>) {
-  if (useMock) {
-    return { success: true, id: Date.now() };
+  if (useMock) return { success: true, id: Date.now(), mock: true };
+
+  const tipo = String(absenceData.tipo || absenceData.absence_type || 'vacaciones').toLowerCase();
+  const employeeId = Number(absenceData.employee_id ?? absenceData.empleadoId ?? absenceData.empleado_id);
+  const startDate = String(absenceData.start_date ?? absenceData.fecha_inicio ?? absenceData.inicio ?? '');
+  const endDate = String(absenceData.end_date ?? absenceData.fecha_fin ?? absenceData.fin ?? '');
+  const days = Number(absenceData.days ?? absenceData.dias ?? 0);
+  const observations = absenceData.observations ?? absenceData.observaciones;
+
+  if (!employeeId || !startDate || !endDate) {
+    return { success: false as const, error: 'Faltan campos obligatorios: employee_id, fecha_inicio, fecha_fin' };
   }
 
-  // Escribir en Supabase
+  const sdk = getBukSDK();
+
   try {
-    const supabase = await createClient();
-    const insertData = {
-      employee_id: absenceData.employee_id as string,
-      tipo: absenceData.tipo as string,
-      fecha_inicio: absenceData.fecha_inicio as string,
-      fecha_fin: absenceData.fecha_fin as string,
-      dias: absenceData.dias as number,
-    };
-    const { data: inserted, error } = await supabase
-      .from('absences')
-      .insert(insertData as never)
-      .select()
-      .single();
-
-    if (!error && inserted) {
-      const row = inserted as unknown as Absence;
-      return { success: true, id: row.id };
+    if (tipo === 'vacaciones' || tipo === 'vacation' || tipo === 'vacations') {
+      const created = await sdk.absences.createVacation({
+        employee_id: employeeId,
+        start_date: startDate,
+        end_date: endDate,
+        days: days || (undefined as unknown as number),
+        half_day: Boolean(absenceData.half_day ?? absenceData.medio_dia),
+        vacation_type: (absenceData.vacation_type as string) || undefined,
+        observations: observations as string | undefined,
+      });
+      return { success: true as const, id: created.id, source: 'buk' as const };
     }
-  } catch {
-    // Fallback
+
+    if (tipo === 'licencia' || tipo === 'licencia_medica' || tipo === 'license') {
+      const created = await sdk.absences.createLicense({
+        employee_id: employeeId,
+        start_date: startDate,
+        end_date: endDate,
+        days: days || (undefined as unknown as number),
+        license_type: (absenceData.license_type as string) || 'licencia',
+        observations: observations as string | undefined,
+      });
+      return { success: true as const, id: created.id, source: 'buk' as const };
+    }
+
+    if (tipo === 'permiso' || tipo === 'permission') {
+      const created = await sdk.absences.createPermission({
+        employee_id: employeeId,
+        start_date: startDate,
+        end_date: endDate,
+        days: days || (undefined as unknown as number),
+        permission_type: (absenceData.permission_type as string) || 'permiso',
+        observations: observations as string | undefined,
+      });
+      return { success: true as const, id: created.id, source: 'buk' as const };
+    }
+
+    if (tipo === 'inasistencia' || tipo === 'ausencia' || tipo === 'absence') {
+      const created = await sdk.absences.createAbsenceRecord({
+        employee_id: employeeId,
+        start_date: startDate,
+        end_date: endDate,
+        days: days || undefined,
+        absence_type: (absenceData.absence_type_id as number) || undefined,
+        observations: observations || undefined,
+      });
+      return { success: true as const, id: created.id, source: 'buk' as const };
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Error desconocido al crear ausencia en Buk';
+    return { success: false as const, error: message };
   }
 
-  return { success: false, error: 'Absence creation requires Supabase or specific SDK method' };
+  return { success: false as const, error: `Tipo '${tipo}' no reconocido. Validos: vacaciones, licencia, permiso, inasistencia.` };
 }
 
-// ── Benefits ──
+// Benefits
 
 export async function getBenefits() {
-  if (useMock) {
-    return MOCK_BENEFITS;
-  }
+  if (useMock) return MOCK_BENEFITS;
 
-  // Intentar Supabase
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase
-      .from('benefits')
-      .select('*')
-      .eq('activo', true);
-
+    const { data, error } = await supabase.from('benefits').select('*').eq('activo', true);
     const rows = data as unknown as Benefit[] | null;
     if (!error && rows && rows.length > 0) {
       return rows.map(b => ({
@@ -315,9 +412,7 @@ export async function getBenefits() {
         amount: b.monto,
       }));
     }
-  } catch {
-    // Supabase no disponible
-  }
+  } catch { /* Supabase no disponible */ }
 
   return [];
 }

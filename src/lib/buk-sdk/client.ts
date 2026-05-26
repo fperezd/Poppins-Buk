@@ -37,7 +37,7 @@ export interface BukClientConfig {
 }
 
 export interface BukRequestOptions {
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: Record<string, unknown>;
   params?: Record<string, string | number | boolean | undefined>;
   /** Override default timeout for this request */
@@ -216,6 +216,13 @@ export class BukHttpClient {
    */
   async put<T>(endpoint: string, body: Record<string, unknown>): Promise<T> {
     return this.request<T>(endpoint, { method: 'PUT', body });
+  }
+
+  /**
+   * PATCH to partially update a resource.
+   */
+  async patch<T>(endpoint: string, body: Record<string, unknown>): Promise<T> {
+    return this.request<T>(endpoint, { method: 'PATCH', body });
   }
 
   /**

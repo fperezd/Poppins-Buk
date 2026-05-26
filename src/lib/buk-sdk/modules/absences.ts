@@ -1,15 +1,26 @@
 /**
- * Módulo Absences — Vacaciones, Licencias, Permisos
+ * Modulo Absences — Vacaciones, Licencias, Permisos, Inasistencias
  *
- * Endpoints:
- *   GET    /employees/{id}/vacations       → Vacaciones de un empleado
- *   GET    /absences                       → Ausencias generales
- *   POST   /absences                       → Crear ausencia
- *   PUT    /absences/{id}                  → Actualizar ausencia
- *   GET    /licenses                       → Licencias médicas
- *   POST   /licenses                       → Crear licencia
- *   GET    /permissions                    → Permisos
- *   POST   /permissions                    → Crear permiso
+ * Paths alineados con Swagger oficial Buk (validados contra tenant prod 2026-05-09):
+ *   GET   /vacations                          → vacaciones (filtrar por employee_id)
+ *   POST  /vacations                          → crear vacacion
+ *   DELETE /vacations                         → eliminar vacacion (Swagger lo expone)
+ *   GET   /employees/{id}/earned_vacations    → vacaciones devengadas (balance)
+ *   GET   /employees/{id}/vacations_available → vacaciones disponibles + info empleado
+ *
+ *   GET   /absences/licence                   → licencias medicas
+ *   POST  /absences/licence                   → crear licencia
+ *   GET   /absences/licence/types             → tipos disponibles
+ *
+ *   GET   /absences/permission                → permisos
+ *   POST  /absences/permission                → crear permiso
+ *   GET   /absences/permission/types          → tipos disponibles
+ *
+ *   GET   /absences/absence                   → inasistencias
+ *   POST  /absences/absence                   → crear inasistencia
+ *   GET   /absences/absence/types             → tipos disponibles
+ *
+ *   GET   /absences                           → vista unificada de ausencias
  */
 
 import { BukHttpClient, type BukListResponse } from '../client';
@@ -26,173 +37,218 @@ import type {
   VacationFilters,
 } from '../types/absences';
 
+type Filters = Record<string, string | number | boolean | undefined>;
+
+function toParams(f?: Record<string, unknown> | object): Filters {
+  const out: Filters = {};
+  if (!f) return out;
+  for (const [k, v] of Object.entries(f)) {
+    if (v === undefined || v === null) continue;
+    if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
+      out[k] = v;
+    }
+  }
+  return out;
+}
+
 export class AbsencesModule {
   constructor(private readonly client: BukHttpClient) {}
 
   // ── Vacaciones ──
 
   /**
-   * Listar vacaciones de un empleado.
+   * Listar vacaciones. Filtrar por employee_id en filters.
    */
   async listVacations(
-    employeeId: number,
-    filters?: VacationFilters,
-    page = 1,
+    employeeIdOrFilters: number | (VacationFilters & { employee_id?: number }),
+    pageOrUndefined?: number | VacationFilters,
     pageSize?: number
   ): Promise<BukListResponse<BukVacation>> {
-    const params: Record<string, string | number | boolean | undefined> = {};
-    if (filters?.status) params.status = filters.status;
-    if (filters?.start_date) params.start_date = filters.start_date;
-    if (filters?.end_date) params.end_date = filters.end_date;
+    let employeeId: number | undefined;
+    let filters: VacationFilters | undefined;
+    let page = 1;
 
-    return this.client.list<BukVacation>(
-      `/employees/${employeeId}/vacations`,
-      params,
-      page,
-      pageSize
-    );
+    if (typeof employeeIdOrFilters === 'number') {
+      employeeId = employeeIdOrFilters;
+      filters = pageOrUndefined as VacationFilters | undefined;
+    } else {
+      employeeId = employeeIdOrFilters?.employee_id;
+      const { employee_id: _ignore, ...rest } = employeeIdOrFilters || {};
+      void _ignore;
+      filters = rest as VacationFilters;
+      page = (pageOrUndefined as number) || 1;
+    }
+
+    return this.client.list<BukVacation>('/vacations', toParams({
+      employee_id: employeeId,
+      ...filters,
+    }), page, pageSize);
   }
 
   /**
-   * Todas las vacaciones de un empleado (auto-paginación).
+   * Todas las vacaciones de un empleado (auto-paginacion).
    */
   async listAllVacations(employeeId: number, filters?: VacationFilters): Promise<BukVacation[]> {
-    const params: Record<string, string | number | boolean | undefined> = {};
-    if (filters?.status) params.status = filters.status;
-    if (filters?.start_date) params.start_date = filters.start_date;
-    if (filters?.end_date) params.end_date = filters.end_date;
-
-    return this.client.listAll<BukVacation>(`/employees/${employeeId}/vacations`, params);
+    return this.client.listAll<BukVacation>('/vacations', toParams({
+      employee_id: employeeId,
+      ...filters,
+    }));
   }
 
   /**
-   * Crear solicitud de vacaciones.
+   * Crear solicitud de vacaciones. POST /vacations
    */
   async createVacation(data: CreateVacationRequest): Promise<BukVacation> {
     return this.client.post<BukVacation>('/vacations', data as unknown as Record<string, unknown>);
   }
 
   /**
-   * Saldo de vacaciones de un empleado.
-   * Nota: Este endpoint puede no estar disponible en todas las versiones de Buk.
+   * Vacaciones devengadas de un empleado (balance detallado por periodo).
+   * Endpoint real: GET /employees/{id}/earned_vacations
    */
-  async getVacationBalance(employeeId: number): Promise<BukVacationBalance> {
-    const response = await this.client.get<BukVacationBalance>(
-      `/employees/${employeeId}/vacation_balance`
-    );
+  async getEarnedVacations(employeeId: number): Promise<{
+    vacation_definition_id: number;
+    vacation_type_id: number;
+    earned_days: number;
+    period_start_date: string;
+    earned_at: string | null;
+    proportional: boolean;
+    compensated: boolean;
+    expiration_date: string | null;
+  }[]> {
+    const response = await this.client.list<{
+      vacation_definition_id: number;
+      vacation_type_id: number;
+      earned_days: number;
+      period_start_date: string;
+      earned_at: string | null;
+      proportional: boolean;
+      compensated: boolean;
+      expiration_date: string | null;
+    }>(`/employees/${employeeId}/earned_vacations`);
     return response.data;
   }
 
-  // ── Licencias Médicas ──
-
   /**
-   * Listar licencias médicas.
+   * Saldo de vacaciones por tipo + datos generales del empleado.
+   * Endpoint real: GET /employees/{id}/vacations_available
+   *
+   * Devuelve un objeto rico (no paginado) con employee info + array vacations.
    */
+  async getVacationBalance(employeeId: number): Promise<BukVacationBalance & {
+    full_name?: string;
+    vacations?: { name: string; stock: number }[];
+    [k: string]: unknown;
+  }> {
+    return this.client.request<BukVacationBalance & {
+      full_name?: string;
+      vacations?: { name: string; stock: number }[];
+      [k: string]: unknown;
+    }>(`/employees/${employeeId}/vacations_available`);
+  }
+
+  // ── Licencias Medicas ──
+
   async listLicenses(
     filters?: AbsenceFilters,
     page = 1,
     pageSize?: number
   ): Promise<BukListResponse<BukLicense>> {
-    const params: Record<string, string | number | boolean | undefined> = {};
-    if (filters?.employee_id) params.employee_id = filters.employee_id;
-    if (filters?.start_date) params.start_date = filters.start_date;
-    if (filters?.end_date) params.end_date = filters.end_date;
-    if (filters?.status) params.status = filters.status;
-
-    return this.client.list<BukLicense>('/licenses', params, page, pageSize);
+    return this.client.list<BukLicense>('/absences/licence', toParams(filters), page, pageSize);
   }
 
-  /**
-   * Todas las licencias (auto-paginación).
-   */
   async listAllLicenses(filters?: AbsenceFilters): Promise<BukLicense[]> {
-    const params: Record<string, string | number | boolean | undefined> = {};
-    if (filters?.employee_id) params.employee_id = filters.employee_id;
-    if (filters?.start_date) params.start_date = filters.start_date;
-    if (filters?.end_date) params.end_date = filters.end_date;
-    if (filters?.status) params.status = filters.status;
+    return this.client.listAll<BukLicense>('/absences/licence', toParams(filters));
+  }
 
-    return this.client.listAll<BukLicense>('/licenses', params);
+  async createLicense(data: CreateLicenseRequest): Promise<BukLicense> {
+    return this.client.post<BukLicense>('/absences/licence', data as unknown as Record<string, unknown>);
   }
 
   /**
-   * Crear licencia médica.
+   * Tipos de licencia configurados en la cuenta.
    */
-  async createLicense(data: CreateLicenseRequest): Promise<BukLicense> {
-    return this.client.post<BukLicense>('/licenses', data as unknown as Record<string, unknown>);
+  async listLicenseTypes(): Promise<BukListResponse<BukAbsenceType>> {
+    return this.client.list<BukAbsenceType>('/absences/licence/types');
   }
 
   // ── Permisos ──
 
-  /**
-   * Listar permisos.
-   */
   async listPermissions(
     filters?: AbsenceFilters,
     page = 1,
     pageSize?: number
   ): Promise<BukListResponse<BukPermission>> {
-    const params: Record<string, string | number | boolean | undefined> = {};
-    if (filters?.employee_id) params.employee_id = filters.employee_id;
-    if (filters?.start_date) params.start_date = filters.start_date;
-    if (filters?.end_date) params.end_date = filters.end_date;
-    if (filters?.status) params.status = filters.status;
-
-    return this.client.list<BukPermission>('/permissions', params, page, pageSize);
+    return this.client.list<BukPermission>('/absences/permission', toParams(filters), page, pageSize);
   }
 
-  /**
-   * Todos los permisos (auto-paginación).
-   */
   async listAllPermissions(filters?: AbsenceFilters): Promise<BukPermission[]> {
-    const params: Record<string, string | number | boolean | undefined> = {};
-    if (filters?.employee_id) params.employee_id = filters.employee_id;
-    if (filters?.start_date) params.start_date = filters.start_date;
-    if (filters?.end_date) params.end_date = filters.end_date;
-    if (filters?.status) params.status = filters.status;
-
-    return this.client.listAll<BukPermission>('/permissions', params);
+    return this.client.listAll<BukPermission>('/absences/permission', toParams(filters));
   }
 
-  /**
-   * Crear permiso.
-   */
   async createPermission(data: CreatePermissionRequest): Promise<BukPermission> {
-    return this.client.post<BukPermission>('/permissions', data as unknown as Record<string, unknown>);
+    return this.client.post<BukPermission>('/absences/permission', data as unknown as Record<string, unknown>);
+  }
+
+  async listPermissionTypes(): Promise<BukListResponse<BukAbsenceType>> {
+    return this.client.list<BukAbsenceType>('/absences/permission/types');
+  }
+
+  // ── Inasistencias (absence) ──
+
+  async listAbsenceRecords(
+    filters?: AbsenceFilters,
+    page = 1,
+    pageSize?: number
+  ): Promise<BukListResponse<BukAbsence>> {
+    return this.client.list<BukAbsence>('/absences/absence', toParams(filters), page, pageSize);
+  }
+
+  async createAbsenceRecord(data: Record<string, unknown>): Promise<BukAbsence> {
+    return this.client.post<BukAbsence>('/absences/absence', data);
+  }
+
+  async listAbsenceTypes(): Promise<BukListResponse<BukAbsenceType>> {
+    return this.client.list<BukAbsenceType>('/absences/absence/types');
   }
 
   // ── Ausencias (vista unificada) ──
 
   /**
-   * Listar todas las ausencias.
+   * GET /absences (vista unificada de todas las ausencias).
    */
   async listAbsences(
     filters?: AbsenceFilters,
     page = 1,
     pageSize?: number
   ): Promise<BukListResponse<BukAbsence>> {
-    const params: Record<string, string | number | boolean | undefined> = {};
-    if (filters?.employee_id) params.employee_id = filters.employee_id;
-    if (filters?.start_date) params.start_date = filters.start_date;
-    if (filters?.end_date) params.end_date = filters.end_date;
-    if (filters?.status) params.status = filters.status;
-    if (filters?.absence_type) params.absence_type = filters.absence_type;
-
-    return this.client.list<BukAbsence>('/absences', params, page, pageSize);
+    return this.client.list<BukAbsence>('/absences', toParams(filters), page, pageSize);
   }
 
-  /**
-   * Todas las ausencias de un empleado en un rango de fechas.
-   */
   async getEmployeeAbsences(
     employeeId: number,
     startDate?: string,
     endDate?: string
   ): Promise<BukAbsence[]> {
-    return this.client.listAll<BukAbsence>('/absences', {
+    return this.client.listAll<BukAbsence>('/absences', toParams({
       employee_id: employeeId,
       start_date: startDate,
       end_date: endDate,
-    });
+    }));
   }
+}
+
+/**
+ * Tipo de ausencia/licencia/permiso (catalogo).
+ */
+export interface BukAbsenceType {
+  id: number;
+  kind: 'ausencia' | 'licencia' | 'permiso' | string;
+  name: string;
+  description?: string;
+  code?: string;
+  with_pay?: boolean;
+  time_measure?: 'per_day' | 'per_hour' | string;
+  requestable?: boolean;
+  editable?: boolean;
 }
