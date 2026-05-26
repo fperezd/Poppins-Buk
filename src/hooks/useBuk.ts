@@ -146,9 +146,87 @@ export function useCreateAbsence() {
   return useMutation<unknown>('/api/buk/absences', 'POST');
 }
 
+export function useAttendance(startDate?: string, endDate?: string) {
+  const params = new URLSearchParams();
+  if (startDate) params.set('startDate', startDate);
+  if (endDate) params.set('endDate', endDate);
+  const qs = params.toString();
+  return useApi<Array<{
+    employee_id: number;
+    nombre: string;
+    iniciales?: string;
+    color?: string;
+    dias?: Record<string, string>;
+    total_trabajados: number;
+    horas_no_trabajadas: number;
+  }>>(`/api/buk/attendance${qs ? `?${qs}` : ''}`);
+}
+
 export function useHealthCheck() {
   return useApi<{ ok: boolean; latencyMs: number; error?: string }>(
     '/api/buk/health-check',
     false
   );
+}
+
+export function useVacationBalance(employeeId?: number) {
+  const url = employeeId
+    ? `/api/buk/vacation-balance?employeeId=${employeeId}`
+    : '/api/buk/vacation-balance';
+  return useApi<
+    | Array<{
+        empleadoId: number;
+        nombre?: string;
+        diasTotales: number;
+        diasUsados: number;
+        diasPendientes: number;
+        diasDisponibles: number;
+        diasProgresivos: number;
+        fechaCorte: string;
+      }>
+    | {
+        empleadoId: number;
+        diasTotales: number;
+        diasUsados: number;
+        diasPendientes: number;
+        diasDisponibles: number;
+        diasProgresivos: number;
+        fechaCorte: string;
+      }
+    | null
+  >(url);
+}
+
+export function useFamilyMembers(employeeId: number | null) {
+  return useApi<Array<{
+    id: number;
+    empleadoId: number;
+    nombre: string;
+    apellido: string;
+    parentesco: string;
+    rut: string;
+    fechaNacimiento: string;
+    edad: number;
+    esCargaFamiliar: boolean;
+    genero: string;
+  }>>(
+    employeeId ? `/api/buk/family?employeeId=${employeeId}` : '',
+    employeeId !== null
+  );
+}
+
+export function useDocuments(employeeId?: number) {
+  const url = employeeId
+    ? `/api/buk/documents?employeeId=${employeeId}`
+    : '/api/buk/documents';
+  return useApi<Array<{
+    id: number;
+    empleadoId: number;
+    empleadoNombre?: string;
+    tipo: string;
+    nombre: string;
+    fechaCreacion: string;
+    estado: string;
+    url?: string;
+  }>>(url);
 }

@@ -15,6 +15,10 @@ const NAV_ITEMS = [
   { id: 'horasextra', label: 'Horas Extra', icon: '⏰', href: '/dashboard/horas-extra' },
   { section: 'Beneficios' },
   { id: 'beneficios', label: 'Beneficios', icon: '🎁', href: '/dashboard/beneficios' },
+  { section: 'Documentación' },
+  { id: 'documentos', label: 'Documentos', icon: '📄', href: '/dashboard/documentos' },
+  { section: 'Empresa Agentica' },
+  { id: 'empresa', label: 'Mi Empresa', icon: '🤖', href: '/dashboard/empresa' },
   { section: 'Sistema' },
   { id: 'configuracion', label: 'Configuración', icon: '⚙️', href: '/dashboard/configuracion' },
 ];
@@ -70,7 +74,7 @@ export default function Sidebar() {
       </div>
 
       {/* User */}
-      <div className="mt-auto px-4 py-[14px] border-t border-white/[0.07]">
+      <Link href="/dashboard/perfil" className="mt-auto px-4 py-[14px] border-t border-white/[0.07] hover:bg-white/[0.05] transition rounded-lg mx-2 mb-2">
         <div className="flex items-center gap-[9px]">
           <div className="w-8 h-8 rounded-full bg-[#F0197A]/70 flex items-center justify-center text-xs font-bold text-white shrink-0">
             RA
@@ -80,7 +84,7 @@ export default function Sidebar() {
             <div className="text-[10px] text-white/[0.38]">Administrador</div>
           </div>
         </div>
-      </div>
+      </Link>
     </nav>
   );
 }
