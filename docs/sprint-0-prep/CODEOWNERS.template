@@ -1,0 +1,140 @@
+# CODEOWNERS — `poppins-<repo>`
+#
+# Este archivo define quién es review-required para cada path.
+# GitHub bloquea merge si un PR toca paths con owners y los owners no aprobaron.
+#
+# Sintaxis: <pattern> <@user1> <@team1>
+#
+# Customizar el template según el repo:
+#   - poppins-contracts: CTO + Product Lead (ambos para major, cualquiera para minor/patch)
+#   - poppins-api-id: CTO primario, Product Lead opcional cross-cutting
+#   - poppins-api-buk: CTO primario
+#   - poppins-web: Product Lead primario, CTO secundario para integrations
+
+# ============================================================
+# TEMPLATE: poppins-contracts/.github/CODEOWNERS
+# ============================================================
+
+# * @fperez-tooxs @product-lead-poppins
+#
+# # Schemas críticos requieren ambos aprobadores (override)
+# /src/schemas/auth.ts        @fperez-tooxs @product-lead-poppins
+# /src/schemas/billing.ts     @fperez-tooxs @product-lead-poppins
+# /src/schemas/tenants.ts     @fperez-tooxs @product-lead-poppins
+# /src/schemas/compliance.ts  @fperez-tooxs @product-lead-poppins
+#
+# # Docs: cualquiera aprueba
+# /docs/                      @fperez-tooxs @product-lead-poppins
+#
+# # CI/release: solo CTO
+# /.github/workflows/         @fperez-tooxs
+# /package.json               @fperez-tooxs
+# /tsup.config.ts             @fperez-tooxs
+
+# ============================================================
+# TEMPLATE: poppins-api-id/.github/CODEOWNERS
+# ============================================================
+
+# * @fperez-tooxs
+#
+# # Auth y security: solo CTO
+# /src/lib/auth/              @fperez-tooxs
+# /src/lib/supabase/          @fperez-tooxs
+# /src/middleware.ts          @fperez-tooxs
+# /supabase/migrations/       @fperez-tooxs
+#
+# # Billing: CTO (+ Product Lead consult)
+# /src/lib/billing/           @fperez-tooxs
+# /src/app/api/v1/billing/    @fperez-tooxs
+#
+# # Compliance: CTO (asesor legal external review periódico)
+# /src/lib/compliance/        @fperez-tooxs
+# /src/app/api/compliance/    @fperez-tooxs
+#
+# # Tenant resolver: CTO
+# /src/lib/tenant/            @fperez-tooxs
+#
+# # Email: CTO + Product Lead (PL revisa copy)
+# /src/lib/email/             @fperez-tooxs @product-lead-poppins
+#
+# # Onboarding: Product Lead primario, CTO secundario (afecta UX flow)
+# /src/app/api/v1/onboarding/ @product-lead-poppins @fperez-tooxs
+#
+# # CI/infra: CTO
+# /.github/workflows/         @fperez-tooxs
+# /package.json               @fperez-tooxs
+# /vercel.json                @fperez-tooxs
+
+# ============================================================
+# TEMPLATE: poppins-api-buk/.github/CODEOWNERS
+# ============================================================
+
+# * @fperez-tooxs
+#
+# # BUK SDK: solo CTO (riesgo de regression alto)
+# /src/lib/buk-sdk/           @fperez-tooxs
+#
+# # Webhooks: CTO (security crítica HMAC)
+# /src/app/api/webhooks/      @fperez-tooxs
+# /src/lib/webhook/           @fperez-tooxs
+#
+# # Cron sync: CTO
+# /src/app/api/cron/          @fperez-tooxs
+#
+# # Service layer + mappers: CTO + cualquier agente puede tocar
+# /src/lib/service/           @fperez-tooxs
+#
+# # CI/infra
+# /.github/workflows/         @fperez-tooxs
+# /package.json               @fperez-tooxs
+# /vercel.json                @fperez-tooxs
+
+# ============================================================
+# TEMPLATE: poppins-web/.github/CODEOWNERS
+# ============================================================
+
+# * @product-lead-poppins
+#
+# # Auth client + middleware: ambos supervisores
+# /src/lib/auth/              @product-lead-poppins @fperez-tooxs
+# /src/middleware.ts          @product-lead-poppins @fperez-tooxs
+#
+# # api-client (generado): cualquier agente puede regenerar, CTO review
+# /src/lib/api-client/        @product-lead-poppins @fperez-tooxs
+#
+# # Design system: Product Lead
+# /packages/ui/               @product-lead-poppins
+# /src/styles/                @product-lead-poppins
+#
+# # Pages legal/compliance: ambos (afecta brand + legal)
+# /src/app/(legal)/           @product-lead-poppins @fperez-tooxs
+#
+# # Brand assets: Product Lead
+# /public/poppins-logo-*      @product-lead-poppins
+# /public/favicon*            @product-lead-poppins
+# /public/og-image.png        @product-lead-poppins
+#
+# # Analytics PostHog: Product Lead primario, CTO consulta
+# /src/lib/analytics/         @product-lead-poppins @fperez-tooxs
+#
+# # CI/infra: CTO
+# /.github/workflows/         @fperez-tooxs
+# /package.json               @fperez-tooxs
+# /vercel.json                @fperez-tooxs
+
+# ============================================================
+# Notas importantes
+# ============================================================
+#
+# 1. Los @teams de GitHub solo funcionan si tenés organization paid plan.
+#    Para personal accounts, usar @username directo.
+#
+# 2. Branch protection rules en GitHub UI deben tener "Require review from Code Owners" activado.
+#
+# 3. Cuando entre el Product Lead en Sprint 5, reemplazar @product-lead-poppins
+#    con el username real de GitHub.
+#
+# 4. ADR-007 detalla el workflow tier-based de approvals para contracts.
+#
+# 5. Para casos de "cross-lane touch" (raro), abrir PR con label `cross-lane-touch`
+#    y mencionar a ambos supervisores explícitamente.

@@ -6,6 +6,15 @@ node_modules/
 .env
 .env.local
 .env.*.local
+.env*.bak
+*.env.bak
+
+# Claude Code local state
+.claude/
+.mcp.json
+
+# Brand kit zip (folder unpacked is committed, zip is redundant)
+Poppins_Kit_Marca.zip
 
 # Build
 dist/
