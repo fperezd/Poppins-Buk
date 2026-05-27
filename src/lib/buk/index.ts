@@ -72,7 +72,10 @@ export async function getEmployees() {
         empleador: '',
       }));
     }
-  } catch { /* Supabase no disponible */ }
+  } catch (err) {
+    // POP-C0-06: NO silenciar. Loguear explícito para que Sentry lo capture.
+    console.error('[buk-service] Supabase no disponible, fallback a BUK SDK:', err);
+  }
 
   const sdk = getBukSDK();
   const response = await sdk.employees.listActive();
@@ -206,8 +209,9 @@ export async function getPayrollItems(employeeId?: number) {
         fechaPago: p.fecha_pago,
       }));
     }
-  } catch {
-    // Supabase no disponible
+  } catch (err) {
+    // POP-C0-06: NO silenciar. Loguear explícito para que Sentry lo capture.
+    console.error('[buk-service] Supabase no disponible para payroll, fallback a BUK SDK:', err);
   }
 
   // Fallback: BUK SDK
@@ -298,7 +302,10 @@ export async function getAbsences(employeeId?: number) {
         observaciones: a.observaciones ?? '',
       }));
     }
-  } catch { /* Supabase no disponible */ }
+  } catch (err) {
+    // POP-C0-06: NO silenciar. Loguear explícito para que Sentry lo capture.
+    console.error('[buk-service] Supabase no disponible, fallback a BUK SDK:', err);
+  }
 
   const sdk = getBukSDK();
   const response = await sdk.absences.listAbsences(
@@ -412,7 +419,10 @@ export async function getBenefits() {
         amount: b.monto,
       }));
     }
-  } catch { /* Supabase no disponible */ }
+  } catch (err) {
+    // POP-C0-06: NO silenciar. Loguear explícito para que Sentry lo capture.
+    console.error('[buk-service] Supabase no disponible, fallback a BUK SDK:', err);
+  }
 
   return [];
 }

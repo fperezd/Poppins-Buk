@@ -2,6 +2,20 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useMe } from '@/hooks/api';
+
+const ROL_LABELS: Record<string, string> = {
+  admin: 'Administrador',
+  empleador: 'Empleador',
+  colaboradora: 'Colaboradora',
+};
+
+function initialsFromName(name?: string | null, fallback?: string | null): string {
+  const source = (name && name.trim()) || (fallback && fallback.trim()) || '';
+  if (!source) return 'PP';
+  const parts = source.split(/\s+/);
+  return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase() || 'PP';
+}
 
 const NAV_ITEMS = [
   { section: 'Principal' },
@@ -25,6 +39,18 @@ const NAV_ITEMS = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { data: me, loading: meLoading } = useMe();
+
+  // POP-C0-07: usar useMe en lugar de hardcoded "Rene Aravena"
+  const displayName =
+    me?.buk_employee?.full_name ??
+    (me?.buk_employee?.first_name && me?.buk_employee?.surname
+      ? `${me.buk_employee.first_name} ${me.buk_employee.surname}`
+      : null) ??
+    me?.email?.split('@')[0] ??
+    'Usuario';
+  const rolLabel = me?.rol ? ROL_LABELS[me.rol] ?? me.rol : 'Cargando…';
+  const userInitials = initialsFromName(displayName, me?.email);
 
   return (
     <nav className="w-[220px] min-w-[220px] bg-[#1B1564] flex flex-col overflow-y-auto h-full">
@@ -73,15 +99,20 @@ export default function Sidebar() {
         })}
       </div>
 
-      {/* User */}
-      <Link href="/dashboard/perfil" className="mt-auto px-4 py-[14px] border-t border-white/[0.07] hover:bg-white/[0.05] transition rounded-lg mx-2 mb-2">
+      {/* User — POP-C0-07: dinámico via useMe */}
+      <Link
+        href="/dashboard/perfil"
+        className="mt-auto px-4 py-[14px] border-t border-white/[0.07] hover:bg-white/[0.05] transition rounded-lg mx-2 mb-2"
+      >
         <div className="flex items-center gap-[9px]">
           <div className="w-8 h-8 rounded-full bg-[#F0197A]/70 flex items-center justify-center text-xs font-bold text-white shrink-0">
-            RA
+            {meLoading ? '·' : userInitials}
           </div>
-          <div>
-            <div className="text-xs font-semibold text-white">Rene Aravena</div>
-            <div className="text-[10px] text-white/[0.38]">Administrador</div>
+          <div className="min-w-0">
+            <div className="text-xs font-semibold text-white truncate" title={displayName}>
+              {meLoading ? 'Cargando…' : displayName}
+            </div>
+            <div className="text-[10px] text-white/[0.38]">{rolLabel}</div>
           </div>
         </div>
       </Link>
