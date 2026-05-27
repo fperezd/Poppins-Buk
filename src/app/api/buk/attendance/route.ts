@@ -57,11 +57,11 @@ export async function GET(request: Request) {
     const sdk = getBukSDK();
 
     const [workingDaysRes, nonWorkedRes, employeesRes] = await Promise.all([
-      sdk.client.list('/working_days', {
+      sdk.raw().list('/working_days', {
         ...(startDate && { start_date: startDate }),
         ...(endDate && { end_date: endDate }),
       }),
-      sdk.client.list('/attendances/non-worked-hours', {
+      sdk.raw().list('/attendances/non-worked-hours', {
         ...(startDate && { start_date: startDate }),
         ...(endDate && { end_date: endDate }),
       }),

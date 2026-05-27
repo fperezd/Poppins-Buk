@@ -176,6 +176,7 @@ export interface CreateOvertimePayload {
   employee_id: number;
   date: string;
   hours: number;
+  type_id: number;
   observations?: string;
 }
 

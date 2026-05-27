@@ -5,7 +5,7 @@
  * Handlers delegate to the existing service layer (buk/index.ts).
  */
 
-import type { Command, CommandHandler } from './types';
+import type { CommandHandler, CommandDomain, CommandAction } from './types';
 import type {
   ListEmployeesPayload,
   GetEmployeePayload,
@@ -60,7 +60,7 @@ export const listAbsences: CommandHandler<ListAbsencesPayload> = async (command)
 
 export const createAbsence: CommandHandler<CreateAbsencePayload> = async (command) => {
   const service = await getService();
-  return service.createAbsence(command.payload);
+  return service.createAbsence(command.payload as unknown as Record<string, unknown>);
 };
 
 export const approveAbsence: CommandHandler<{ id: string }> = async (command) => {
@@ -90,17 +90,17 @@ export const rejectAbsence: CommandHandler<{ id: string }> = async (command) => 
 // ── Overtime Handlers ──
 
 export const listOvertime: CommandHandler<ListOvertimePayload> = async (command) => {
-  const service = await getService();
-  return service.getOvertime(
-    command.payload.employeeId,
-    command.payload.startDate,
-    command.payload.endDate
-  );
+  const sdk = await getSdk();
+  return sdk.overtime.listAll({
+    employee_id: command.payload.employeeId,
+    start_date: command.payload.startDate,
+    end_date: command.payload.endDate,
+  });
 };
 
 export const createOvertime: CommandHandler<CreateOvertimePayload> = async (command) => {
-  const service = await getService();
-  return service.createOvertime(command.payload);
+  const sdk = await getSdk();
+  return sdk.overtime.create(command.payload);
 };
 
 // ── Benefits Handlers ──
@@ -137,7 +137,7 @@ export const healthCheck: CommandHandler = async () => {
   const sdk = await getSdk();
   const start = Date.now();
   try {
-    await sdk.employees.listActive({ page: 1, per_page: 1 });
+    await sdk.employees.listActive(1, 1);
     return { ok: true, latencyMs: Date.now() - start };
   } catch (err) {
     return {
@@ -177,8 +177,8 @@ export const syncData: CommandHandler<{ entity: string; direction?: string }> = 
 
 export function registerAllHandlers(
   register: (
-    domain: string,
-    action: string,
+    domain: CommandDomain,
+    action: CommandAction,
     handler: CommandHandler<never, unknown>
   ) => void
 ): void {

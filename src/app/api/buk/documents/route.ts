@@ -83,25 +83,30 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const employeeId = searchParams.get('employeeId');
 
+    if (!employeeId) {
+      return NextResponse.json(
+        { error: 'employeeId required (BUK API no expone listado global de docs)' },
+        { status: 400 }
+      );
+    }
+
     const { getBukSDK } = await import('@/lib/buk-sdk');
     const sdk = getBukSDK();
 
-    let docs;
-    if (employeeId) {
-      docs = await sdk.documents.listAllByEmployee(Number(employeeId));
-    } else {
-      const response = await sdk.documents.list(undefined, 1, 100);
-      docs = response.data;
-    }
+    const docs = await sdk.documents.listEmployeeDocs(Number(employeeId));
 
     const mapped = docs.map((d) => ({
-      id: d.id,
-      empleadoId: d.employee_id,
-      tipo: d.document_type || 'otro',
-      nombre: d.name || d.file_name || 'Documento',
+      id: d.file_id,
+      empleadoId: Number(employeeId),
+      tipo: (d.document_type as string | undefined) || 'otro',
+      nombre:
+        (d.filename as string | undefined) ||
+        (d.name as string | undefined) ||
+        (d.file_name as string | undefined) ||
+        'Documento',
       fechaCreacion: d.created_at || '',
       estado: 'disponible',
-      url: d.file_url || null,
+      url: (d.file_url as string | undefined) || null,
     }));
 
     return NextResponse.json({ data: mapped });

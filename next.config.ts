@@ -1,12 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // TODO POP-C0-04: remover esta línea y arreglar errores de tipos resultantes.
-  // Mantener activo solo hasta Sprint 0 cutover. NO agregar más excepciones.
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-
   // POP-C0-08: Security headers obligatorios.
   // Defense in depth — los browsers refuerzan políticas por encima de la app.
   async headers() {

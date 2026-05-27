@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
     const { getBukSDK } = await import('@/lib/buk-sdk');
     const sdk = getBukSDK();
 
-    const response = await sdk.client.listAll<Record<string, unknown>>(
+    const response = await sdk.raw().listAll<Record<string, unknown>>(
       `/employees/${employeeId}/family_members`
     );
 
