@@ -15,8 +15,6 @@
  *   // Al llamar a BUK SDK o servicios externos, pasar como header.
  */
 
-import { randomUUID } from 'crypto';
-
 export const CORRELATION_HEADER = 'x-request-id';
 
 /**
@@ -34,7 +32,7 @@ export function getOrCreateCorrelationId(req: { headers: Headers | { get(name: s
  * Más corto que UUID v4 pero suficientemente único para nuestras necesidades.
  */
 export function generateCorrelationId(): string {
-  const random = randomUUID().slice(0, 8);
+  const random = globalThis.crypto.randomUUID().slice(0, 8);
   const ts = Date.now().toString(36);
   return `req_${random}_${ts}`;
 }
