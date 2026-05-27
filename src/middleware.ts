@@ -103,7 +103,13 @@ export async function middleware(req: NextRequest) {
 
   // ── POP-C0-01: Hardening de rutas legacy /api/buk/* (no v1) ──
   // Solo admin las puede consumir. Cierre del agujero "colaboradora lee toda la nómina".
-  if (isLegacyBukRoute(pathname)) {
+  //
+  // Escape valve: LEGACY_BUK_ADMIN_ONLY=false desactiva el bloqueo temporalmente.
+  // Útil mientras se migran las 5 páginas del dashboard a /v1/* (story POP-C1-07).
+  // Default = true para seguridad.
+  const LEGACY_RESTRICT_ENABLED = process.env.LEGACY_BUK_ADMIN_ONLY !== 'false';
+
+  if (LEGACY_RESTRICT_ENABLED && isLegacyBukRoute(pathname)) {
     // Lookup rol en user_profiles
     const { data: profile } = await supabase
       .from('user_profiles')
@@ -124,6 +130,7 @@ export async function middleware(req: NextRequest) {
             message:
               'Endpoint legacy solo accesible para admin. Migrá tu cliente a /api/buk/v1/* que tiene authz granular.',
             ticket: 'POP-C0-01',
+            hint: 'Operadores: pueden setear LEGACY_BUK_ADMIN_ONLY=false temporalmente mientras se migran las páginas dashboard a /v1/. Documentado en HANDOFF_SESSION_2.md.',
           },
         },
         { status: 403, headers: { [CORRELATION_HEADER]: cid } }
