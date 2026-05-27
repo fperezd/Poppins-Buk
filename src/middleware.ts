@@ -22,6 +22,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import * as Sentry from '@sentry/nextjs';
 import { CORRELATION_HEADER, getOrCreateCorrelationId } from '@/lib/observability/correlation-id';
 
 const PUBLIC_PATHS = [
@@ -57,6 +58,11 @@ export async function middleware(req: NextRequest) {
   // Si viene de upstream, lo respetamos. Sino, generamos uno.
   const cid = getOrCreateCorrelationId(req);
   response.headers.set(CORRELATION_HEADER, cid);
+
+  // POP-C0-05: anexa cid al isolation scope de Sentry para que los eventos
+  // posteriores del request lo lleven como tag (Sentry usa AsyncLocalStorage
+  // para mantener este scope por-request).
+  Sentry.setTag('correlation_id', cid);
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

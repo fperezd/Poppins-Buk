@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   // POP-C0-08: Security headers obligatorios.
@@ -40,5 +41,26 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// POP-C0-05: Sentry wrap.
+// Build-time options. Si SENTRY_DSN no esta definido, Sentry queda no-op
+// pero withSentryConfig sigue corriendo (modifica el bundler). Es safe.
+export default withSentryConfig(nextConfig, {
+  // Identificadores del proyecto Sentry — opcionales hasta que la cuenta
+  // exista. Si faltan, Sentry CLI saltea el upload de sourcemaps.
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
 
+  // No spam durante build local; solo log en CI.
+  silent: !process.env.CI,
+
+  // Sourcemaps: cuando exista cuenta + SENTRY_AUTH_TOKEN, configurar para
+  // subir y eliminar de build output (privacidad B2C). Por ahora, default.
+  sourcemaps: {
+    disable: !process.env.SENTRY_AUTH_TOKEN,
+    deleteSourcemapsAfterUpload: true,
+  },
+
+  // Tunnel route — bypass de adblockers. Crea /monitoring/* en la app.
+  // Habilitar cuando exista DSN real. Tunnel mantiene calls same-origin.
+  // tunnelRoute: "/monitoring",
+});
