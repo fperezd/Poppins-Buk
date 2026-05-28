@@ -1,5 +1,27 @@
 -- ================================================================
--- Poppins-Buk — Migración 0004: Multi-tenancy desde día 1
+-- ⚠️ DRAFT — NO APLICAR TAL CUAL  (revisado 2026-05-27)
+--
+-- Esta migración fue diseñada asumiendo modelo BUK per-tenant (cada
+-- familia trae su propio convenio). Decisión confirmada 2026-05-27:
+-- Tooxs tiene UN solo convenio BUK; todas las familias se cuelgan
+-- del mismo. Por tanto:
+--
+--   - La tabla `tenants` con buk_api_token_encrypted NO aplica.
+--   - El "tenant_id" lógico = `buk_area_id` (integer, ya existe en
+--     user_profiles de 0001). No se necesita uuid nuevo.
+--   - webhook_events ya está en migración 0005 (no duplicar).
+--   - RLS por tenant ya funciona via can_access_area(buk_area_id)
+--     en las policies de 0002.
+--
+-- Pendiente para Sprint 1 (migración 0007 o similar):
+--   - consent_log (Ley 19.628) — sí salvar esta parte
+--   - audit triggers en tareas/user_profiles/solicitudes_salud
+--   - reforzar policies para nuevas tablas si las agregamos
+--
+-- DB actual está en 0003 + 0005 + 0006. Ver HANDOFF_SESSION_2.md.
+-- ================================================================
+
+-- Poppins-Buk — Migración 0004: Multi-tenancy desde día 1 (DRAFT ORIGINAL ABAJO)
 --
 -- Aplica en Sprint 2 (Sprint 1-2 C0 Security).
 -- Owner: agent-back en poppins-api-id (Back-A en Sprint 6+).
