@@ -89,8 +89,10 @@ export const SkeletonTable: React.FC<SkeletonTableProps> = ({
   );
 };
 
-export default {
+const Skeleton = {
   SkeletonLine,
   SkeletonCard,
   SkeletonTable,
 };
+
+export default Skeleton;

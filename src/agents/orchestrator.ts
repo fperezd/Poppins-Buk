@@ -113,7 +113,6 @@ class Orchestrator {
 
   /** Procesa una solicitud al CEO — punto de entrada principal */
   processCompanyRequest(request: string): AgentResponse & { teamResponses: AgentResponse[] } {
-    const ceo = registry.get('ceo')!;
     const relevantAgents = this.route(request);
 
     const teamResponses = relevantAgents

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useColaboradoras, type Empleado } from '@/hooks/api';
 
 function StatusBadge({ active }: { active?: boolean }) {
@@ -45,12 +46,12 @@ export default function ColaboradorasPage() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-900">Colaboradoras</h1>
-        <a
+        <Link
           href="/dashboard/colaboradoras/nuevo"
           className="px-4 py-2 bg-[#F0197A] text-white text-sm font-semibold rounded-lg hover:bg-[#d4166c] transition inline-block"
         >
           + Nueva Colaboradora
-        </a>
+        </Link>
       </div>
 
       <div className="flex items-center gap-2 bg-white rounded-lg px-3 h-10 shadow-sm border border-gray-100 max-w-sm">

@@ -9,7 +9,6 @@
 
 import { getBukSDK } from '@/lib/buk-sdk';
 import type { BukEmployeeSummary } from '@/lib/buk-sdk/types/employees';
-import type { BukPayrollDetail, BukPayrollLine } from '@/lib/buk-sdk/modules/payroll';
 import { mapBukEmployees, mapBukPayrollItems, mapBukAbsences } from './mappers';
 import { MOCK_EMPLOYEES, MOCK_PAYROLL_ITEMS, MOCK_ABSENCES, MOCK_BENEFITS } from './mock-data';
 import type { Employee, Payroll, Absence, Benefit } from '@/types/database';
@@ -72,7 +71,10 @@ export async function getEmployees() {
         empleador: '',
       }));
     }
-  } catch { /* Supabase no disponible */ }
+  } catch (err) {
+    // POP-C0-06: NO silenciar. Loguear explícito para que Sentry lo capture.
+    console.error('[buk-service] Supabase no disponible, fallback a BUK SDK:', err);
+  }
 
   const sdk = getBukSDK();
   const response = await sdk.employees.listActive();
@@ -107,54 +109,6 @@ export async function getEmployee(id: number) {
     iniciales: `${(emp.first_name || ' ')[0]}${(emp.last_name || ' ')[0]}`.toUpperCase(),
     color: `hsl(${((emp.first_name || '').charCodeAt(0) * 137) % 360}, 60%, 45%)`,
     empleador: emp.current_job?.company?.name || '',
-  };
-}
-
-// Helpers para mapear lines_settlement -> campos Poppins
-function sumLines(
-  lines: BukPayrollLine[],
-  predicate: (l: BukPayrollLine) => boolean
-): number {
-  return lines.filter(predicate).reduce((acc, l) => acc + (Number(l.amount) || 0), 0);
-}
-
-function mapBukPayrollDetailToPoppins(d: BukPayrollDetail) {
-  const lines = d.lines_settlement || [];
-  const lc = (s: unknown) => String(s || '').toLowerCase();
-
-  const sueldoBase = sumLines(lines, l => lc(l.name).includes('sueldo base') || lc(l.income_type) === 'remuneracion_fija');
-  const horasExtra = sumLines(lines, l => lc(l.name).includes('hora extra') || lc(l.income_type).includes('overtime'));
-  const bonos = sumLines(lines, l => l.type === 'haber' && lc(l.income_type).includes('bono'));
-  const gratificacion = sumLines(lines, l => lc(l.name).includes('gratific'));
-
-  const descSalud = sumLines(lines, l => l.type === 'descuento' && (lc(l.name).includes('salud') || lc(l.name).includes('isapre') || lc(l.name).includes('fonasa')));
-  const descAfp = sumLines(lines, l => l.type === 'descuento' && lc(l.name).includes('afp'));
-  const descCesantia = sumLines(lines, l => l.type === 'descuento' && lc(l.name).includes('cesant'));
-  const impuestoUnico = sumLines(lines, l => l.type === 'descuento' && (lc(l.name).includes('impuesto') || lc(l.name).includes('iuss')));
-
-  const totalHaberes = d.income_gross || sumLines(lines, l => l.type === 'haber');
-  const totalDescuentos = (d.total_legal_discounts || 0) + (d.total_other_discounts || 0);
-  const otrosDescuentos = Math.max(0, totalDescuentos - descSalud - descAfp - descCesantia - impuestoUnico);
-
-  return {
-    id: d.liquidacion_id,
-    empleadoId: d.employee_id,
-    periodo: `${d.year}-${String(d.month).padStart(2, '0')}`,
-    sueldoBruto: totalHaberes,
-    sueldoBase,
-    horasExtra,
-    bonos,
-    gratificacion,
-    descSalud,
-    descAfp,
-    descCesantia,
-    impuestoUnico,
-    otrosDescuentos,
-    totalHaberes,
-    totalDescuentos,
-    liquido: d.liquid_reach ?? d.income_net,
-    estado: d.closed ? 'Pagado' : 'Pendiente',
-    fechaPago: null as string | null,
   };
 }
 
@@ -206,8 +160,9 @@ export async function getPayrollItems(employeeId?: number) {
         fechaPago: p.fecha_pago,
       }));
     }
-  } catch {
-    // Supabase no disponible
+  } catch (err) {
+    // POP-C0-06: NO silenciar. Loguear explícito para que Sentry lo capture.
+    console.error('[buk-service] Supabase no disponible para payroll, fallback a BUK SDK:', err);
   }
 
   // Fallback: BUK SDK
@@ -298,7 +253,10 @@ export async function getAbsences(employeeId?: number) {
         observaciones: a.observaciones ?? '',
       }));
     }
-  } catch { /* Supabase no disponible */ }
+  } catch (err) {
+    // POP-C0-06: NO silenciar. Loguear explícito para que Sentry lo capture.
+    console.error('[buk-service] Supabase no disponible, fallback a BUK SDK:', err);
+  }
 
   const sdk = getBukSDK();
   const response = await sdk.absences.listAbsences(
@@ -412,7 +370,10 @@ export async function getBenefits() {
         amount: b.monto,
       }));
     }
-  } catch { /* Supabase no disponible */ }
+  } catch (err) {
+    // POP-C0-06: NO silenciar. Loguear explícito para que Sentry lo capture.
+    console.error('[buk-service] Supabase no disponible, fallback a BUK SDK:', err);
+  }
 
   return [];
 }
