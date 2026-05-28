@@ -52,11 +52,17 @@ function isLegacyBukRoute(pathname: string): boolean {
 }
 
 export async function middleware(req: NextRequest) {
-  let response = NextResponse.next({ request: req });
-
   // ── POP-C0-15: Correlation-ID ──
   // Si viene de upstream, lo respetamos. Sino, generamos uno.
   const cid = getOrCreateCorrelationId(req);
+
+  // Propagar cid a los route handlers via request headers (no solo response).
+  // Sin esto, un handler que llame a getOrCreateCorrelationId(req) genera un
+  // cid distinto al que setea el middleware, rompiendo la traza.
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set(CORRELATION_HEADER, cid);
+
+  let response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set(CORRELATION_HEADER, cid);
 
   // POP-C0-05: anexa cid al isolation scope de Sentry para que los eventos
@@ -74,7 +80,7 @@ export async function middleware(req: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value));
-          response = NextResponse.next({ request: req });
+          response = NextResponse.next({ request: { headers: requestHeaders } });
           response.headers.set(CORRELATION_HEADER, cid);
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options)
