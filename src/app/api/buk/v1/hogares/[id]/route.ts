@@ -27,7 +27,7 @@ export const GET = handle(async (_req: NextRequest, ctx: RouteContext) => {
 });
 
 export const PATCH = handle(async (req: NextRequest, ctx: RouteContext) => {
-  const auth = await requireScope(['admin', 'empleador']);
+  const auth = await requireScope(['admin']);
   if (!auth.ok) return auth.error;
   const rawParams = await ctx.params;
   const parsedParams = parseParams(rawParams, idParamSchema);

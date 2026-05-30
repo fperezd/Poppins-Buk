@@ -5,7 +5,7 @@ import { requireScope } from '@/lib/api/auth';
 import { ListVacacionesQuery, CreateVacacionBody, DeleteVacacionQuery } from '@/lib/api/schemas/vacaciones';
 
 export const GET = handle(async (req: NextRequest) => {
-  const auth = await requireScope();
+  const auth = await requireScope(['admin']);
   if (!auth.ok) return auth.error;
   const parsed = parseQuery(req, ListVacacionesQuery);
   if (!parsed.ok) return parsed.error;
@@ -21,7 +21,7 @@ export const GET = handle(async (req: NextRequest) => {
 });
 
 export const POST = handle(async (req: NextRequest) => {
-  const auth = await requireScope(['admin', 'empleador']);
+  const auth = await requireScope(['admin']);
   if (!auth.ok) return auth.error;
   const parsed = await parseBody(req, CreateVacacionBody);
   if (!parsed.ok) return parsed.error;
@@ -31,7 +31,7 @@ export const POST = handle(async (req: NextRequest) => {
 });
 
 export const DELETE = handle(async (req: NextRequest) => {
-  const auth = await requireScope(['admin', 'empleador']);
+  const auth = await requireScope(['admin']);
   if (!auth.ok) return auth.error;
   const parsed = parseQuery(req, DeleteVacacionQuery);
   if (!parsed.ok) return parsed.error;

@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { handle, fail, parseParams } from '@/lib/api/utils';
+import { requireScope } from '@/lib/api/auth';
 import { PdfParamsSchema } from '@/lib/api/schemas/liquidaciones';
 
 interface RouteContext {
@@ -16,6 +17,9 @@ interface RouteContext {
 }
 
 export const GET = handle(async (_req: NextRequest, ctx: RouteContext) => {
+  // POP-C0-01 (gap /v1): PDF de liquidación (PII crítico). Admin-only hasta POP-C0-12.
+  const auth = await requireScope(['admin']);
+  if (!auth.ok) return auth.error;
   const raw = await ctx.params;
   const parsed = parseParams(raw, PdfParamsSchema);
   if (!parsed.ok) return parsed.error;

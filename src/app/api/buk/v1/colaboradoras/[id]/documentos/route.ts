@@ -8,7 +8,7 @@ interface RouteContext { params: Promise<{ id: string }>; }
 
 export const GET = handle(async (_req: NextRequest, ctx: RouteContext) => {
   // Los documentos de una colaboradora son data sensible: exigir sesión válida.
-  const auth = await requireScope();
+  const auth = await requireScope(['admin']);
   if (!auth.ok) return auth.error;
   const raw = await ctx.params;
   const parsed = parseParams(raw, idParamSchema);
@@ -22,7 +22,7 @@ export const POST = handle(async (req: NextRequest, ctx: RouteContext) => {
   // POP-C0-01 (gap): subir un documento a una colaboradora es acción de gestión;
   // nunca accesible a colaboradora. Sin este guard cualquier sesión podía subir
   // documentos a cualquier empleado por id. Filtrado por área = follow-up.
-  const auth = await requireScope(['admin', 'empleador']);
+  const auth = await requireScope(['admin']);
   if (!auth.ok) return auth.error;
   const raw = await ctx.params;
   const parsedParams = parseParams(raw, idParamSchema);

@@ -5,7 +5,7 @@ import { requireScope } from '@/lib/api/auth';
 import { ListHorasExtrasQuery, CreateHorasExtrasBody, UpdateHorasExtrasBody } from '@/lib/api/schemas/horas-extras';
 
 export const GET = handle(async (req: NextRequest) => {
-  const auth = await requireScope();
+  const auth = await requireScope(['admin']);
   if (!auth.ok) return auth.error;
   const parsed = parseQuery(req, ListHorasExtrasQuery);
   if (!parsed.ok) return parsed.error;
@@ -15,7 +15,7 @@ export const GET = handle(async (req: NextRequest) => {
 });
 
 export const POST = handle(async (req: NextRequest) => {
-  const auth = await requireScope(['admin', 'empleador']);
+  const auth = await requireScope(['admin']);
   if (!auth.ok) return auth.error;
   const parsed = await parseBody(req, CreateHorasExtrasBody);
   if (!parsed.ok) return parsed.error;
@@ -25,7 +25,7 @@ export const POST = handle(async (req: NextRequest) => {
 });
 
 export const PUT = handle(async (req: NextRequest) => {
-  const auth = await requireScope(['admin', 'empleador']);
+  const auth = await requireScope(['admin']);
   if (!auth.ok) return auth.error;
   const parsed = await parseBody(req, UpdateHorasExtrasBody);
   if (!parsed.ok) return parsed.error;

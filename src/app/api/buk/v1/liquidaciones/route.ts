@@ -1,9 +1,13 @@
 import { NextRequest } from 'next/server';
 import { getBukSDK } from '@/lib/buk-sdk';
 import { handle, ok, parseQuery } from '@/lib/api/utils';
+import { requireScope } from '@/lib/api/auth';
 import { ListLiquidacionesQuery } from '@/lib/api/schemas/liquidaciones';
 
 export const GET = handle(async (req: NextRequest) => {
+  // POP-C0-01 (gap /v1): nómina sin filtrado por área. Admin-only hasta POP-C0-12.
+  const auth = await requireScope(['admin']);
+  if (!auth.ok) return auth.error;
   const parsed = parseQuery(req, ListLiquidacionesQuery);
   if (!parsed.ok) return parsed.error;
   const sdk = getBukSDK();

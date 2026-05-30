@@ -10,7 +10,7 @@ export const POST = handle(async (req: NextRequest, ctx: RouteContext) => {
   // POP-C0-01 (gap): terminar un bono es acción de gestión de nómina; nunca
   // accesible a colaboradora. Sin este guard cualquier sesión podía terminar
   // cualquier bono por id. Filtrado fino por área = follow-up (multi-tenancy).
-  const auth = await requireScope(['admin', 'empleador']);
+  const auth = await requireScope(['admin']);
   if (!auth.ok) return auth.error;
   const raw = await ctx.params;
   const parsedParams = parseParams(raw, idParamSchema);

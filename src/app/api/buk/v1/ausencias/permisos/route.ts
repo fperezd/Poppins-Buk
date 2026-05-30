@@ -5,7 +5,7 @@ import { requireScope } from '@/lib/api/auth';
 import { ListAusenciasQuery, CreatePermisoBody } from '@/lib/api/schemas/ausencias';
 
 export const GET = handle(async (req: NextRequest) => {
-  const auth = await requireScope();
+  const auth = await requireScope(['admin']);
   if (!auth.ok) return auth.error;
   const parsed = parseQuery(req, ListAusenciasQuery);
   if (!parsed.ok) return parsed.error;
@@ -15,7 +15,7 @@ export const GET = handle(async (req: NextRequest) => {
 });
 
 export const POST = handle(async (req: NextRequest) => {
-  const auth = await requireScope(['admin', 'empleador']);
+  const auth = await requireScope(['admin']);
   if (!auth.ok) return auth.error;
   const parsed = await parseBody(req, CreatePermisoBody);
   if (!parsed.ok) return parsed.error;

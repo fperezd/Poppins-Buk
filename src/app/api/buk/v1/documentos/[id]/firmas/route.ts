@@ -7,7 +7,7 @@ import { ProcessSignatureBody } from '@/lib/api/schemas/documentos';
 interface RouteContext { params: Promise<{ id: string }>; }
 
 export const POST = handle(async (req: NextRequest, ctx: RouteContext) => {
-  const auth = await requireScope(['admin', 'empleador']);
+  const auth = await requireScope(['admin']);
   if (!auth.ok) return auth.error;
   const raw = await ctx.params;
   const parsedParams = parseParams(raw, idParamSchema);
