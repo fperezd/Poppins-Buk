@@ -1,9 +1,12 @@
 import { NextRequest } from 'next/server';
 import { getBukSDK } from '@/lib/buk-sdk';
 import { handle, ok, parseQuery, parseBody } from '@/lib/api/utils';
+import { requireScope } from '@/lib/api/auth';
 import { ListVacacionesQuery, CreateVacacionBody, DeleteVacacionQuery } from '@/lib/api/schemas/vacaciones';
 
 export const GET = handle(async (req: NextRequest) => {
+  const auth = await requireScope();
+  if (!auth.ok) return auth.error;
   const parsed = parseQuery(req, ListVacacionesQuery);
   if (!parsed.ok) return parsed.error;
   const sdk = getBukSDK();
@@ -18,6 +21,8 @@ export const GET = handle(async (req: NextRequest) => {
 });
 
 export const POST = handle(async (req: NextRequest) => {
+  const auth = await requireScope(['admin', 'empleador']);
+  if (!auth.ok) return auth.error;
   const parsed = await parseBody(req, CreateVacacionBody);
   if (!parsed.ok) return parsed.error;
   const sdk = getBukSDK();
@@ -26,6 +31,8 @@ export const POST = handle(async (req: NextRequest) => {
 });
 
 export const DELETE = handle(async (req: NextRequest) => {
+  const auth = await requireScope(['admin', 'empleador']);
+  if (!auth.ok) return auth.error;
   const parsed = parseQuery(req, DeleteVacacionQuery);
   if (!parsed.ok) return parsed.error;
   // Buk DELETE /vacations acepta employee_id+start_date como query

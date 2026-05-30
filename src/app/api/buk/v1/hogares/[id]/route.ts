@@ -8,6 +8,7 @@
 import { NextRequest } from 'next/server';
 import { getBukSDK } from '@/lib/buk-sdk';
 import { handle, ok, parseParams, parseBody, idParamSchema } from '@/lib/api/utils';
+import { requireScope } from '@/lib/api/auth';
 import { UpdateHogarBody } from '@/lib/api/schemas/hogares';
 
 interface RouteContext {
@@ -15,6 +16,8 @@ interface RouteContext {
 }
 
 export const GET = handle(async (_req: NextRequest, ctx: RouteContext) => {
+  const auth = await requireScope();
+  if (!auth.ok) return auth.error;
   const rawParams = await ctx.params;
   const parsed = parseParams(rawParams, idParamSchema);
   if (!parsed.ok) return parsed.error;
@@ -24,6 +27,8 @@ export const GET = handle(async (_req: NextRequest, ctx: RouteContext) => {
 });
 
 export const PATCH = handle(async (req: NextRequest, ctx: RouteContext) => {
+  const auth = await requireScope(['admin', 'empleador']);
+  if (!auth.ok) return auth.error;
   const rawParams = await ctx.params;
   const parsedParams = parseParams(rawParams, idParamSchema);
   if (!parsedParams.ok) return parsedParams.error;
