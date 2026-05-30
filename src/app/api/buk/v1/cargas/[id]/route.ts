@@ -7,7 +7,7 @@ import { UpdateCargaBody } from '@/lib/api/schemas/cargas';
 interface RouteContext { params: Promise<{ id: string }>; }
 
 export const PATCH = handle(async (req: NextRequest, ctx: RouteContext) => {
-  const auth = await requireScope(['admin', 'empleador']);
+  const auth = await requireScope(['admin']);
   if (!auth.ok) return auth.error;
   const raw = await ctx.params;
   const parsedParams = parseParams(raw, idParamSchema);

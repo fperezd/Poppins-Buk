@@ -12,8 +12,9 @@ divida el repo, las versiones de `docs/` reemplazan a estas.
 |---|------|----------------------|------|
 | 06 | `no-secrets.test.ts` | Ningún secret hardcodeado en el repo | POP-C0-03 |
 | 08 | `no-ts-suppressions.test.ts` | `@ts-ignore`/`@ts-expect-error` sólo con ticket POP-XXX | POP-C0-04 |
-| 09 | `handlers-use-zod.test.ts` | Todo handler POST/PUT/PATCH valida body con Zod | POP-C0-01 / R9 |
-| 02 | `mutations-have-authz.test.ts` | Toda mutación está autorizada (requireScope inline o guard de middleware) | POP-C0-01 |
+| 09 | `handlers-use-zod.test.ts` | Todo handler que lee body lo valida con Zod | POP-C0-01 / R9 |
+| 02 | `mutations-have-authz.test.ts` | Toda **mutación** está autorizada (requireScope inline o guard de middleware) | POP-C0-01 |
+| 02b | `routes-require-auth.test.ts` | **Todo** route handler (incl. GET) está autorizado — cierra fugas de lectura de PII | POP-C0-01 |
 
 ## Notas de adaptación
 

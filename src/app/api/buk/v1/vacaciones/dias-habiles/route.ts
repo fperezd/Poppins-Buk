@@ -1,9 +1,12 @@
 import { NextRequest } from 'next/server';
 import { getBukSDK } from '@/lib/buk-sdk';
 import { handle, ok, parseQuery } from '@/lib/api/utils';
+import { requireScope } from '@/lib/api/auth';
 import { DiasHabilesQuery } from '@/lib/api/schemas/vacaciones';
 
 export const GET = handle(async (req: NextRequest) => {
+  const auth = await requireScope();
+  if (!auth.ok) return auth.error;
   const parsed = parseQuery(req, DiasHabilesQuery);
   if (!parsed.ok) return parsed.error;
   const sdk = getBukSDK();
